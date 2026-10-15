@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCF — Integrated FIDE Rating Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#15120d;
+    --ink-soft:#3a352c;
+    --cream:#f4efe2;
+    --cream-2:#ece4d1;
+    --paper:#fbf8f1;
+    --felt:#1e4b39;
+    --felt-2:#153729;
+    --brass:#b9873f;
+    --brass-light:#e3b872;
+    --claret:#8c2f39;
+    --line: rgba(21,18,13,0.14);
+    --line-soft: rgba(21,18,13,0.08);
+    --shadow: 0 20px 45px -20px rgba(21,18,13,0.35);
+    --radius: 3px;
+    --serif: 'Fraunces', serif;
+    --sans: 'Inter', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;min-height:100vh;}
+  body{
+    background: var(--ink);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection{ background: var(--brass-light); color: var(--ink); }
+
+  /* Views */
+  .view{ display:none; min-height:100vh; }
+  .view.active{ display:grid; }
+  .dash-view.active{ grid-template-columns: 280px 1fr; }
+  .wizard-view.active{ grid-template-columns: 340px 1fr; }
+
+  /* Navigation Rail */
+  .rail{
+    background: radial-gradient(120% 100% at 0% 0%, #1c1812 0%, var(--ink) 55%);
+    color: var(--cream);
+    padding: 34px 28px 24px;
+    position: sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    border-right: 1px solid rgba(244,239,226,0.08);
+  }
+  .crest{ display:flex; align-items:center; gap:12px; margin-bottom: 26px; }
+  .crest-mark{
+    width:38px;height:38px;flex:none;
+    border:1.5px solid var(--brass-light);
+    display:grid;place-items:center;
+    font-family:var(--serif);
+    font-weight:600; font-size:15px;
+    color:var(--brass-light);
+    transform: rotate(45deg);
+  }
+  .crest-mark span{ transform: rotate(-45deg); }
+  .crest-text .eyebrow{
+    font-family: var(--mono); font-size:10px; letter-spacing:.14em;
+    text-transform:uppercase; color: var(--brass-light); margin:0 0 3px;
+  }
+  .crest-text h1{
+    font-family: var(--serif); font-size: 17px; font-weight:600;
+    margin:0; letter-spacing:.01em; line-height:1.2; color:var(--cream);
+  }
+
+  /* Chessboard Progress Indicator */
+  .rail-lede{ font-size:13px; line-height:1.5; color:rgba(244,239,226,0.65); margin:0 0 20px; padding-bottom:16px; border-bottom:1px solid rgba(244,239,226,0.1); }
+  .board-progress{ margin-bottom:20px; }
+  .board-progress .label{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:rgba(244,239,226,0.45); margin:0 0 10px; }
+  .rank{ display:grid; grid-template-columns:repeat(8,1fr); border:1px solid rgba(244,239,226,0.18); }
+  .sq{
+    aspect-ratio:1; display:grid; place-items:center; font-family:var(--mono); font-size:12px;
+    color:rgba(244,239,226,0.35); background:transparent; border:none; border-right:1px solid rgba(244,239,226,0.14); cursor:pointer;
+  }
+  .sq.done{ background:var(--felt); color:var(--cream); }
+  .sq.current{ background:var(--brass); color:var(--ink); font-weight:600; }
+  .files{ display:grid; grid-template-columns:repeat(8,1fr); margin-top:6px; }
+  .files span{ text-align:center; font-family:var(--mono); font-size:9.5px; color:rgba(244,239,226,0.3); }
+
+  /* Live Dossier Card */
+  .dossier{ margin-top:auto; background:var(--paper); color:var(--ink); padding:16px; border-radius:var(--radius); box-shadow:var(--shadow); }
+  .dossier .tag{ font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--claret); margin:0 0 8px; }
+  .dossier h2{ font-family:var(--serif); font-size:16px; margin:0 0 10px; color:var(--ink); }
+  .dossier dl{ margin:0; display:grid; gap:6px; }
+  .dossier .row{ display:flex; justify-content:space-between; font-size:11.5px; border-top:1px dashed rgba(21,18,13,0.18); padding-top:6px; }
+  .dossier dt{ color:var(--ink-soft); font-weight:500; }
+  .dossier dd{ margin:0; font-family:var(--mono); font-size:11px; text-align:right; color:var(--ink); }
+
+  /* Form & Stage Area */
+  .stage{ background:var(--cream); padding:44px 52px; overflow-y:auto; }
+  .stage-inner{ max-width:640px; margin:0 auto; }
+  .step-head{ margin-bottom:24px; }
+  .step-eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--claret); margin:0 0 8px; display:flex; align-items:center; gap:10px; }
+  .step-eyebrow::after{ content:""; height:1px; flex:1; background:var(--line); }
+  .step-head h2{ font-family:var(--serif); font-size:27px; font-weight:600; margin:0 0 6px; color:var(--ink); }
+  .step-head p{ font-size:13.5px; line-height:1.55; color:var(--ink-soft); margin:0; }
+  .step{ display:none; animation:rise .3s ease; }
+  .step.active{ display:block; }
+  @keyframes rise{ from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform:none; } }
+
+  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px 20px; }
+  .field{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+  .field.full{ grid-column:1 / -1; }
+  label{ font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); }
+  input[type=text], input[type=number], input[type=date], input[type=email], select, textarea{
+    font-family: var(--sans); font-size: 14px; color: var(--ink); background: var(--paper);
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; width:100%;
+    transition: border-color .18s ease, box-shadow .18s ease;
+  }
+  input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--felt); box-shadow: 0 0 0 3px rgba(30,75,57,0.14); }
+
+  /* Combo Picker for Time Control */
+  .combo{ position:relative; }
+  .combo-input{ cursor:pointer; }
+  .combo-panel{ position:absolute; z-index:20; top:calc(100% + 4px); left:0; right:0; background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); max-height:260px; overflow-y:auto; display:none; }
+  .combo-panel.open{ display:block; }
+  .combo-search{ padding:8px; border-bottom:1px solid var(--line-soft); position:sticky; top:0; background:var(--paper); }
+  .combo-group-label{ font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--brass); background:rgba(185,135,63,0.08); padding:6px 12px; position:sticky; top:38px; }
+  .combo-opt{ padding:8px 12px; font-size:13px; cursor:pointer; border-bottom:1px solid var(--line-soft); }
+  .combo-opt:hover{ background:rgba(30,75,57,0.08); color:var(--ink); }
+
+  /* Fee Box */
+  .fee-box{ background:linear-gradient(155deg, rgba(185,135,63,0.1), rgba(185,135,63,0.03)); border:1px solid rgba(185,135,63,0.4); border-radius:var(--radius); padding:16px 18px; }
+  .fee-box-label{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--brass); margin:0 0 10px; }
+  .fee-row{ display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+  .fee-total{ display:flex; justify-content:space-between; align-items:baseline; margin-top:10px; padding-top:10px; border-top:1px dashed rgba(185,135,63,0.45); font-family:var(--serif); font-size:20px; font-weight:600; color:var(--ink); }
+
+  /* Buttons */
+  .actions{ display:flex; justify-content:space-between; align-items:center; margin-top:32px; padding-top:18px; border-top:1px solid var(--line); }
+  .btn{ font-family:var(--sans); font-weight:600; font-size:13.5px; padding:10px 18px; border-radius:var(--radius); border:1px solid transparent; cursor:pointer; }
+  .btn-primary{ background:var(--felt); color:var(--cream); }
+  .btn-primary:hover{ background:var(--felt-2); }
+  .btn-ghost{ background:transparent; color:var(--ink-soft); border-color:var(--line); }
+  .btn-gold{ background:var(--brass); color:var(--ink); }
+  .btn-logout{ background:transparent; border:none; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:rgba(244,239,226,0.55); cursor:pointer; padding:0; text-decoration:underline; }
+
+  /* Dashboard Nav & Tables */
+  .nav-label{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:rgba(244,239,226,0.45); margin:12px 0 8px; }
+  .nav-list{ display:flex; flex-direction:column; gap:4px; margin-bottom:20px; }
+  .nav-item{ display:flex; justify-content:space-between; align-items:center; background:transparent; border:none; color:rgba(244,239,226,0.7); padding:9px 12px; border-radius:var(--radius); font-family:var(--sans); font-size:13px; cursor:pointer; text-align:left; }
+  .nav-item:hover{ background:rgba(244,239,226,0.06); color:var(--cream); }
+  .nav-item.active{ background:var(--felt); color:var(--cream); font-weight:500; }
+  .badge{ font-family:var(--mono); font-size:10.5px; background:rgba(244,239,226,0.12); padding:2px 7px; border-radius:10px; }
+
+  .table-wrap{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+  table{ width:100%; border-collapse:collapse; text-align:left; font-size:13px; }
+  th{ font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); background:rgba(21,18,13,0.035); padding:12px 16px; border-bottom:1px solid var(--line); }
+  td{ padding:14px 16px; color:var(--ink); border-bottom:1px solid var(--line-soft); vertical-align:middle; }
+  tr:hover td{ background:rgba(30,75,57,0.04); cursor:pointer; }
+
+  /* Drawer Details Modal */
+  .drawer-back{ position:fixed; inset:0; background:rgba(21,18,13,0.55); display:none; justify-content:flex-end; z-index:200; }
+  .drawer-back.open{ display:flex; }
+  .drawer{ background:var(--paper); width:640px; max-width:92vw; height:100vh; overflow-y:auto; border-left:1px solid var(--line); box-shadow:-10px 0 30px rgba(0,0,0,0.2); display:flex; flex-direction:column; }
+  .drawer-head{ padding:20px 24px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:flex-start; background:var(--cream); position:sticky; top:0; z-index:10; }
+  .drawer-head h3{ font-family:var(--serif); font-size:20px; margin:0 0 4px; }
+  .drawer-close{ background:none; border:none; font-size:24px; cursor:pointer; color:var(--ink-soft); line-height:1; }
+  .drawer-body{ padding:24px; flex:1; }
+  .section-title{ font-family:var(--serif); font-size:14px; font-weight:600; color:var(--felt); margin:20px 0 10px; padding-bottom:5px; border-bottom:1px solid var(--line); }
+  .data-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px 16px; }
+  .data-item .label{ display:block; font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:0.04em; color:rgba(58,53,44,0.6); margin-bottom:2px; }
+  .data-item span:not(.label){ font-size:13px; color:var(--ink); font-weight:500; }
+  .drawer-footer{ padding:16px 24px; border-top:1px solid var(--line); background:var(--cream); display:flex; justify-content:space-between; position:sticky; bottom:0; }
+
+  /* Toast Notification */
+  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--cream); padding:12px 20px; border-radius:var(--radius); font-size:13px; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:all .3s ease; z-index:300; display:flex; align-items:center; gap:8px; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast .dot{ width:6px; height:6px; border-radius:50%; background:var(--brass-light); }
+</style>
+</head>
+<body>
+
+<!-- ================= VIEW 1: ORGANIZER APPLICATION WIZARD ================= -->
+<div id="view-wizard" class="view wizard-view active">
+  <aside class="rail">
+    <div class="crest">
+      <div class="crest-mark"><span>MCF</span></div>
+      <div class="crest-text"><p class="eyebrow">Application Wizard</p><h1>FIDE-Rated Event</h1></div>
+    </div>
+    <p class="rail-lede">Submit this dossier for MCF endorsement. Eight sections, one rank of the board.</p>
+    <div class="board-progress">
+      <p class="label">Application rank — step <span id="stepNumLabel">1</span> of 8</p>
+      <div class="rank" id="rank"></div>
+      <div class="files" id="files"></div>
+    </div>
+    <div class="dossier" id="dossier">
+      <p class="tag">Tournament dossier · draft</p>
+      <h2 id="dEventName">Untitled event</h2>
+      <dl>
+        <div class="row"><dt>Venue</dt><dd id="dVenue">—</dd></div>
+        <div class="row"><dt>Dates</dt><dd id="dDates">—</dd></div>
+        <div class="row"><dt>System</dt><dd id="dSystem">—</dd></div>
+        <div class="row"><dt>Time control</dt><dd id="dTC">—</dd></div>
+        <div class="row"><dt>Fee due</dt><dd id="dFee">RM 0</dd></div>
+        <div class="row"><dt>Chief Arbiter</dt><dd id="dArbiter">—</dd></div>
+      </dl>
+    </div>
+    <div class="rail-foot" style="margin-top:auto; padding-top:16px;">
+      <button type="button" class="btn-logout" onclick="showDashboard()">Go to Endorsement Dashboard →</button>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-inner">
+      <form id="wizardForm" novalidate>
+        <!-- Step 1: Event Details -->
+        <section class="step active" data-step="1">
+          <div class="step-head"><p class="step-eyebrow">Section A</p><h2>Event details</h2><p>Specify the tournament name, dates, venue, and system.</p></div>
+          <div class="field-grid">
+            <div class="field full"><label>Organizer Contact Email *</label><input type="email" id="organizerEmail" placeholder="organizer@chess.my" required></div>
+            <div class="field full"><label>Event name *</label><input type="text" id="eventName" placeholder="e.g. Kuala Lumpur Open 2026" required></div>
+            <div class="field"><label>Venue *</label><input type="text" id="venue" placeholder="e.g. Hall / Hotel / City" required></div>
+            <div class="field"><label>Expected pax *</label><input type="number" id="pax" min="1" value="60" required></div>
+            <div class="field"><label>Start date *</label><input type="date" id="dateStart" required></div>
+            <div class="field"><label>End date *</label><input type="date" id="dateEnd" required></div>
+            <div class="field full">
+              <label>Tournament system *</label>
+              <select id="system">
+                <option value="Swiss System" selected>Swiss System</option>
+                <option value="Round Robin">Round Robin</option>
+                <option value="Knock Out">Knock Out</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 2: Format & Eligibility -->
+        <section class="step" data-step="2">
+          <div class="step-head"><p class="step-eyebrow">Section B</p><h2>Format & eligibility</h2><p>Define number of rounds and rating parameters.</p></div>
+          <div class="field-grid">
+            <div class="field"><label>Number of rounds *</label><input type="number" id="rounds" min="1" value="7" required></div>
+            <div class="field"><label>Rating cap (optional)</label><input type="text" id="maxRating" placeholder="e.g. Under 1800 or Open"></div>
+          </div>
+        </section>
+
+        <!-- Step 3: Technical Setup -->
+        <section class="step" data-step="3">
+          <div class="step-head"><p class="step-eyebrow">Section C</p><h2>Technical setup</h2><p>Pairing software and official tiebreak priorities.</p></div>
+          <div class="field-grid">
+            <div class="field full">
+              <label>Pairing software *</label>
+              <select id="software">
+                <option>Swiss Manager</option>
+                <option>Vega</option>
+                <option>Tornelo</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field full"><label>1st tiebreak priority *</label><input type="text" id="tb1" value="Buchholz Cut 1" required></div>
+            <div class="field full"><label>2nd tiebreak priority</label><input type="text" id="tb2" value="Buchholz"></div>
+          </div>
+        </section>
+
+        <!-- Step 4: Time Control Selection -->
+        <section class="step" data-step="4">
+          <div class="step-head"><p class="step-eyebrow">Section D</p><h2>Time control</h2><p>Select the standard FIDE-compliant time control.</p></div>
+          <div class="field full combo">
+            <label>Time control specification *</label>
+            <input type="text" id="tcInput" class="combo-input" placeholder="Click to choose time control..." readonly required>
+            <div class="combo-panel" id="tcPanel">
+              <div class="combo-search"><input type="text" id="tcSearch" placeholder="Filter time controls..."></div>
+              <div id="tcList"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 5: MCF Fee & Payment -->
+        <section class="step" data-step="5">
+          <div class="step-head"><p class="step-eyebrow">Section E</p><h2>Budget & payment</h2><p>Review the calculated fee and attach proof of transfer.</p></div>
+          <div class="fee-box">
+            <p class="fee-box-label">MCF Endorsement Fee Calculation</p>
+            <div class="fee-row"><span>Base registration fee</span><span id="feeBase">RM 250</span></div>
+            <div class="fee-row"><span>Per-player fee</span><span id="feePerPlayer">RM 180</span></div>
+            <div class="fee-total"><span>Total due to MCF</span><span id="feeTotal">RM 430</span></div>
+          </div>
+          <div style="margin-top:16px; padding:16px; background:rgba(30,75,57,0.06); border:1px solid rgba(30,75,57,0.18); border-radius:var(--radius);">
+            <div style="font-size:12.5px; color:var(--ink-soft); line-height:1.5;">
+              Bank: <b>CIMB Bank Berhad (Account: 8000-1234-5678)</b><br>
+              Account Name: <b>Persekutuan Catur Malaysia (MCF)</b>
+            </div>
+            <div class="field full" style="margin-top:14px;">
+              <label>Bank Transaction Reference Number *</label>
+              <input type="text" id="paymentRef" placeholder="e.g. CIMB-20261015-8849" required>
+            </div>
+            <div class="field full" style="margin-bottom:0;">
+              <label>Upload Payment Slip / Receipt (PDF or Image) *</label>
+              <input type="file" id="receiptFile" accept="image/*,application/pdf" required>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 6: Officials & State Selection -->
+        <section class="step" data-step="6">
+          <div class="step-head"><p class="step-eyebrow">Section F</p><h2>Officials & State</h2><p>Tournament administration details.</p></div>
+          <div class="field-grid">
+            <div class="field full">
+              <label>Host State Association *</label>
+              <select id="stateSelect" required>
+                <option value="Johor">Johor</option>
+                <option value="Kedah">Kedah</option>
+                <option value="Kelantan">Kelantan</option>
+                <option value="Melaka">Melaka</option>
+                <option value="Negeri Sembilan">Negeri Sembilan</option>
+                <option value="Pahang">Pahang</option>
+                <option value="Penang">Penang</option>
+                <option value="Perak">Perak</option>
+                <option value="Perlis">Perlis</option>
+                <option value="Sabah">Sabah</option>
+                <option value="Sarawak">Sarawak</option>
+                <option value="Selangor" selected>Selangor</option>
+                <option value="Terengganu">Terengganu</option>
+                <option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option>
+                <option value="W.P. Labuan">W.P. Labuan</option>
+                <option value="W.P. Putrajaya">W.P. Putrajaya</option>
+              </select>
+            </div>
+            <div class="field full"><label>Organizing Body *</label><input type="text" id="orgBody" placeholder="e.g. KL Chess Academy" required></div>
+            <div class="field full"><label>Chief Organizer *</label><input type="text" id="chiefOrg" placeholder="Organizer Full Name" required></div>
+            <div class="field"><label>Chief Arbiter Name *</label><input type="text" id="chiefArbiter" placeholder="Arbiter Full Name" required></div>
+            <div class="field"><label>Chief Arbiter FIDE ID *</label><input type="text" id="chiefArbiterFide" placeholder="e.g. 5701234" required></div>
+          </div>
+        </section>
+
+        <!-- Step 7: Objectives -->
+        <section class="step" data-step="7">
+          <div class="step-head"><p class="step-eyebrow">Section G</p><h2>Objectives</h2><p>Purpose and community impact of the tournament.</p></div>
+          <div class="field full">
+            <label>Tournament Objective *</label>
+            <textarea id="obj1" rows="3" required>Provide FIDE-rated competition for state rating progression and national selection eligibility.</textarea>
+          </div>
+        </section>
+
+        <!-- Step 8: Declaration -->
+        <section class="step" data-step="8">
+          <div class="step-head"><p class="step-eyebrow">Section H</p><h2>Declaration</h2><p>Formal submission agreement.</p></div>
+          <div class="field-grid">
+            <div class="field"><label>Signatory Full Name *</label><input type="text" id="signName" placeholder="Full name as per IC" required></div>
+            <div class="field"><label>Date *</label><input type="date" id="signDate" required></div>
+          </div>
+          <p style="font-size:12px; color:var(--ink-soft); margin-top:14px; line-height:1.5;">
+            By submitting, I confirm all details are authentic and agree to adhere strictly to MCF & FIDE Rating Regulations.
+          </p>
+        </section>
+
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="btnBack">← Back</button>
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="btn btn-primary" id="btnNext">Continue →</button>
+            <button type="button" class="btn btn-primary" id="btnSubmit" style="display:none;">Submit Dossier</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+
+<!-- ================= VIEW 2: STATE & MCF DASHBOARD ================= -->
+<div id="view-dashboard" class="view dash-view">
+  <aside class="rail">
+    <div class="crest">
+      <div class="crest-mark"><span>MCF</span></div>
+      <div class="crest-text"><p class="eyebrow">Administration</p><h1>Rating Portal</h1></div>
+    </div>
+    <div style="margin-bottom: 20px;">
+      <button type="button" class="btn btn-primary" onclick="showWizard()" style="width:100%;">+ New Application</button>
+    </div>
+    <p class="nav-label">Queue Filter</p>
+    <nav class="nav-list" id="navFilter">
+      <button class="nav-item active" data-filter="all">All Dossiers <span class="badge" id="cntAll">0</span></button>
+      <button class="nav-item" data-filter="PENDING STATE">Pending State <span class="badge" id="cntState">0</span></button>
+      <button class="nav-item" data-filter="PENDING ADMIN">Pending MCF <span class="badge" id="cntMcf">0</span></button>
+      <button class="nav-item" data-filter="APPROVED">Approved <span class="badge" id="cntApproved">0</span></button>
+    </nav>
+    <div style="margin-top:auto;">
+      <button type="button" class="btn btn-ghost" onclick="fetchDossiers()" style="width:100%; color:var(--cream); border-color:rgba(244,239,226,0.2);">Refresh Sheet Data</button>
+    </div>
+  </aside>
+
+  <main class="stage" style="padding:40px 48px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px; border-bottom:1px solid var(--line); padding-bottom:16px;">
+      <div><h2 style="font-family:var(--serif); margin:0;">Tournament Applications</h2><p style="font-size:13px; color:var(--ink-soft); margin:4px 0 0;">Synchronized directly with Google Sheets API v4.</p></div>
+      <input type="text" id="searchInput" placeholder="Search event or organizer..." style="width:240px;">
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Event Name & Code</th>
+            <th>State</th>
+            <th>System / TC</th>
+            <th>Expected Pax</th>
+            <th>Fee</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- ================= DRAWER (AUDIT & APPROVAL MODAL) ================= -->
+<div class="drawer-back" id="drawerBack">
+  <div class="drawer">
+    <div class="drawer-head">
+      <div><h3 id="dTitle">Event Title</h3><p id="dSubtitle" style="font-family:var(--mono); font-size:12px; margin:0; color:var(--ink-soft);"></p></div>
+      <button class="drawer-close" onclick="closeDrawer()">×</button>
+    </div>
+    <div class="drawer-body" id="drawerContent"></div>
+    <div class="drawer-footer" id="drawerFooter"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  // 1. APPS SCRIPT WEB APP ENDPOINT (Replace with your deployed script URL)
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwaf4tH7GB83xrMjUi1WHezOH7UItzieWMH_SjStIdJVAW09HCv4K15181LhlBFFA-s/exec";
+
+  // 2. FIDE STANDARD TIME CONTROLS
+  const TC_DATA = {
+    "FIDE Blitz": [
+      "3 minutes for game with 2 seconds increment from move 1",
+      "5 minutes for game",
+      "5 minutes for game with 3 seconds increment from move 1"
+    ],
+    "FIDE Rapid": [
+      "15 minutes for game with 10 seconds increment from move 1",
+      "25 minutes for game",
+      "25 minutes for game with 10 seconds increment from move 1"
+    ],
+    "FIDE Standard": [
+      "90 minutes for game with 30 seconds increment from move 1",
+      "60 minutes for game",
+      "90 min/40 moves + 30 min/end + 30 sec increment from move 1"
+    ]
+  };
+
+  let stepIdx = 0;
+  const totalSteps = 8;
+  let applications = [];
+  let selectedApp = null;
+  let activeFilter = "all";
+
+  // Initialize Chessboard Progress Tracker
+  function initProgressBoard() {
+    const rank = document.getElementById('rank');
+    const files = document.getElementById('files');
+    rank.innerHTML = ""; files.innerHTML = "";
+    const letters = ["a","b","c","d","e","f","g","h"];
+    for (let i = 0; i < 8; i++) {
+      const b = document.createElement('button');
+      b.type = "button";
+      b.className = "sq" + (i < stepIdx ? " done" : "") + (i === stepIdx ? " current" : "");
+      b.textContent = i < stepIdx ? "✓" : (i + 1);
+      b.onclick = () => { if (i <= stepIdx) { stepIdx = i; renderStep(); } };
+      rank.appendChild(b);
+
+      const s = document.createElement('span');
+      s.textContent = letters[i];
+      files.appendChild(s);
+    }
+    document.getElementById('stepNumLabel').textContent = stepIdx + 1;
+  }
+
+  // Calculate MCF Rating Endorsement Fees
+  function calculateFees() {
+    const pax = parseInt(document.getElementById('pax').value, 10) || 0;
+    const tc = document.getElementById('tcInput').value;
+    const system = document.getElementById('system').value;
+
+    let base = 250, perPlayer = 3;
+    if (tc.includes("Standard")) {
+      base = (system === "Round Robin") ? 150 : 500;
+      perPlayer = 10;
+    }
+
+    const total = base + (perPlayer * pax);
+    document.getElementById('feeBase').textContent = `RM ${base}`;
+    document.getElementById('feePerPlayer').textContent = `RM ${perPlayer * pax}`;
+    document.getElementById('feeTotal').textContent = `RM ${total}`;
+    document.getElementById('dFee').textContent = `RM ${total}`;
+    return { base, perPlayer, total };
+  }
+
+  // Live Update Dossier Card on the Side
+  function updateSideDossier() {
+    document.getElementById('dEventName').textContent = document.getElementById('eventName').value || "Untitled event";
+    document.getElementById('dVenue').textContent = document.getElementById('venue').value || "—";
+    document.getElementById('dSystem').textContent = document.getElementById('system').value || "—";
+    document.getElementById('dTC').textContent = document.getElementById('tcInput').value || "—";
+    document.getElementById('dArbiter').textContent = document.getElementById('chiefArbiter').value || "—";
+
+    const s = document.getElementById('dateStart').value;
+    const e = document.getElementById('dateEnd').value;
+    document.getElementById('dDates').textContent = s && e ? `${s} to ${e}` : (s || e || "—");
+
+    calculateFees();
+  }
+
+  function renderStep() {
+    document.querySelectorAll('#wizardForm .step').forEach((s, idx) => {
+      s.classList.toggle('active', idx === stepIdx);
+    });
+    initProgressBoard();
+    updateSideDossier();
+
+    document.getElementById('btnBack').style.visibility = stepIdx === 0 ? "hidden" : "visible";
+    document.getElementById('btnNext').style.display = stepIdx === totalSteps - 1 ? "none" : "inline-block";
+    document.getElementById('btnSubmit').style.display = stepIdx === totalSteps - 1 ? "inline-block" : "none";
+  }
+
+  // Time Control Combo Logic
+  function buildTCMenu(filter = "") {
+    const list = document.getElementById('tcList');
+    list.innerHTML = "";
+    Object.keys(TC_DATA).forEach(cat => {
+      const items = TC_DATA[cat].filter(i => i.toLowerCase().includes(filter.toLowerCase()));
+      if (!items.length) return;
+
+      const group = document.createElement('div');
+      group.className = "combo-group-label";
+      group.textContent = cat;
+      list.appendChild(group);
+
+      items.forEach(t => {
+        const item = document.createElement('div');
+        item.className = "combo-opt";
+        item.textContent = t;
+        item.onclick = () => {
+          document.getElementById('tcInput').value = `${t} (${cat})`;
+          document.getElementById('tcPanel').classList.remove('open');
+          updateSideDossier();
+        };
+        list.appendChild(item);
+      });
+    });
+  }
+
+  document.getElementById('tcInput').addEventListener('click', () => {
+    document.getElementById('tcPanel').classList.add('open');
+    buildTCMenu();
+  });
+  document.getElementById('tcSearch').addEventListener('input', e => buildTCMenu(e.target.value));
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.combo')) document.getElementById('tcPanel').classList.remove('open');
+  });
+
+  document.querySelectorAll('#wizardForm input, #wizardForm select, #wizardForm textarea').forEach(el => {
+    el.addEventListener('input', updateSideDossier);
+  });
+
+  document.getElementById('btnNext').onclick = () => { if (stepIdx < totalSteps - 1) { stepIdx++; renderStep(); } };
+  document.getElementById('btnBack').onclick = () => { if (stepIdx > 0) { stepIdx--; renderStep(); } };
+
+  // Helper: File to Base64
+  const fileToBase64 = file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = err => reject(err);
+  });
+
+  // Submit Handler: Apps Script (Sheets API v4 + Drive)
+  document.getElementById('btnSubmit').onclick = async () => {
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.textContent = "Writing to Google Sheets...";
+
+    try {
+      const receiptInput = document.getElementById('receiptFile');
+      let receiptBase64 = "", receiptMimeType = "";
+      if (receiptInput.files.length > 0) {
+        receiptBase64 = await fileToBase64(receiptInput.files[0]);
+        receiptMimeType = receiptInput.files[0].type;
+      }
+
+      const payload = {
+        organizerEmail: document.getElementById('organizerEmail').value,
+        eventName: document.getElementById('eventName').value,
+        venue: document.getElementById('venue').value,
+        pax: parseInt(document.getElementById('pax').value, 10),
+        startDate: document.getElementById('dateStart').value,
+        endDate: document.getElementById('dateEnd').value,
+        system: document.getElementById('system').value,
+        rounds: document.getElementById('rounds').value,
+        maxRating: document.getElementById('maxRating').value,
+        software: document.getElementById('software').value,
+        tb1: document.getElementById('tb1').value,
+        tb2: document.getElementById('tb2').value,
+        timeControl: document.getElementById('tcInput').value,
+        totalFee: calculateFees().total,
+        paymentRef: document.getElementById('paymentRef').value,
+        state: document.getElementById('stateSelect').value,
+        orgBody: document.getElementById('orgBody').value,
+        chiefOrg: document.getElementById('chiefOrg').value,
+        chiefArbiter: document.getElementById('chiefArbiter').value,
+        chiefArbiterFide: document.getElementById('chiefArbiterFide').value,
+        obj1: document.getElementById('obj1').value,
+        signName: document.getElementById('signName').value,
+        signDate: document.getElementById('signDate').value,
+        receiptBase64: receiptBase64,
+        receiptMimeType: receiptMimeType
+      };
+
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast("Dossier submitted and appended to Google Sheet!");
+        document.getElementById('wizardForm').reset();
+        stepIdx = 0;
+        renderStep();
+        showDashboard();
+      } else {
+        showToast("Submission error: " + (data.error || "Unknown"));
+      }
+    } catch (err) {
+      showToast("Network error. Verify Apps Script Web App URL.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Submit Dossier";
+    }
+  };
+
+  // Fetch from Google Sheet via Apps Script (GET)
+  async function fetchDossiers() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Querying Google Sheets API v4...</td></tr>`;
+
+    try {
+      const res = await fetch(SCRIPT_URL);
+      const json = await res.json();
+      applications = json.dossiers || [];
+      renderTable();
+      updateFilterCounts();
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--claret);">Failed to connect to Google Sheets backend.</td></tr>`;
+    }
+  }
+
+  function updateFilterCounts() {
+    document.getElementById('cntAll').textContent = applications.length;
+    document.getElementById('cntState').textContent = applications.filter(a => a.status === "PENDING STATE").length;
+    document.getElementById('cntMcf').textContent = applications.filter(a => a.status === "PENDING ADMIN").length;
+    document.getElementById('cntApproved').textContent = applications.filter(a => a.status === "APPROVED").length;
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = "";
+
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = applications.filter(app => {
+      const matchesSearch = app.eventName.toLowerCase().includes(query) || app.organizerEmail.toLowerCase().includes(query);
+      const matchesFilter = activeFilter === "all" || app.status === activeFilter;
+      return matchesSearch && matchesFilter;
+    });
+
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No dossiers match filter.</td></tr>`;
+      return;
+    }
+
+    filtered.forEach(app => {
+      const tr = document.createElement('tr');
+      let badgeCol = "var(--ink-soft)";
+      if (app.status === "PENDING STATE") badgeCol = "var(--brass)";
+      if (app.status === "PENDING ADMIN") badgeCol = "#0077b6";
+      if (app.status === "APPROVED") badgeCol = "var(--felt)";
+
+      tr.innerHTML = `
+        <td><b style="font-family:var(--serif); font-size:15px;">${app.eventName}</b><br><span style="font-size:11px; color:var(--ink-soft);">${app.id} &bull; ${app.organizerEmail}</span></td>
+        <td>${app.state}</td>
+        <td>${app.system}<br><span style="font-size:11px; color:var(--ink-soft);">${app.timeControl}</span></td>
+        <td>${app.pax} pax</td>
+        <td><b>RM ${app.fee}</b></td>
+        <td><span style="font-family:var(--mono); font-size:10.5px; font-weight:600; padding:3px 7px; border-radius:3px; background:${badgeCol}15; color:${badgeCol};">${app.status}</span></td>
+      `;
+      tr.onclick = () => openDrawer(app);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Drawer Inspection Modal
+  function openDrawer(app) {
+    selectedApp = app;
+    document.getElementById('dTitle').textContent = app.eventName;
+    document.getElementById('dSubtitle').textContent = `Dossier ID: ${app.id} | Row: ${app.rowIndex}`;
+
+    document.getElementById('drawerContent').innerHTML = `
+      <div style="background:#fff8eb; padding:14px; border:1px solid #e3b872; border-radius:var(--radius); margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span style="font-family:var(--mono); font-size:10px; text-transform:uppercase; color:#8a6018;">Payment Reference</span>
+          <b style="font-family:var(--mono); font-size:13px;">${app.paymentRef}</b>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="font-family:var(--mono); font-size:10px; text-transform:uppercase; color:#8a6018;">Total Verified Fee</span>
+          <b style="font-family:var(--serif); font-size:16px; color:var(--felt);">RM ${app.fee}</b>
+        </div>
+      </div>
+      <div class="section-title">Tournament Parameters</div>
+      <div class="data-grid">
+        <div class="data-item"><span class="label">Host State</span><span>${app.state}</span></div>
+        <div class="data-item"><span class="label">Venue</span><span>${app.venue}</span></div>
+        <div class="data-item"><span class="label">Dates</span><span>${app.startDate} to ${app.endDate}</span></div>
+        <div class="data-item"><span class="label">System / Rounds</span><span>${app.system} (${app.rounds} Rds)</span></div>
+        <div class="data-item" style="grid-column:1/-1;"><span class="label">Time Control</span><span>${app.timeControl}</span></div>
+      </div>
+      <div class="section-title">Officials</div>
+      <div class="data-grid">
+        <div class="data-item"><span class="label">Organizing Body</span><span>${app.orgBody}</span></div>
+        <div class="data-item"><span class="label">Chief Organizer</span><span>${app.chiefOrg}</span></div>
+        <div class="data-item"><span class="label">Chief Arbiter</span><span>${app.chiefArbiter}</span></div>
+        <div class="data-item"><span class="label">Chief Arbiter FIDE ID</span><span>${app.chiefArbiterFide}</span></div>
+      </div>
+      <div style="margin-top:20px; display:flex; gap:8px;">
+        ${app.receiptUrl !== "N/A" ? `<a href="${app.receiptUrl}" target="_blank" class="btn btn-ghost" style="flex:1; text-align:center; text-decoration:none; font-size:12px;">View Uploaded Receipt ↗</a>` : ''}
+        <button type="button" class="btn btn-ghost" onclick="downloadPDF()" style="flex:1; font-size:12px;">📄 Download Dossier PDF</button>
+      </div>
+    `;
+
+    document.getElementById('drawerFooter').innerHTML = `
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-ghost" onclick="updateStatus('REVISION REQ.')" style="color:var(--claret); border-color:var(--claret);">Request Revision</button>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-gold" onclick="updateStatus('PENDING ADMIN')">Endorse (State)</button>
+        <button class="btn btn-primary" onclick="updateStatus('APPROVED')">Approve (MCF)</button>
+      </div>
+    `;
+
+    document.getElementById('drawerBack').classList.add('open');
+  }
+
+  function closeDrawer() {
+    document.getElementById('drawerBack').classList.remove('open');
+  }
+
+  async function updateStatus(newStatus) {
+    if (!selectedApp) return;
+    showToast(`Updating row ${selectedApp.rowIndex} to ${newStatus}...`);
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "updateStatus",
+          rowIndex: selectedApp.rowIndex,
+          newStatus: newStatus
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Status updated in Google Sheet!");
+        closeDrawer();
+        fetchDossiers();
+      }
+    } catch (e) {
+      showToast("Failed to update status in Google Sheet.");
+    }
+  }
+
+  // Official jsPDF Summary Generator
+  function downloadPDF() {
+    if (!selectedApp) return;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFillColor(21, 18, 13);
+    doc.rect(0, 0, 210, 42, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("MALAYSIAN CHESS FEDERATION", 105, 20, { align: "center" });
+
+    doc.setTextColor(227, 184, 114);
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "normal");
+    doc.text("FIDE Rating Application Dossier", 105, 30, { align: "center" });
+
+    doc.setTextColor(40, 40, 40);
+    doc.setFontSize(10);
+    let y = 54;
+    const addRow = (lbl, val) => {
+      doc.setFont("helvetica", "bold");
+      doc.text(lbl + ":", 20, y);
+      doc.setFont("helvetica", "normal");
+      doc.text(String(val || "-"), 75, y);
+      y += 8;
+    };
+
+    addRow("Application ID", selectedApp.id);
+    addRow("Event Name", selectedApp.eventName);
+    addRow("Host State", selectedApp.state);
+    addRow("Venue", selectedApp.venue);
+    addRow("Tournament Dates", `${selectedApp.startDate} to ${selectedApp.endDate}`);
+    addRow("Pairing System", selectedApp.system);
+    addRow("Rounds / Expected Pax", `${selectedApp.rounds} Rounds / ${selectedApp.pax} Pax`);
+    addRow("Time Control", selectedApp.timeControl);
+    addRow("Total MCF Fee", `RM ${selectedApp.fee}`);
+    addRow("Payment Reference", selectedApp.paymentRef);
+    addRow("Organizing Body", selectedApp.orgBody);
+    addRow("Chief Organizer", selectedApp.chiefOrg);
+    addRow("Chief Arbiter", `${selectedApp.chiefArbiter} (FIDE ID: ${selectedApp.chiefArbiterFide})`);
+    addRow("Signatory", `${selectedApp.signName} (${selectedApp.signDate})`);
+    addRow("Current Status", selectedApp.status);
+
+    doc.save(`MCF_Dossier_${selectedApp.id}.pdf`);
+  }
+
+  // View Navigation Helpers
+  function showWizard() {
+    document.getElementById('view-dashboard').classList.remove('active');
+    document.getElementById('view-wizard').classList.add('active');
+  }
+
+  function showDashboard() {
+    document.getElementById('view-wizard').classList.remove('active');
+    document.getElementById('view-dashboard').classList.add('active');
+    fetchDossiers();
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // Filter Bar Navigation
+  document.querySelectorAll('#navFilter .nav-item').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      renderTable();
+    };
+  });
+  document.getElementById('searchInput').addEventListener('input', renderTable);
+
+  // Initialize Form
+  document.getElementById('signDate').value = new Date().toISOString().split('T')[0];
+  renderStep();
+</script>
+</body>
+</html>
