@@ -258,7 +258,7 @@
 </head>
 <body>
 
-<!-- ================= 1. LOGIN VIEW ================= -->
+<!-- 1. LOGIN VIEW -->
 <div id="view-login" class="view auth-view active">
   <div class="gateway">
     <header class="brand-head">
@@ -279,7 +279,7 @@
   </div>
 </div>
 
-<!-- ================= 2. REGISTER VIEW ================= -->
+<!-- 2. REGISTER VIEW -->
 <div id="view-register" class="view auth-view">
   <div class="gateway">
     <header class="brand-head">
@@ -308,7 +308,7 @@
   </div>
 </div>
 
-<!-- ================= 3. USER PROFILE VIEW ================= -->
+<!-- 3. USER PROFILE VIEW -->
 <div id="view-profile" class="view dash-view">
   <div class="mobile-nav-bar">
     <h2>MCF Portal Settings</h2>
@@ -346,7 +346,7 @@
   </main>
 </div>
 
-<!-- ================= 4. ORGANIZER DASHBOARD ================= -->
+<!-- 4. ORGANIZER DASHBOARD -->
 <div id="view-organizer-dash" class="view dash-view">
   <div class="mobile-nav-bar">
     <h2>Organizer Portal</h2>
@@ -401,7 +401,7 @@
   </main>
 </div>
 
-<!-- ================= 5. ORGANIZER WIZARD (FORM) ================= -->
+<!-- 5. ORGANIZER WIZARD (FORM) -->
 <div id="view-organizer-wizard" class="view wizard-view">
   <div class="mobile-nav-bar">
     <h2>Application Wizard</h2>
@@ -438,7 +438,7 @@
     <div class="stage-inner">
       <form id="wizard" novalidate>
         
-        <!-- STEP 1: Section A (FIDE Compliance & Event Details) -->
+        <!-- STEP 1 -->
         <section class="step active" data-step="1">
           <div class="step-head"><p class="step-eyebrow">Section A</p><h2>Compliance & General Details</h2></div>
           <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
@@ -449,7 +449,7 @@
             
             <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
               <input type="checkbox" id="chkNatChampionship" style="width: 18px; height: 18px; accent-color: var(--primary);">
-              <label for="chkNatChampionship" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">National Championship 1.43a (Check if National Championship)</label>
+              <label for="chkNatChampionship" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">National Championship 1.43a</label>
             </div>
             
             <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
@@ -479,15 +479,15 @@
               </select>
             </div>
 
-            <div class="field full" style="margin-top: 10px;"><label>Event name *</label><input type="text" id="eventName" placeholder="e.g. Kuala Lumpur Open 2026"></div>
-            <div class="field"><label>Venue *</label><input type="text" id="venue" placeholder="e.g. City / building"></div>
+            <div class="field full" style="margin-top: 10px;"><label>Event name *</label><input type="text" id="eventName" placeholder="e.g. Kuala Lumpur Open 2026" oninput="updateDossier()"></div>
+            <div class="field"><label>Venue *</label><input type="text" id="venue" placeholder="e.g. City / building" oninput="updateDossier()"></div>
             <div class="field"><label>Expected players (Pax) *</label><input type="number" id="pax" min="1" placeholder="Expected players" oninput="updateDossier()"></div>
             <div class="field"><label>Start date *</label><input type="date" id="dateStart" onchange="updateDossier()"></div>
             <div class="field"><label>End date *</label><input type="date" id="dateEnd"></div>
           </div>
         </section>
 
-        <!-- STEP 2: Section B (Format & Organizer Category) -->
+        <!-- STEP 2 -->
         <section class="step" data-step="2">
           <div class="step-head"><p class="step-eyebrow">Section B</p><h2>Format & Organizer Category</h2></div>
           <div class="field-grid">
@@ -499,7 +499,6 @@
               </select>
             </div>
             
-            <!-- Conditional State Affiliate Letter Upload -->
             <div class="field full" id="affiliateLetterField" style="display: none; background: var(--bg-body); padding: 16px; border-radius: var(--radius); border: 1px dashed var(--primary);">
               <label style="font-weight: 600; color: var(--text-main); margin-bottom: 6px;">State Affiliate Endorsement / Authorization Letter *</label>
               <input type="file" id="affiliateLetterUpload" accept="image/*,.pdf" style="background:transparent; cursor:pointer;">
@@ -532,90 +531,18 @@
           </div>
         </section>
 
-        <!-- STEP 3: Section C (Officials & Arbiters) -->
+        <!-- STEP 3 -->
         <section class="step" data-step="3">
           <div class="step-head"><p class="step-eyebrow">Section C</p><h2>Officials & Arbiters (B.06.3 – 8.3)</h2></div>
           <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
             <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
-              <div class="field" style="margin-bottom:0;"><label>Chief Arbiter Name * (1 person, licensed)</label><input type="text" id="chiefArbiter" placeholder="Full Name" required oninput="updateDossier()"></div>
+              <div class="field" style="margin-bottom:0;"><label>Chief Arbiter Name *</label><input type="text" id="chiefArbiter" placeholder="Full Name" required oninput="updateDossier()"></div>
               <div class="field" style="margin-bottom:0;"><label>FIDE ID *</label><input type="text" id="chiefArbiterFide" placeholder="FIDE ID" required></div>
-            </div>
-
-            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
-              <div class="field" style="margin-bottom:0;"><label>Deputy Chief Arbiter (Up to 2, licensed)</label><input type="text" id="deputyChiefArbiter" placeholder="Full Name"></div>
-              <div class="field" style="margin-bottom:0;"><label>FIDE ID</label><input type="text" id="deputyChiefArbiterFide" placeholder="FIDE ID"></div>
             </div>
 
             <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
               <div class="field" style="margin-bottom:0;"><label>Chief Organizer Name *</label><input type="text" id="chiefOrg" placeholder="Full Name" required></div>
               <div class="field" style="margin-bottom:0;"><label>FIDE ID *</label><input type="text" id="chiefOrgFide" placeholder="FIDE ID" required></div>
-            </div>
-
-            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
-              <div class="field" style="margin-bottom:0;"><label>Organiser (Up to 10 names allowed)</label><input type="text" id="orgBody" placeholder="Organizer Name / Club"></div>
-              <div class="field" style="margin-bottom:0;"><label>FIDE ID</label><input type="text" id="orgBodyFide" placeholder="FIDE ID"></div>
-            </div>
-
-            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
-              <div class="field" style="margin-bottom:0;"><label>Fair Play Officer Name</label><input type="text" id="fairPlayOfficer" placeholder="Full Name"></div>
-              <div class="field" style="margin-bottom:0;"><label>FIDE ID</label><input type="text" id="fairPlayOfficerFide" placeholder="FIDE ID"></div>
-            </div>
-            
-            <div class="field full" style="background: var(--bg-body); padding: 16px; border-radius: var(--radius); border: 1px solid var(--border);">
-              <label style="margin-bottom: 12px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;">Additional Arbiters & Roles</label>
-              
-              <!-- Sector Arbiters -->
-              <div style="margin-bottom: 10px;">
-                <label style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; margin-bottom: 6px;">
-                  <input type="checkbox" id="addSectorArbiters" style="accent-color: var(--primary);" onchange="toggleArbiterInput('Sector')"> Add Sector Arbiters (SA / A, only licensed)
-                </label>
-                <div id="sectorArbiterFields" style="display: none; padding-left: 20px; margin-top: 6px;">
-                  <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom:0;">
-                    <input type="text" id="sectorArbiterName" placeholder="Sector Arbiter Name">
-                    <input type="text" id="sectorArbiterFide" placeholder="FIDE ID">
-                  </div>
-                </div>
-              </div>
-
-              <!-- Arbiters -->
-              <div style="margin-bottom: 10px;">
-                <label style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; margin-bottom: 6px;">
-                  <input type="checkbox" id="addArbiters" style="accent-color: var(--primary);" onchange="toggleArbiterInput('Arbiter')"> Add Arbiters (SA / A, only licensed)
-                </label>
-                <div id="arbiterFields" style="display: none; padding-left: 20px; margin-top: 6px;">
-                  <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom:0;">
-                    <input type="text" id="arbiterName" placeholder="Arbiter Name">
-                    <input type="text" id="arbiterFide" placeholder="FIDE ID">
-                  </div>
-                </div>
-              </div>
-
-              <!-- Assistant Arbiters -->
-              <div style="margin-bottom: 10px;">
-                <label style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; margin-bottom: 6px;">
-                  <input type="checkbox" id="addAssistantArbiters" style="accent-color: var(--primary);" onchange="toggleArbiterInput('Assistant')"> Add Assistant Arbiters (AA: for helpers / NA norm seekers / licensed)
-                </label>
-                <div id="assistantArbiterFields" style="display: none; padding-left: 20px; margin-top: 6px;">
-                  <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom:0;">
-                    <input type="text" id="assistantArbiterName" placeholder="Assistant Arbiter Name">
-                    <input type="text" id="assistantArbiterFide" placeholder="FIDE ID">
-                  </div>
-                </div>
-              </div>
-
-              <!-- Pairings Arbiters -->
-              <div>
-                <label style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; margin-bottom: 6px;">
-                  <input type="checkbox" id="addPairingsArbiters" style="accent-color: var(--primary);" onchange="toggleArbiterInput('Pairings')"> Add Pairings Arbiters
-                </label>
-                <div id="pairingsArbiterFields" style="display: none; padding-left: 20px; margin-top: 6px;">
-                  <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom:0;">
-                    <input type="text" id="pairingsArbiterName" placeholder="Pairings Arbiter Name">
-                    <input type="text" id="pairingsArbiterFide" placeholder="FIDE ID">
-                  </div>
-                </div>
-              </div>
-
             </div>
 
             <div class="field full"><label>1st Tiebreak Method *</label><input type="text" id="tb1" placeholder="e.g. Direct encounter" value="Direct encounter"></div>
@@ -624,48 +551,24 @@
           </div>
         </section>
 
-        <!-- STEP 4: Section D (Time Control, Software & Limits) -->
+        <!-- STEP 4 -->
         <section class="step" data-step="4">
           <div class="step-head"><p class="step-eyebrow">Section D</p><h2>Time Control & Settings</h2></div>
           <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
-            
             <div class="field full combo">
-              <label>Time Control Specification * (Select from list or type custom)</label>
-              <input type="text" id="tcInput" class="combo-input" placeholder="e.g. 90 mins + 30 sec increment or choose below..." oninput="updateDossier()">
-              <div class="combo-panel" id="tcPanel">
-                <div class="combo-search"><input type="text" id="tcSearch" placeholder="Search presets..."></div>
-                <div id="tcList"></div>
-              </div>
+              <label>Time Control Specification *</label>
+              <input type="text" id="tcInput" class="combo-input" placeholder="e.g. 90 mins + 30 sec increment..." oninput="updateDossier()">
             </div>
-
-            <div class="field full"><label>Pairing Software *</label><select id="software"><option value="ChessManager">ChessManager</option><option value="Swiss Manager">Swiss Manager</option><option value="Vega">Vega</option><option value="Tornelo">Tornelo</option><option value="Other">Other</option></select></div>
-
+            <div class="field full"><label>Pairing Software *</label><select id="software"><option value="ChessManager">ChessManager</option><option value="Swiss Manager">Swiss Manager</option><option value="Other">Other</option></select></div>
             <div class="field full"><label>Max Rating Limit (optional)</label><input type="text" id="maxRatingCond" placeholder="No limit"></div>
-            <div class="field full"><label>Age Limit (optional)</label><input type="text" id="ageLimit" placeholder="None"></div>
           </div>
         </section>
 
-        <!-- STEP 5: Section E (Additional Info & Payment) -->
+        <!-- STEP 5 -->
         <section class="step" data-step="5">
           <div class="step-head"><p class="step-eyebrow">Section E</p><h2>Additional Info, Prize Fund & Payment</h2></div>
           <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
-            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-              <input type="checkbox" id="chkDigitalClock" style="width: 18px; height: 18px; accent-color: var(--primary);" checked>
-              <label for="chkDigitalClock" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">All digital clocks</label>
-            </div>
-
-            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-              <input type="checkbox" id="chkPgnProvided" style="width: 18px; height: 18px; accent-color: var(--primary);">
-              <label for="chkPgnProvided" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">Will PGN be provided</label>
-            </div>
-
-            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-              <input type="checkbox" id="chkInternetLive" style="width: 18px; height: 18px; accent-color: var(--primary);">
-              <label for="chkInternetLive" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">Internet transmission</label>
-            </div>
-
             <div class="field full"><label>Contact Email *</label><input type="email" id="contactEmail" placeholder="organizer@federation.org" required></div>
-            <div class="field full"><label>Internet Homepage / Website URL</label><input type="text" id="internetHomepage" placeholder="https://..."></div>
             <div class="field full"><label>Prize Fund (RM)</label><input type="text" id="prizeFund" placeholder="Total prize fund"></div>
             <div class="field full"><label>Remarks / Additional Notes</label><textarea id="remarks" rows="2" placeholder="Remarks..."></textarea></div>
           </div>
@@ -686,25 +589,24 @@
           </div>
         </section>
 
-        <!-- STEP 6: Section F (Event Poster & Regulations) -->
+        <!-- STEP 6 -->
         <section class="step" data-step="6">
           <div class="step-head"><p class="step-eyebrow">Section F</p><h2>Event Poster / Rules & Regulations</h2></div>
           <div class="field-grid">
             <div class="field full">
               <label>Upload Event Poster / Rules & Regulations (PDF / Image) *</label>
               <input type="file" id="posterUpload" accept="image/*,.pdf" style="background:transparent; border:1px dashed var(--primary); padding:16px; cursor:pointer;" required>
-              <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Upload the official prospectus, invitation letter, or tournament regulations flyer.</p>
             </div>
           </div>
         </section>
 
-        <!-- STEP 7: Section G (Objectives) -->
+        <!-- STEP 7 -->
         <section class="step" data-step="7">
           <div class="step-head"><p class="step-eyebrow">Section G</p><h2>Objectives</h2></div>
           <div class="field-grid"><div class="field full"><label>Objective 1 *</label><textarea id="obj1" rows="4" required>Provide FIDE-rated competition for local chess players.</textarea></div></div>
         </section>
 
-        <!-- STEP 8: Section H (Declaration) -->
+        <!-- STEP 8 -->
         <section class="step" data-step="8">
           <div class="step-head"><p class="step-eyebrow">Section H</p><h2>Declaration</h2></div>
           <div class="field-grid">
@@ -730,7 +632,7 @@
   </main>
 </div>
 
-<!-- ================= 6. ADMIN DASHBOARD ================= -->
+<!-- 6. ADMIN DASHBOARD -->
 <div id="view-admin" class="view dash-view">
   <div class="mobile-nav-bar">
     <h2>Admin Portal</h2>
@@ -830,7 +732,7 @@
   <div class="drawer">
     <div class="drawer-head">
       <div><h3 id="dTitle">Event Title</h3><p id="dSubtitle">ID: </p></div>
-      <button class="drawer-close" id="drawerClose">×</button>
+      <button class="drawer-close" id="drawerClose" onclick="closeDrawer()">×</button>
     </div>
     <div class="drawer-body" id="drawerContent"></div>
     <div class="drawer-footer" id="drawerFooter"></div>
@@ -870,6 +772,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx1
 <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js"></script>
 
 <script>
+// --- Firebase Config & Auth ---
 const firebaseConfig = {
     apiKey: "AIzaSyD1TGam7x7DaVq-ZhC5Drx3dNfR9Cmzquo",
     authDomain: "mcf-fide-portal.firebaseapp.com",
@@ -884,6 +787,7 @@ const db = firebase.firestore();
 
 const CORE_ADMIN_EMAIL = "mrsyaifulzamani02@gmail.com"; 
 
+// --- Global Variables ---
 let applications = [];
 let usersList = [];
 let currentFilterAdmin = "all";
@@ -899,31 +803,14 @@ let currentUserProfile = { uid: "", email: "", role: "", name: "", phone: "", st
 let stepIdx = 0;
 const steps = ["1","2","3","4","5","6","7","8","review"];
 
-const TC = {
-    "FIDE Blitz": [
-        "3 minutes for game with 2 seconds increment from move 1",
-        "5 minutes for game",
-        "4 minutes for game with 2 seconds increment from move 1",
-        "3 minutes for game with 1 second increment from move 1",
-        "5 minutes for game with 3 seconds increment from move 1"
-    ],
-    "FIDE Rapid": [
-        "15 minutes for game with 10 seconds increment from move 1",
-        "10 minutes for game with 5 seconds increment from move 1",
-        "25 minutes for game with 10 seconds increment from move 1",
-        "15 minutes for game",
-        "20 minutes for game",
-        "30 minutes for game"
-    ],
-    "FIDE Standard": [
-        "90 minutes for first 40 moves and 30 minutes for the rest of the game with 30sec increment from move 1",
-        "90 minutes for game with 30 seconds increment from move 1",
-        "60 minutes for game with 30 seconds increment from move 1",
-        "45 minutes for game with 15 seconds increment from move 1"
-    ]
-};
+// --- Helpers ---
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
 
-// Clean Helper for Malaysia Local Time (GMT+8) formatting
 function formatLocalDate(dateStr) {
     if (!dateStr) return '—';
     try {
@@ -960,26 +847,20 @@ function toggleAffiliateLetter() {
     }
 }
 
-function toggleArbiterInput(type) {
-    const chk = document.getElementById(type === 'Sector' ? 'addSectorArbiters' : type === 'Arbiter' ? 'addArbiters' : type === 'Assistant' ? 'addAssistantArbiters' : 'addPairingsArbiters');
-    const container = document.getElementById(type === 'Sector' ? 'sectorArbiterFields' : type === 'Arbiter' ? 'arbiterFields' : type === 'Assistant' ? 'assistantArbiterFields' : 'pairingsArbiterFields');
-    if (chk && container) {
-        container.style.display = chk.checked ? 'block' : 'none';
-    }
-}
-
 function showView(viewId){
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById('view-' + viewId).classList.add('active');
     window.scrollTo({top:0, behavior:'instant'});
 }
 
+// --- Firebase Auth Flow ---
 auth.onAuthStateChanged(user => {
     if (user) {
         db.collection('users').doc(user.uid).get().then(doc => {
             if(doc.exists) {
                 currentUserProfile = { uid: user.uid, email: user.email, ...doc.data() };
                 
+                // Hardcode super admin
                 if (user.email.toLowerCase() === CORE_ADMIN_EMAIL.toLowerCase() && currentUserProfile.role !== 'core_admin') {
                     db.collection('users').doc(user.uid).update({ role: 'core_admin' });
                     currentUserProfile.role = 'core_admin';
@@ -1016,8 +897,10 @@ auth.onAuthStateChanged(user => {
     }
 });
 
+// --- Login / Register / Profile Event Listeners ---
 document.getElementById('goToRegister').addEventListener('click', () => showView('register'));
 document.getElementById('goToLogin').addEventListener('click', () => showView('login'));
+
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     try {
@@ -1026,11 +909,13 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
         showToast("Account created successfully!");
     } catch (error) { document.getElementById('regError').textContent = error.message; document.getElementById('regError').style.display = 'block'; }
 });
+
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     try { await auth.signInWithEmailAndPassword(document.getElementById('loginEmail').value, document.getElementById('loginPass').value); showToast("Welcome back!"); } 
     catch (error) { document.getElementById('loginError').textContent = "Invalid credentials."; document.getElementById('loginError').style.display = 'block'; }
 });
+
 document.querySelectorAll('.btnLogOut').forEach(btn => btn.addEventListener('click', () => auth.signOut()));
 document.getElementById('btnGoOrgView')?.addEventListener('click', () => showView('organizer-dash'));
 document.getElementById('btnGoAdminView')?.addEventListener('click', () => showView('admin'));
@@ -1049,23 +934,14 @@ document.getElementById('btnCloseReset').addEventListener('click', () => {
 
 document.getElementById('btnSendReset').addEventListener('click', async () => {
     const email = document.getElementById('resetEmail').value.trim();
-    if (!email) {
-        showToast("Please enter your email address.");
-        return;
-    }
-    const btn = document.getElementById('btnSendReset');
-    btn.textContent = "Sending...";
-    btn.disabled = true;
+    if (!email) { showToast("Please enter your email address."); return; }
+    const btn = document.getElementById('btnSendReset'); btn.textContent = "Sending..."; btn.disabled = true;
     try {
         await auth.sendPasswordResetEmail(email);
-        showToast("✓ Password reset email sent! Check your inbox.");
+        showToast("✓ Password reset email sent!");
         document.getElementById('forgotModal').style.display = 'none';
-    } catch (error) {
-        showToast("Error: " + error.message);
-    } finally {
-        btn.textContent = "Send Link";
-        btn.disabled = false;
-    }
+    } catch (error) { showToast("Error: " + error.message); } 
+    finally { btn.textContent = "Send Link"; btn.disabled = false; }
 });
 
 document.querySelectorAll('.btnGoProfile').forEach(btn => {
@@ -1081,6 +957,7 @@ document.getElementById('btnBackFromProfile').addEventListener('click', () => {
     if(currentUserProfile.role === 'admin' || currentUserProfile.role === 'core_admin' || currentUserProfile.role === 'state_admin') showView('admin');
     else showView('organizer-dash');
 });
+
 document.getElementById('profileForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btnSaveProfile'); btn.textContent = "Saving...";
@@ -1096,9 +973,10 @@ function getBadgeStyle(status) {
     return 'background: #FEE2E2; color: #991B1B;';
 }
 
+// --- Fetch & Render Data (Google Apps Script API) ---
 async function fetchDossiers() {
     if (!SCRIPT_URL || SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL")) {
-        console.warn("SCRIPT_URL is not set. Data fetch skipped.");
+        console.warn("SCRIPT_URL is not set.");
         return;
     }
     try {
@@ -1134,12 +1012,8 @@ function renderAdminTable() {
     if (!tbody) return; tbody.innerHTML = '';
     
     let filtered = applications; 
-    
-    if (currentUserProfile.role === 'state_admin') {
-        filtered = filtered.filter(a => a.state === currentUserProfile.state);
-    } else if (selectedStateFilter !== 'all') {
-        filtered = filtered.filter(a => a.state === selectedStateFilter);
-    }
+    if (currentUserProfile.role === 'state_admin') { filtered = filtered.filter(a => a.state === currentUserProfile.state); } 
+    else if (selectedStateFilter !== 'all') { filtered = filtered.filter(a => a.state === selectedStateFilter); }
 
     if (currentFilterAdmin !== 'all') {
         let target = currentFilterAdmin === 'pending_state' ? 'PENDING STATE' : currentFilterAdmin === 'pending_admin' ? 'PENDING ADMIN' : currentFilterAdmin === 'approved' ? 'APPROVED' : 'REVISION REQ.';
@@ -1148,33 +1022,18 @@ function renderAdminTable() {
 
     if (searchQ.trim() !== '') {
         const q = searchQ.toLowerCase();
-        filtered = filtered.filter(a => 
-            (a.eventName || '').toLowerCase().includes(q) || 
-            (a.organizerEmail || '').toLowerCase().includes(q) ||
-            (a.id || '').toLowerCase().includes(q)
-        );
+        filtered = filtered.filter(a => (a.eventName || '').toLowerCase().includes(q) || (a.organizerEmail || '').toLowerCase().includes(q) || (a.id || '').toLowerCase().includes(q));
     }
     
     filtered.forEach(app => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>
-                <b style="font-size:14px; color:var(--text-main);">${app.eventName}</b><br>
-                <span style="font-size:11px; color:var(--text-muted);">${app.id} &bull; ${app.organizerEmail}</span>
-            </td>
+            <td><b style="font-size:14px;">${app.eventName}</b><br><span style="font-size:11px; color:var(--text-muted);">${app.id} &bull; ${app.organizerEmail}</span></td>
             <td>${app.state}<br><span style="font-size:11px; color:var(--text-muted);">${formatLocalDate(app.startDate)}</span></td>
             <td>${app.system} (${app.rounds || '-'} Rds)<br><span style="font-size:11px; color:var(--text-muted);">${app.timeControl || '-'}</span></td>
             <td>${app.pax} pax</td>
-            <td>
-                <b style="color:var(--text-main);">RM ${app.fee || 0}</b><br>
-                <span style="font-size:11px; color:var(--text-muted);">Ref: ${app.paymentRef || '-'}</span>
-            </td>
-            <td>
-                <div style="display:flex; align-items:center; gap:8px; justify-content:space-between;">
-                    <span class="status-pill" style="${getBadgeStyle(app.status)}">${app.status}</span>
-                    <button type="button" class="btn btn-ghost" style="padding:4px 10px; font-size:11px;">Review</button>
-                </div>
-            </td>
+            <td><b>RM ${app.fee || 0}</b><br><span style="font-size:11px; color:var(--text-muted);">Ref: ${app.paymentRef || '-'}</span></td>
+            <td><div style="display:flex; align-items:center; gap:8px; justify-content:space-between;"><span class="status-pill" style="${getBadgeStyle(app.status)}">${app.status}</span><button type="button" class="btn btn-ghost" style="padding:4px 10px; font-size:11px;">Review</button></div></td>
         `;
         tr.addEventListener('click', () => openDrawer(app.id));
         tbody.appendChild(tr);
@@ -1203,60 +1062,26 @@ function renderOrgTable() {
     }
     myApps.forEach(app => {
         const tr = document.createElement('tr');
-        
-        let reportBadgeHtml = '';
-        if (app.status === 'APPROVED') {
-            const tunStatus = app.tunStatus || 'PENDING';
-            if (tunStatus === 'RECEIVED') {
-                reportBadgeHtml = `<br><span class="status-pill" style="background:#D1FAE5; color:#065F46; font-size:10px; margin-top:4px;">✓ .tun Received by MCF</span>`;
-            } else if (tunStatus === 'REJECTED') {
-                reportBadgeHtml = `<br><span class="status-pill" style="background:#FEE2E2; color:#991B1B; font-size:10px; margin-top:4px;">✗ .tun Rejected - Re-upload Req.</span>`;
-            } else {
-                const hasTun = app.tunUrl && app.tunUrl.startsWith('http');
-                reportBadgeHtml = hasTun 
-                    ? `<br><span class="status-pill" style="background:#DBEAFE; color:#1E40AF; font-size:10px; margin-top:4px;">⏳ .tun Pending Review</span>` 
-                    : `<br><span class="status-pill" style="background:#FEF3C7; color:#92400E; font-size:10px; margin-top:4px;">⚠ .tun Report Missing</span>`;
-            }
-        }
-
         tr.innerHTML = `
-            <td>
-                <b style="font-size:14px; color:var(--text-main);">${app.eventName}</b><br>
-                <span style="font-size:11px; color:var(--text-muted);">${app.id}</span>
-            </td>
+            <td><b style="font-size:14px;">${app.eventName}</b><br><span style="font-size:11px; color:var(--text-muted);">${app.id}</span></td>
             <td>${app.state}<br><span style="font-size:11px; color:var(--text-muted);">${formatLocalDate(app.startDate)}</span></td>
             <td>${app.system} (${app.rounds || '-'} Rds)<br><span style="font-size:11px; color:var(--text-muted);">${app.timeControl || '-'}</span></td>
             <td>${app.pax} pax</td>
-            <td>
-                <b style="color:var(--text-main);">RM ${app.fee || 0}</b><br>
-                <span style="font-size:11px; color:var(--text-muted);">Ref: ${app.paymentRef || '-'}</span>
-            </td>
-            <td>
-                <div style="display:flex; align-items:center; gap:8px; justify-content:space-between;">
-                    <span class="status-pill" style="${getBadgeStyle(app.status)}">${app.status}</span>
-                    <button type="button" class="btn btn-ghost" style="padding:4px 10px; font-size:11px;">View</button>
-                </div>
-                ${reportBadgeHtml}
-            </td>
+            <td><b>RM ${app.fee || 0}</b><br><span style="font-size:11px; color:var(--text-muted);">Ref: ${app.paymentRef || '-'}</span></td>
+            <td><span class="status-pill" style="${getBadgeStyle(app.status)}">${app.status}</span></td>
         `;
         tr.addEventListener('click', () => openDrawer(app.id));
         tbody.appendChild(tr);
     });
 }
 document.querySelectorAll('#navFilterOrg .nav-item').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('#navFilterOrg .nav-item').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active'); currentFilterOrg = btn.getAttribute('data-filter'); renderOrgTable();
-    });
+    btn.addEventListener('click', () => { document.querySelectorAll('#navFilterOrg .nav-item').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentFilterOrg = btn.getAttribute('data-filter'); renderOrgTable(); });
 });
 document.querySelectorAll('#navFilter .nav-item').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active'); currentFilterAdmin = btn.getAttribute('data-filter'); renderAdminTable();
-        document.getElementById('adminAppsWrap').style.display = 'block'; document.getElementById('adminUsersWrap').style.display = 'none';
-    });
+    btn.addEventListener('click', () => { document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentFilterAdmin = btn.getAttribute('data-filter'); renderAdminTable(); document.getElementById('adminAppsWrap').style.display = 'block'; document.getElementById('adminUsersWrap').style.display = 'none'; });
 });
 
+// --- User Management (Firebase Listeners) ---
 function listenForUsers() {
     db.collection("users").onSnapshot((snapshot) => {
         usersList = []; snapshot.forEach(doc => usersList.push({ id: doc.id, ...doc.data() }));
@@ -1267,293 +1092,80 @@ function listenForUsers() {
 
 function renderUsersTable() {
     const tbody = document.getElementById('tableBodyUsers'); 
-    if (!tbody) return; 
-    tbody.innerHTML = '';
+    if (!tbody) return; tbody.innerHTML = '';
     
     let filteredUsers = usersList;
-
-    if (selectedUserRoleFilter !== 'all') {
-        filteredUsers = filteredUsers.filter(u => (u.role || 'organizer') === selectedUserRoleFilter);
-    }
-
-    if (selectedUserStateFilter !== 'all') {
-        filteredUsers = filteredUsers.filter(u => (u.state || '') === selectedUserStateFilter);
-    }
-
+    if (selectedUserRoleFilter !== 'all') filteredUsers = filteredUsers.filter(u => (u.role || 'organizer') === selectedUserRoleFilter);
+    if (selectedUserStateFilter !== 'all') filteredUsers = filteredUsers.filter(u => (u.state || '') === selectedUserStateFilter);
     if (searchUsersQ.trim() !== '') {
         const q = searchUsersQ.toLowerCase();
-        filteredUsers = filteredUsers.filter(u => 
-            (u.name || '').toLowerCase().includes(q) || 
-            (u.email || '').toLowerCase().includes(q)
-        );
+        filteredUsers = filteredUsers.filter(u => (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q));
     }
 
     filteredUsers.forEach(u => {
         const tr = document.createElement('tr');
-        let roleBadge = 'ORGANIZER', badgeStyle = 'background:#F1F5F9; color:#64748B;';
-        if (u.role === 'state_admin') { roleBadge = 'STATE ADMIN'; badgeStyle = 'background:#FEF3C7; color:#92400E;'; }
-        if (u.role === 'admin') { roleBadge = 'MCF ADMIN'; badgeStyle = 'background:#DBEAFE; color:#1E40AF;'; }
-        if (u.role === 'core_admin') { roleBadge = 'CORE ADMIN'; badgeStyle = 'background:#FEE2E2; color:#991B1B;'; }
-
-        let actionHtml = '-';
-        
-        if (currentUserProfile.role === 'core_admin') {
-            if (u.email !== currentUserProfile.email) {
-                actionHtml = `
-                <div style="display:flex; gap:6px; align-items:center;">
-                    <select class="role-select" id="role_${u.id}" style="padding:4px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
-                        <option value="organizer" ${u.role === 'organizer' ? 'selected' : ''}>Organizer</option>
-                        <option value="state_admin" ${u.role === 'state_admin' ? 'selected' : ''}>State Admin</option>
-                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>MCF Admin</option>
-                        <option value="core_admin" ${u.role === 'core_admin' ? 'selected' : ''}>Core Admin</option>
-                    </select>
-                    <button class="btn btn-gold btnChangeRole" data-id="${u.id}" style="padding: 3px 8px; font-size: 10px;">Save</button>
-                </div>`;
-            } else {
-                actionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic;">(Your Account)</span>`;
-            }
-        } else {
-            actionHtml = `<span style="font-size:12px; color:var(--text-muted);">Restricted</span>`;
+        let actionHtml = `<span style="font-size:12px; color:var(--text-muted);">Restricted</span>`;
+        if (currentUserProfile.role === 'core_admin' && u.email !== currentUserProfile.email) {
+            actionHtml = `
+            <div style="display:flex; gap:6px; align-items:center;">
+                <select class="role-select" id="role_${u.id}" style="padding:4px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                    <option value="organizer" ${u.role === 'organizer' ? 'selected' : ''}>Organizer</option>
+                    <option value="state_admin" ${u.role === 'state_admin' ? 'selected' : ''}>State Admin</option>
+                    <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>MCF Admin</option>
+                    <option value="core_admin" ${u.role === 'core_admin' ? 'selected' : ''}>Core Admin</option>
+                </select>
+                <button class="btn btn-gold btnChangeRole" data-id="${u.id}" style="padding: 3px 8px; font-size: 10px;">Save</button>
+            </div>`;
         }
 
-        tr.innerHTML = `<td><b style="font-size:14px;">${u.name || 'N/A'}</b></td><td>${u.email}</td><td>${u.state || '-'}</td><td><span class="status-pill" style="${badgeStyle}">${roleBadge}</span></td><td>${actionHtml}</td>`;
+        tr.innerHTML = `<td><b style="font-size:14px;">${u.name || 'N/A'}</b></td><td>${u.email}</td><td>${u.state || '-'}</td><td>${u.role}</td><td>${actionHtml}</td>`;
         tbody.appendChild(tr);
     });
 
     document.querySelectorAll('.btnChangeRole').forEach(b => b.addEventListener('click', (e) => {
-        if (currentUserProfile.role !== 'core_admin') {
-            showToast("Unauthorized action.");
-            return;
-        }
         db.collection('users').doc(e.target.dataset.id).update({ role: document.getElementById(`role_${e.target.dataset.id}`).value }); 
         showToast("Role updated successfully.");
     }));
 }
-
-document.getElementById('searchUsers').addEventListener('input', (e) => {
-    searchUsersQ = e.target.value;
-    renderUsersTable();
-});
-
-document.getElementById('userRoleFilter').addEventListener('change', (e) => {
-    selectedUserRoleFilter = e.target.value;
-    renderUsersTable();
-});
-
-document.getElementById('userStateFilter').addEventListener('change', (e) => {
-    selectedUserStateFilter = e.target.value;
-    renderUsersTable();
-});
 
 document.getElementById('btnNavUsers')?.addEventListener('click', (e) => {
     document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active')); e.target.classList.add('active');
     document.getElementById('adminAppsWrap').style.display = 'none'; document.getElementById('adminUsersWrap').style.display = 'block';
 });
 
+// --- Drawers / Modal Controls ---
 function openDrawer(id){
     selectedId = id; const t = applications.find(x => x.id === id); if(!t) return;
     document.getElementById('dTitle').textContent = t.eventName;
     document.getElementById('dSubtitle').textContent = "Application ID: " + t.id;
     
-    let tunSectionHtml = '';
-    const isApproved = t.status === 'APPROVED';
-    const isOrganizer = currentUserProfile.email === t.organizerEmail;
-    const isMCFAdmin = ['admin', 'core_admin'].includes(currentUserProfile.role);
-
-    if (isApproved) {
-        const tunStatus = t.tunStatus || 'PENDING';
-        let statusBadge = '';
-        if (tunStatus === 'RECEIVED') {
-            statusBadge = `<span style="font-size:12px; color:#065F46; font-weight:600; background:#D1FAE5; padding:4px 10px; border-radius:99px;">✓ .tun Received & Accepted</span>`;
-        } else if (tunStatus === 'REJECTED') {
-            statusBadge = `<span style="font-size:12px; color:#991B1B; font-weight:600; background:#FEE2E2; padding:4px 10px; border-radius:99px;">✗ .tun Rejected: ${t.tunRejectReason || 'No reason provided'}</span>`;
-        } else {
-            statusBadge = `<span style="font-size:12px; color:#1E40AF; font-weight:600; background:#DBEAFE; padding:4px 10px; border-radius:99px;">⏳ Pending MCF Review</span>`;
-        }
-
-        let tunActionHtml = '';
-        if (t.tunUrl && t.tunUrl.startsWith('http')) {
-            tunActionHtml = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                <a href="${t.tunUrl}" target="_blank" class="btn btn-ghost" style="padding:6px 12px; font-size:12px; text-decoration:none; background:white;">Download Submitted .tun Report</a>
-                ${isMCFAdmin && tunStatus !== 'RECEIVED' ? `
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn btn-primary" style="padding:6px 12px; font-size:12px; background:#059669;" onclick="setTunStatus('${t.id}', 'RECEIVED')">Receive .tun</button>
-                        <button class="btn btn-ghost" style="padding:6px 12px; font-size:12px; color:#DC2626; border-color:#DC2626;" onclick="promptRejectTun('${t.id}')">Reject .tun</button>
-                    </div>
-                ` : ''}
-            </div>`;
-        } else {
-            tunActionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic; display:block; margin-top:8px;">No report uploaded yet by organizer.</span>`;
-        }
-
-        let organizerUploadHtml = '';
-        if (isOrganizer && (tunStatus === 'REJECTED' || !t.tunUrl || !t.tunUrl.startsWith('http'))) {
-            organizerUploadHtml = `
-            <div style="margin-top: 16px; border-top: 1px dashed var(--border); padding-top: 14px;">
-                <p style="font-size:12px; font-weight:600; color:var(--text-main); margin:0 0 8px;">${tunStatus === 'REJECTED' ? 'Please re-upload corrected .tun file:' : 'Upload tournament report file:'}</p>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <input type="file" id="tunUploadInput" style="padding:6px; font-size:12px; background:white;">
-                    <button class="btn btn-primary" style="padding:8px 16px; font-size:12px; white-space:nowrap;" onclick="uploadTunFile('${t.id}')">Upload .tun File</button>
-                </div>
-            </div>`;
-        }
-
-        tunSectionHtml = `
-        <div style="background: var(--bg-body); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-top: 24px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Tournament Report File (.tun / Results)</div>
-                ${statusBadge}
-            </div>
-            <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px;">Submit or review the official pairing and results report.</p>
-            ${tunActionHtml}
-            ${organizerUploadHtml}
-        </div>`;
-    }
-
-    let previewUrl = t.previewReceiptUrl || t.receiptUrl || '';
-    let letterPreviewUrl = t.previewLetterUrl || t.letterUrl || '';
-    let posterPreviewUrl = t.previewPosterUrl || t.posterUrl || '';
-
     document.getElementById('drawerContent').innerHTML = `
-    <div style="background: var(--bg-body); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 24px;">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 12px;">
-            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 600;">Payment & Status Audit</span>
-            <span class="status-pill" style="${getBadgeStyle(t.status)}">${t.status}</span>
-        </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items:center;">
-            <div>
-                <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block; margin-bottom:4px;">Calculated Fee</span>
-                <b style="font-size: 18px; color: var(--text-main);">RM ${t.fee || 0}</b>
-                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Ref: ${t.paymentRef || '-'}</div>
-            </div>
-            <div style="text-align:right;">
-                ${t.receiptUrl && t.receiptUrl.startsWith('http') ? `<a href="${t.receiptUrl}" target="_blank" class="btn btn-ghost" style="padding:6px 12px; font-size:11px; text-decoration:none; background:white;">🔗 Open Receipt</a>` : `<span style="font-size:12px; color:var(--text-muted);">No Receipt Attached</span>`}
-            </div>
-        </div>
-        ${t.receiptUrl && t.receiptUrl.startsWith('http') ? `
-        <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
-            <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block; margin-bottom:8px;">Payment Receipt Preview</span>
-            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 300px; display: flex; align-items: center; justify-content: center;">
-                ${t.receiptUrl.toLowerCase().includes('.pdf') || t.receiptUrl.includes('application/pdf') 
-                    ? `<iframe src="${previewUrl}" style="width:100%; height:100%; border:none;"></iframe>`
-                    : `<img src="${previewUrl}" alt="Payment Receipt" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.onerror=null; this.src='${t.receiptUrl}';">`
-                }
-            </div>
-        </div>` : ''}
-
-        ${t.letterUrl && t.letterUrl.startsWith('http') ? `
-        <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block;">State Affiliate Letter</span>
-                <a href="${t.letterUrl}" target="_blank" class="btn btn-ghost" style="padding:4px 10px; font-size:11px; text-decoration:none; background:white;">🔗 Open Letter</a>
-            </div>
-            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 250px; display: flex; align-items: center; justify-content: center;">
-                ${t.letterUrl.toLowerCase().includes('.pdf') || t.letterUrl.includes('application/pdf') 
-                    ? `<iframe src="${letterPreviewUrl}" style="width:100%; height:100%; border:none;"></iframe>`
-                    : `<img src="${letterPreviewUrl}" alt="Affiliate Letter" style="max-width:100%; max-height:100%; object-fit:contain;">`
-                }
-            </div>
-        </div>` : ''}
-
-        ${t.posterUrl && t.posterUrl.startsWith('http') ? `
-        <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block;">Event Poster / Regulations</span>
-                <a href="${t.posterUrl}" target="_blank" class="btn btn-ghost" style="padding:4px 10px; font-size:11px; text-decoration:none; background:white;">🔗 Open Poster</a>
-            </div>
-            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 250px; display: flex; align-items: center; justify-content: center;">
-                ${t.posterUrl.toLowerCase().includes('.pdf') || t.posterUrl.includes('application/pdf') 
-                    ? `<iframe src="${posterPreviewUrl}" style="width:100%; height:100%; border:none;"></iframe>`
-                    : `<img src="${posterPreviewUrl}" alt="Event Poster" style="max-width:100%; max-height:100%; object-fit:contain;">`
-                }
-            </div>
-        </div>` : ''}
-    </div>
-    
-    <div class="section-title">FIDE Tournament Registration Fields (Copy & Paste Ready)</div>
-    <div class="data-grid">
-        <div class="data-item"><span class="label">Event Name</span><span>${t.eventName || '-'}</span></div>
-        <div class="data-item"><span class="label">Venue & State</span><span>${t.venue || '-'}, ${t.state || '-'}</span></div>
-        <div class="data-item"><span class="label">Organizer Category</span><span>${t.orgCategory || '-'}</span></div>
-        <div class="data-item"><span class="label">FIDE Laws Followed</span><span>${t.fideLaws || 'Yes'}</span></div>
-        <div class="data-item"><span class="label">National Championship (1.43a)</span><span>${t.natChampionship || 'No'}</span></div>
-        <div class="data-item"><span class="label">Title Norms Available</span><span>${t.titleNorms || 'No'} (${t.normAvailable || 'No'})</span></div>
-        <div class="data-item"><span class="label">Direct Title Events</span><span>${t.directTitle || 'No'}</span></div>
-        <div class="data-item"><span class="label">Tournament Type</span><span>${t.tourneyType || 'Over the Board'}</span></div>
-        <div class="data-item"><span class="label">Start Date</span><span>${formatLocalDate(t.startDate)}</span></div>
-        <div class="data-item"><span class="label">End Date</span><span>${formatLocalDate(t.endDate)}</span></div>
-        <div class="data-item"><span class="label">Expected Players</span><span>${t.pax || 0}</span></div>
-        <div class="data-item"><span class="label">Tournament System</span><span>${t.system || '-'}</span></div>
-        <div class="data-item"><span class="label">Number of Rounds Reported</span><span>${t.rounds || '-'}</span></div>
-        <div class="data-item"><span class="label">Number of Multiple Round Days</span><span>${t.multiRoundDays || '1'}</span></div>
-        <div class="data-item"><span class="label">Chief Arbiter</span><span>${t.chiefArbiter || '-'} (FIDE ID: ${t.chiefArbiterFide || '-'})</span></div>
-        <div class="data-item"><span class="label">Deputy Chief Arbiter</span><span>${t.deputyArbiter || 'None'} (FIDE ID: ${t.deputyArbiterFide || '-'})</span></div>
-        <div class="data-item"><span class="label">Chief Organizer</span><span>${t.chiefOrg || '-'} (FIDE ID: ${t.chiefOrgFide || '-'})</span></div>
-        <div class="data-item"><span class="label">Organizing Body</span><span>${t.orgBody || '-'} (FIDE ID: ${t.orgBodyFide || '-'})</span></div>
-        <div class="data-item"><span class="label">Fair Play Officer</span><span>${t.fairPlay || 'None'} (FIDE ID: ${t.fairPlayFide || '-'})</span></div>
-        <div class="data-item" style="grid-column: 1 / -1;"><span class="label">Time Control & Specification</span><span>${t.timeControl || '-'}</span></div>
-        <div class="data-item"><span class="label">Pairing Software</span><span>${t.software || '-'}</span></div>
-        <div class="data-item"><span class="label">1st Tiebreak Method</span><span>${t.tb1 || '-'}</span></div>
-        <div class="data-item"><span class="label">2nd Tiebreak Method</span><span>${t.tb2 || '-'}</span></div>
-        <div class="data-item"><span class="label">3rd Tiebreak Method</span><span>${t.tb3 || '-'}</span></div>
-        <div class="data-item"><span class="label">Female Only?</span><span>${t.femaleOnly || 'No'}</span></div>
-        <div class="data-item"><span class="label">Max Rating Limit</span><span>${t.maxRating || 'No limit'}</span></div>
-        <div class="data-item"><span class="label">Age Limit</span><span>${t.ageLimit || 'None'}</span></div>
-        <div class="data-item"><span class="label">All Digital Clocks?</span><span>${t.digitalClock || 'Yes'}</span></div>
-        <div class="data-item"><span class="label">Will PGN be Provided?</span><span>${t.pgnProvided || 'No'}</span></div>
-        <div class="data-item"><span class="label">Internet Transmission?</span><span>${t.internetLive || 'No'}</span></div>
-        <div class="data-item"><span class="label">Contact Email</span><span>${t.contactEmail || t.organizerEmail || '-'}</span></div>
-        <div class="data-item"><span class="label">Internet Homepage</span><span>${t.homepage || '-'}</span></div>
-        <div class="data-item"><span class="label">Prize Fund</span><span>${t.prizeFund || '-'}</span></div>
-        <div class="data-item" style="grid-column: 1 / -1;"><span class="label">Remarks</span><span>${t.remarks || '-'}</span></div>
-    </div>
-
-    ${tunSectionHtml}
-    
-    <div style="margin-top: 32px;">
-        <button class="btn btn-ghost" onclick="generateDossierPDF('${t.id}')" style="width: 100%; border-style: dashed; justify-content:center;">↓ Download Official Summary PDF</button>
-    </div>
+      <div style="padding:20px; border:1px solid var(--border); border-radius:8px;">
+        <h4>Basic Info</h4>
+        <p><strong>Status:</strong> ${t.status}</p>
+        <p><strong>Organizer Email:</strong> ${t.organizerEmail}</p>
+        <p><strong>Venue & State:</strong> ${t.venue}, ${t.state}</p>
+        <p><strong>System & Rds:</strong> ${t.system} (${t.rounds} rounds)</p>
+        <p><strong>Dates:</strong> ${formatLocalDate(t.startDate)} - ${formatLocalDate(t.endDate)}</p>
+        <p><strong>Total Fee Paid:</strong> RM ${t.fee} (Ref: ${t.paymentRef})</p>
+      </div>
+      <div style="margin-top:20px;">
+        <h4>Attachments</h4>
+        ${t.receiptUrl ? `<a href="${t.receiptUrl}" target="_blank">View Receipt</a><br>` : 'No Receipt'}
+        ${t.posterUrl ? `<a href="${t.posterUrl}" target="_blank">View Poster</a><br>` : 'No Poster'}
+        ${t.letterUrl ? `<a href="${t.letterUrl}" target="_blank">View Authorization Letter</a><br>` : 'No Letter'}
+      </div>
     `;
 
-    let footerHtml = '';
-    const isAdmin = ['admin', 'core_admin', 'state_admin'].includes(currentUserProfile.role);
-    if (isAdmin) {
-        const isStateAdmin = currentUserProfile.role === 'state_admin';
-        const isPendingState = t.status === 'PENDING STATE';
-        const isAlreadyApproved = t.status === 'APPROVED';
-
-        footerHtml = `
-            <button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger); border-color:var(--danger);">Reject Application</button>
-            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end;">
-                <button class="btn btn-gold" onclick="changeStatus('REVISION REQ.')">Request Revision</button>
-        `;
-
-        if (isStateAdmin) {
-            footerHtml += `<button class="btn btn-primary" style="width:auto;" onclick="changeStatus('PENDING ADMIN')">✓ 1. Endorse (State)</button>`;
-        } else {
-            if (isPendingState) {
-                footerHtml += `
-                    <span style="font-size:12px; color:var(--warning); font-weight:500;">⚠️ Waiting for State Endorsement</span>
-                    <button class="btn btn-primary" style="width:auto; opacity:0.5; cursor:not-allowed;" disabled title="State must endorse first">✓ 2. Approve (MCF Final)</button>
-                `;
-            } else {
-                if (isAlreadyApproved) {
-                    footerHtml += `
-                        <button class="btn btn-gold" style="width:auto;" onclick="changeStatus('PENDING STATE')">Revert to State</button>
-                        <button class="btn btn-primary" style="width:auto; background:#9CA3AF; color:#FFFFFF; opacity:0.7; cursor:not-allowed;" disabled>✓ Approved & Finalized</button>
-                    `;
-                } else {
-                    footerHtml += `
-                        <button class="btn btn-gold" style="width:auto;" onclick="changeStatus('PENDING STATE')">Revert to State</button>
-                        <button class="btn btn-primary" style="width:auto;" onclick="changeStatus('APPROVED')">✓ 2. Approve (MCF Final)</button>
-                    `;
-                }
-            }
-        }
-        footerHtml += `</div>`;
-    } else {
-        footerHtml = `<div style="width:100%; text-align:right;"><button class="btn btn-ghost" onclick="closeDrawer()">Close Window</button></div>`;
+    let footerHtml = `<button class="btn btn-ghost" onclick="closeDrawer()">Close</button>`;
+    
+    // Admin Controls
+    if (['admin', 'core_admin', 'state_admin'].includes(currentUserProfile.role)) {
+       footerHtml += `
+         <div style="display:flex; gap:10px;">
+           <button class="btn btn-gold" onclick="changeStatus('REJECTED')">Reject</button>
+           <button class="btn btn-primary" onclick="changeStatus('APPROVED')">Approve Event</button>
+         </div>`;
     }
     
     document.getElementById('drawerFooter').innerHTML = footerHtml;
@@ -1561,116 +1173,9 @@ function openDrawer(id){
 }
 function closeDrawer(){ document.getElementById('drawerBack').classList.remove('open'); }
 
-async function uploadTunFile(id) {
-    const fileInput = document.getElementById('tunUploadInput');
-    if (!fileInput || fileInput.files.length === 0) {
-        showToast("Please select a file first.");
-        return;
-    }
-    const file = fileInput.files[0];
-    showToast("Uploading tournament report...");
-
-    const fileData = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-    });
-
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'submitTunFile', id: id, fileData: fileData, fileName: file.name })
-        });
-        const result = await response.json();
-        if (result.status === 'success') {
-            showToast("✓ Tournament report uploaded successfully!");
-            const item = applications.find(x => x.id === id);
-            if (item) {
-                item.tunUrl = result.tunUrl;
-                item.tunStatus = 'PENDING';
-                item.tunRejectReason = '';
-            }
-            openDrawer(id);
-            fetchDossiers();
-        } else {
-            showToast("Error uploading file: " + result.message);
-        }
-    } catch (err) {
-        showToast("Connection Error: " + err.message);
-    }
-}
-
-async function setTunStatus(id, status) {
-    showToast("Updating .tun status...");
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'updateTunStatus', id: id, status: status, reason: "" })
-        });
-        const result = await response.json();
-        if (result.status === 'success') {
-            showToast("✓ Tournament report marked as Received!");
-            const item = applications.find(x => x.id === id);
-            if (item) item.tunStatus = status;
-            openDrawer(id);
-            fetchDossiers();
-        } else {
-            showToast("Error: " + result.message);
-        }
-    } catch (err) {
-        showToast("Connection Error: " + err.message);
-    }
-}
-
-async function promptRejectTun(id) {
-    const reason = prompt("Please provide a reason why this .tun report is being rejected:");
-    if (reason === null) return;
-    if (!reason.trim()) {
-        alert("Rejection reason cannot be empty.");
-        return;
-    }
-
-    showToast("Submitting rejection comment...");
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'updateTunStatus', id: id, status: 'REJECTED', reason: reason })
-        });
-        const result = await response.json();
-        if (result.status === 'success') {
-            showToast("✓ .tun report rejected with comments.");
-            const item = applications.find(x => x.id === id);
-            if (item) {
-                item.tunStatus = 'REJECTED';
-                item.tunRejectReason = reason;
-            }
-            openDrawer(id);
-            fetchDossiers();
-        } else {
-            showToast("Error: " + result.message);
-        }
-    } catch (err) {
-        showToast("Connection Error: " + err.message);
-    }
-}
-
 async function changeStatus(newStatus){
-    if (!selectedId) {
-        showToast("Error: No application selected.");
-        return;
-    }
-    if (!SCRIPT_URL || SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL")) {
-        alert('Backend script disconnected.');
-        return;
-    }
-
-    const footerBtns = document.querySelectorAll('#drawerFooter button');
-    footerBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
-    showToast("Saving status to Google Sheets...");
-
+    if (!selectedId) return;
+    showToast("Updating status...");
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
@@ -1678,103 +1183,170 @@ async function changeStatus(newStatus){
             body: JSON.stringify({ action: 'updateDossierStatus', id: selectedId, status: newStatus })
         });
         const result = await response.json();
-        footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
-        
         if (result.status === 'success') { 
-            const item = applications.find(x => x.id === selectedId);
-            if (item) item.status = newStatus;
-            
-            updateAdminCounts(); 
-            renderAdminTable();
-            updateOrgCounts(); 
-            renderOrgTable();
-            
-            closeDrawer(); 
-            showToast("✓ Status updated to " + newStatus); 
-            fetchDossiers(); 
+            closeDrawer(); showToast("Status updated to " + newStatus); fetchDossiers(); 
+        } else { showToast("Error: " + result.message); }
+    } catch (err) { showToast("Error: " + err.message); }
+}
+
+// ============================================================================
+// WIZARD NAVIGATION & SUBMISSION LOGIC
+// ============================================================================
+
+// 1. Open and Close Wizard
+document.getElementById('btnNewAppDash')?.addEventListener('click', () => {
+    document.getElementById('wizard').reset();
+    stepIdx = 0;
+    showStep(stepIdx);
+    updateDossier();
+    showView('organizer-wizard');
+});
+
+document.getElementById('btnCancelWizard')?.addEventListener('click', () => {
+    showView('organizer-dash');
+});
+
+// 2. Real-time Dossier & Fee Updates
+window.updateDossier = function() {
+    // Update Sidebar display
+    document.getElementById('dEventName').textContent = document.getElementById('eventName').value || 'Untitled event';
+    document.getElementById('dVenue').textContent = document.getElementById('venue').value || '—';
+    document.getElementById('dDates').textContent = document.getElementById('dateStart').value || '—';
+    document.getElementById('dSystem').textContent = document.getElementById('system').value || '—';
+    document.getElementById('dTC').textContent = document.getElementById('tcInput').value || '—';
+    document.getElementById('dArbiter').textContent = document.getElementById('chiefArbiter').value || '—';
+
+    // Update Fee Calculator (Clause 3.3 simulation)
+    const orgCat = document.getElementById('orgCategory').value || '';
+    const pax = parseInt(document.getElementById('pax').value) || 0;
+    
+    let baseFee = orgCat.includes('State Affiliate') && currentUserProfile.role === 'state_admin' ? 200 : 300;
+    let perPlayerFee = Math.max(32, pax) * 2; // Assuming RM 2 per player, Min 32 pax
+    let total = baseFee + perPlayerFee;
+
+    document.getElementById('feeBase').textContent = `RM ${baseFee}`;
+    document.getElementById('feePerPlayer').textContent = `RM ${perPlayerFee}`;
+    document.getElementById('feeTotal').textContent = `RM ${total}`;
+    document.getElementById('dFee').textContent = `RM ${total}`;
+};
+
+// 3. Step Navigation Logic
+function showStep(index) {
+    const allSteps = document.querySelectorAll('.step');
+    allSteps.forEach((s, i) => s.classList.toggle('active', i === index));
+    
+    document.getElementById('stepNumLabel').textContent = index + 1;
+    
+    // Update Rank (Progress bar)
+    const rank = document.getElementById('rank');
+    rank.innerHTML = '';
+    for (let i = 0; i < steps.length; i++) {
+        const sq = document.createElement('button');
+        sq.className = 'sq ' + (i < index ? 'done ' : '') + (i === index ? 'current ' : '');
+        rank.appendChild(sq);
+    }
+
+    // Toggle Buttons
+    document.getElementById('backBtn').style.display = index === 0 ? 'none' : 'inline-flex';
+    
+    if (index === steps.length - 1) { // Review Step
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('submitAppBtn').style.display = 'inline-flex';
+        
+        // Build review summary
+        document.getElementById('reviewOut').innerHTML = `
+            <div class="fee-box">
+                <p><strong>Event:</strong> ${document.getElementById('eventName').value || 'N/A'}</p>
+                <p><strong>Calculated Fee:</strong> ${document.getElementById('feeTotal').textContent}</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-top:8px;">Ensure receipt and poster are attached before submitting.</p>
+            </div>
+        `;
+    } else {
+        document.getElementById('nextBtn').style.display = 'inline-flex';
+        document.getElementById('submitAppBtn').style.display = 'none';
+    }
+}
+
+document.getElementById('nextBtn')?.addEventListener('click', () => {
+    if (stepIdx < steps.length - 1) { stepIdx++; showStep(stepIdx); }
+});
+
+document.getElementById('backBtn')?.addEventListener('click', () => {
+    if (stepIdx > 0) { stepIdx--; showStep(stepIdx); }
+});
+
+// 4. Submission Logic
+document.getElementById('submitAppBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('submitAppBtn');
+    btn.textContent = "Submitting...";
+    btn.disabled = true;
+
+    // Helper to read files as Base64 for Apps Script
+    const getBase64 = (file) => new Promise((resolve) => {
+        if (!file) return resolve(null);
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.readAsDataURL(file);
+    });
+
+    try {
+        const receiptFile = document.getElementById('receiptUpload').files[0];
+        const posterFile = document.getElementById('posterUpload').files[0];
+        const letterFile = document.getElementById('affiliateLetterUpload')?.files[0];
+
+        const payload = {
+            action: 'submitDossier',
+            data: {
+                // Map frontend ID values to backend expected fields
+                eventName: document.getElementById('eventName').value,
+                venue: document.getElementById('venue').value,
+                state: document.getElementById('orgState').value,
+                orgCategory: document.getElementById('orgCategory').value,
+                pax: document.getElementById('pax').value,
+                startDate: document.getElementById('dateStart').value,
+                endDate: document.getElementById('dateEnd').value,
+                system: document.getElementById('system').value,
+                rounds: document.getElementById('rounds').value,
+                multiRoundDays: document.getElementById('multiRoundDays').value,
+                timeControl: document.getElementById('tcInput').value, 
+                chiefArbiter: document.getElementById('chiefArbiter').value,
+                chiefArbiterFide: document.getElementById('chiefArbiterFide').value,
+                paymentRef: document.getElementById('paymentRef').value,
+                contactEmail: document.getElementById('contactEmail').value,
+                totalFee: document.getElementById('feeTotal').textContent.replace('RM ', ''),
+                organizerEmail: currentUserProfile.email,
+                
+                // Base64 file attachments
+                fileData: await getBase64(receiptFile),
+                fileName: receiptFile ? receiptFile.name : '',
+                posterData: await getBase64(posterFile),
+                posterName: posterFile ? posterFile.name : '',
+                letterData: await getBase64(letterFile),
+                letterName: letterFile ? letterFile.name : ''
+            }
+        };
+
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        
+        const result = await res.json();
+        
+        if (result.status === 'success') {
+            showToast("Application submitted successfully!");
+            showView('organizer-dash');
+            fetchDossiers();
         } else {
             showToast("Error: " + result.message);
         }
     } catch (err) {
-        footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
-        console.error("Fetch API Error:", err);
-        showToast("Script Error: " + err.message);
+        showToast("Network Error: " + err.message);
+    } finally {
+        btn.textContent = "Submit Application";
+        btn.disabled = false;
     }
-}
-
-window.generateDossierPDF = function(id) {
-    const app = applications.find(x => x.id === id); if (!app) return;
-    const { jsPDF } = window.jspdf; const doc = new jsPDF();
-
-    doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 45, 'F'); 
-    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(22); doc.text("MALAYSIAN CHESS FEDERATION", 105, 22, { align: "center" });
-    doc.setTextColor(220, 38, 38); doc.setFont("helvetica", "normal"); doc.setFontSize(14); doc.text("FIDE-Rated Event Application Summary", 105, 32, { align: "center" });
-
-    let currentY = 55; const labelX = 20, valueX = 85;
-
-    const drawSection = (title) => {
-        if (currentY > 250) { doc.addPage(); currentY = 20; } 
-        currentY += 4;
-        doc.setTextColor(15, 23, 42); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text(title, 20, currentY);
-        currentY += 3; doc.setDrawColor(226, 232, 240); doc.setLineWidth(0.5); doc.line(20, currentY, 190, currentY); currentY += 7;
-    };
-
-    const printRow = (label, value) => {
-        if (currentY > 270) { doc.addPage(); currentY = 20; }
-        doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text(label + ":", labelX, currentY);
-        doc.setFont("helvetica", "normal"); const splitValue = doc.splitTextToSize(String(value || '-'), 105); doc.text(splitValue, valueX, currentY); currentY += (splitValue.length * 5) + 2; 
-    };
-
-    drawSection("1. Compliance & General Details");
-    printRow("Application ID", app.id);
-    printRow("Approval Status", app.status);
-    printRow("Event Name", app.eventName);
-    printRow("Venue & State", `${app.venue || '-'}, ${app.state || '-'}`);
-    printRow("Organizer Category", app.orgCategory);
-    printRow("FIDE Laws Followed", app.fideLaws);
-    printRow("National Championship (1.43a)", app.natChampionship);
-    printRow("Title Norms Available", `${app.titleNorms} (${app.normAvailable || 'No'})`);
-    printRow("Direct Title Events", app.directTitle);
-    printRow("Tournament Type", app.tourneyType);
-    printRow("Start Date", formatLocalDate(app.startDate));
-    printRow("End Date", formatLocalDate(app.endDate));
-
-    drawSection("2. Format & Technical Specifications");
-    printRow("Expected Players", app.pax);
-    printRow("Tournament System", app.system);
-    printRow("Number of Rounds Reported", app.rounds);
-    printRow("Multiple Round Days", app.multiRoundDays);
-    printRow("Time Control Category", app.timeControl);
-    printRow("Pairing Software", app.software);
-    printRow("1st Tiebreak Method", app.tb1);
-    printRow("2nd Tiebreak Method", app.tb2);
-    printRow("3rd Tiebreak Method", app.tb3 || '-');
-
-    drawSection("3. Officials & Arbiters");
-    printRow("Chief Arbiter", `${app.chiefArbiter || '-'} (FIDE ID: ${app.chiefArbiterFide || '-'})`);
-    printRow("Deputy Chief Arbiter", `${app.deputyArbiter || 'None'} (FIDE ID: ${app.deputyArbiterFide || '-'})`);
-    printRow("Chief Organizer", `${app.chiefOrg || '-'} (FIDE ID: ${app.chiefOrgFide || '-'})`);
-    printRow("Organizing Body", `${app.orgBody || '-'} (FIDE ID: ${app.orgBodyFide || '-'})`);
-    printRow("Fair Play Officer", `${app.fairPlay || 'None'} (FIDE ID: ${app.fairPlayFide || '-'})`);
-
-    drawSection("4. Additional Info, Payment & Declaration");
-    printRow("Female Only?", app.femaleOnly);
-    printRow("Max Rating Limit", app.maxRating);
-    printRow("Age Limit", app.ageLimit);
-    printRow("All Digital Clocks?", app.digitalClock);
-    printRow("Will PGN be Provided?", app.pgnProvided);
-    printRow("Internet Transmission?", app.internetLive);
-    printRow("Contact Email", app.contactEmail || app.organizerEmail);
-    printRow("Internet Homepage", app.homepage);
-    printRow("Prize Fund", app.prizeFund);
-    printRow("Remarks", app.remarks);
-    printRow("Total Fee Due (Deposit)", 'RM ' + (app.fee || 0));
-    printRow("Payment Reference", app.paymentRef);
-    printRow("Objectives", app.obj1);
-    printRow("Signed By", `${app.signName || '-'} on ${formatLocalDate(app.signDate)}`);
-
-    doc.save(`MCF_FIDE_Dossier_${(app.eventName || 'Event').replace(/\s+/g, '_')}.pdf`);
-};
+});
 </script>
 </body>
 </html>
