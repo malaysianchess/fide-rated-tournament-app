@@ -4,723 +4,320 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MCF — Integrated FIDE Portal</title>
-<!-- Browser Tab Favicon -->
 <link rel="icon" type="image/png" href="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --surface: #ffffff;
-    --bg-body: #F8FAFC;
-    --sidebar: #0F172A;
-    --sidebar-hover: #1E293B;
-    --text-main: #0F172A;
-    --text-muted: #64748B;
-    --text-light: #F8FAFC;
-    
-    --primary: #DC2626; /* Crimson Red */
-    --primary-hover: #B91C1C;
-    --primary-light: #FEE2E2;
-    
-    --accent: #EAB308; /* Bold Yellow */
-    --accent-hover: #CA8A04;
-    --accent-light: #FEF9C3;
-    
-    --danger: #DC2626;
-    --warning: #F59E0B;
-    
-    --border: #E2E8F0;
-    --border-soft: #F1F5F9;
-    
-    --radius: 8px;
-    --radius-lg: 12px;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    
-    --font: 'Inter', sans-serif;
+  :root { --surface:#ffffff; --bg-body:#F8FAFC; --sidebar:#0F172A; --sidebar-hover:#1E293B; --text-main:#0F172A; --text-muted:#64748B; --text-light:#F8FAFC; --primary:#DC2626; --primary-hover:#B91C1C; --primary-light:#FEE2E2; --accent:#EAB308; --accent-hover:#CA8A04; --danger:#DC2626; --warning:#F59E0B; --border:#E2E8F0; --border-soft:#F1F5F9; --radius:8px; --radius-lg:12px; --shadow-sm:0 1px 2px 0 rgba(0,0,0,0.05); --shadow-lg:0 10px 15px -3px rgba(0,0,0,0.1); --font:'Inter',sans-serif; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; min-height:100vh; font-family:var(--font); background:var(--bg-body); color:var(--text-main); }
+  h1,h2,h3 { margin-top:0; }
+  .view { display:none; min-height:100vh; animation:fadeIn 0.3s ease-in-out; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+  .auth-view.active { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; background:var(--sidebar); }
+  .dash-view.active { display:grid; grid-template-columns:280px 1fr; }
+  .wizard-view.active { display:grid; grid-template-columns:320px 1fr; }
+  .mobile-nav-bar { display:none; }
+  @media (max-width:900px) {
+    .dash-view.active, .wizard-view.active { display:flex; flex-direction:column; }
+    .mobile-nav-bar { display:flex; justify-content:space-between; align-items:center; background:var(--sidebar); color:white; padding:16px 20px; position:sticky; top:0; z-index:100; }
+    .mobile-nav-bar h2 { font-size:15px; margin:0; font-weight:600; }
+    .mobile-menu-btn { background:rgba(255,255,255,0.1); border:none; color:white; padding:6px 12px; border-radius:var(--radius); font-size:13px; cursor:pointer; }
+    .rail { position:relative !important; height:auto !important; width:100% !important; display:none !important; }
+    .rail.mobile-open { display:flex !important; }
+    .stage { padding:20px !important; }
+    .stage-inner { padding:24px !important; }
+    .field-grid, .data-grid { grid-template-columns:1fr !important; }
   }
-  
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; min-height: 100vh; font-family: var(--font); background: var(--bg-body); color: var(--text-main); -webkit-font-smoothing: antialiased; }
-  ::selection { background: var(--primary-light); color: var(--primary-hover); }
-
-  .view { display: none; min-height: 100vh; animation: fadeIn 0.3s ease-in-out; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  
-  .auth-view.active { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: var(--sidebar); }
-  .dash-view.active { display: grid; grid-template-columns: 280px 1fr; }
-  .wizard-view.active { display: grid; grid-template-columns: 320px 1fr; }
-
-  /* Mobile Responsive Breakpoint & Sidebar Toggle */
-  .mobile-nav-bar { display: none; }
-
-  @media (max-width: 900px) {
-    .dash-view.active, .wizard-view.active { display: flex; flex-direction: column; }
-    .mobile-nav-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--sidebar);
-      color: white;
-      padding: 16px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .mobile-nav-bar h2 { font-size: 15px; margin: 0; font-weight: 600; }
-    .mobile-menu-btn {
-      background: rgba(255,255,255,0.1);
-      border: none;
-      color: white;
-      padding: 6px 12px;
-      border-radius: var(--radius);
-      font-size: 13px;
-      cursor: pointer;
-      font-weight: 500;
-    }
-    .rail {
-      position: relative !important;
-      height: auto !important;
-      width: 100% !important;
-      box-shadow: none !important;
-      display: none !important;
-    }
-    .rail.mobile-open {
-      display: flex !important;
-    }
-    .stage { padding: 20px !important; }
-    .stage-header { flex-direction: column; align-items: flex-start !important; gap: 12px; }
-    .stage-header > div:last-child { width: 100%; display: flex; flex-wrap: wrap; gap: 8px !important; }
-    .field-grid { grid-template-columns: 1fr !important; }
-  }
-
-  .rail {
-    background: var(--sidebar);
-    color: var(--text-light);
-    padding: 32px 24px 24px;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid rgba(255,255,255,0.05);
-  }
-  .crest { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
-  .crest-mark { width: 44px; height: auto; flex: none; background: transparent; border-radius: 8px; display: grid; place-items: center; overflow: hidden; }
-  .crest-text .eyebrow { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 2px; font-weight: 600; }
-  .crest-text h1 { font-size: 16px; font-weight: 600; margin: 0; color: white; letter-spacing: -0.02em; }
-
-  .gateway { width: 100%; max-width: 420px; }
-  .brand-head { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 32px; }
-  .brand-head h1 { font-size: 24px; font-weight: 600; color: white; margin: 0; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 32px; position: relative; }
-  
-  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
-  .field label { font-size: 12px; font-weight: 500; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
-  .field label .link-opt { text-transform: none; font-size: 12px; color: var(--primary); text-decoration: none; cursor: pointer; font-weight: 500; }
-  .field label .link-opt:hover { text-decoration: underline; }
-  
-  input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], input[type=tel], select, textarea, input[type=file] {
-    font-family: var(--font); font-size: 14px; color: var(--text-main); background: var(--surface);
-    border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; width: 100%;
-    transition: all 0.2s ease;
-  }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15); }
-  input:disabled { background: var(--bg-body); color: var(--text-muted); cursor: not-allowed; }
-  
-  .form-error { background: #FEE2E2; color: #991B1B; font-size: 13px; font-weight: 500; padding: 10px 14px; border-radius: var(--radius); margin-bottom: 16px; text-align: center; display: none; }
-
-  .btn { font-family: var(--font); font-weight: 500; font-size: 14px; padding: 10px 20px; border-radius: var(--radius); border: 1px solid transparent; cursor: pointer; transition: all 0.2s ease; display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
-  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
-  .btn:active { transform: translateY(0); }
-  .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
-  
-  .btn-submit, .btn-primary { background: var(--primary); color: white; width: 100%; }
-  .btn-submit:hover, .btn-primary:hover { background: var(--primary-hover); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25); }
-  
-  .btn-ghost { background: transparent; color: var(--text-muted); border-color: var(--border); width: auto; }
-  .btn-ghost:hover { background: var(--bg-body); color: var(--text-main); }
-  
-  .btn-gold { background: var(--surface); color: var(--text-main); border-color: var(--border); box-shadow: var(--shadow-sm); }
-  .btn-gold:hover { border-color: var(--accent); color: var(--accent-hover); }
-
-  .gateway-foot { margin-top: 24px; text-align: center; font-size: 13px; color: var(--text-muted); }
-  .gateway-foot a { color: var(--primary); text-decoration: none; font-weight: 500; cursor: pointer; }
-  .gateway-foot a:hover { text-decoration: underline; }
-
-  .rail-lede { font-size: 13px; line-height: 1.6; color: var(--text-muted); margin: 0 0 24px; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-  .board-progress { margin-bottom: 32px; }
-  .board-progress .label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin: 0 0 12px; letter-spacing: 0.05em; }
-  
-  .rank { display: flex; gap: 8px; }
-  .sq { flex: 1; height: 6px; border-radius: 99px; background: rgba(255,255,255,0.1); border: none; cursor: pointer; transition: all 0.3s ease; padding: 0; font-size: 0; }
-  .sq.done { background: var(--primary); }
-  .sq.current { background: var(--accent); box-shadow: 0 0 8px rgba(234, 179, 8, 0.5); }
-  
-  .dossier { margin-top: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: white; padding: 20px; border-radius: var(--radius-lg); }
-  .dossier .tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin: 0 0 8px; }
-  .dossier h2 { font-size: 16px; font-weight: 600; margin: 0 0 16px; }
-  .dossier dl { margin: 0; display: flex; flex-direction: column; gap: 10px; }
-  .dossier .row { display: flex; justify-content: space-between; font-size: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-  .dossier .row:last-child { border: none; padding-bottom: 0; }
-  .dossier dt { color: var(--text-muted); }
-  .dossier dd { margin: 0; font-weight: 500; text-align: right; }
-  
-  .stage { padding: 48px; overflow-y: auto; }
-  .stage-inner { max-width: 680px; margin: 0 auto; background: var(--surface); padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
-  .step-head { margin-bottom: 32px; }
-  .step-eyebrow { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--primary); margin: 0 0 8px; letter-spacing: 0.05em; }
-  .step-head h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px; color: var(--text-main); letter-spacing: -0.02em; }
-  .step-head p { font-size: 14px; line-height: 1.6; color: var(--text-muted); margin: 0; }
-  
-  .step { display: none; animation: slideUp 0.3s ease; }
-  .step.active { display: block; }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  
-  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
-  .field.full { grid-column: 1 / -1; }
-  
-  .combo { position: relative; }
-  .combo-input { cursor: pointer; }
-  .combo-panel { position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); max-height: 280px; overflow-y: auto; display: none; }
-  .combo-panel.open { display: block; animation: fadeIn 0.15s ease; }
-  .combo-search { padding: 8px; border-bottom: 1px solid var(--border-soft); position: sticky; top: 0; background: var(--surface); z-index: 2; }
-  .combo-group-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); background: var(--bg-body); padding: 8px 14px; position: sticky; top: 51px; }
-  .combo-opt { padding: 10px 14px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border-soft); transition: background 0.15s; }
-  .combo-opt:hover { background: var(--primary-light); color: var(--primary-hover); }
-  
-  .fee-box { background: var(--bg-body); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
-  .fee-box-label { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin: 0 0 16px; letter-spacing: 0.05em; }
-  .fee-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 12px; color: var(--text-main); }
-  .fee-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); font-size: 20px; font-weight: 700; color: var(--primary); }
-  
-  .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border); }
-
-  .nav-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin: 16px 0 8px; letter-spacing: 0.05em; }
-  .nav-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 32px; }
-  .nav-item { display: flex; justify-content: space-between; align-items: center; background: transparent; border: none; color: var(--text-muted); padding: 10px 12px; border-radius: var(--radius); font-family: var(--font); font-size: 13px; font-weight: 500; cursor: pointer; text-align: left; transition: all 0.2s; }
-  .nav-item:hover { background: var(--sidebar-hover); color: white; }
-  .nav-item.active { background: rgba(220, 38, 38, 0.15); color: var(--accent); font-weight: 600; }
-  .badge { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
-  .nav-item.active .badge { background: var(--primary); color: white; }
-  
-  .admin-stats { margin-top: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: var(--radius); margin-bottom: 24px; }
-  .stat-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
-  .stat-row:last-child { margin: 0; }
-  .stat-row strong { color: white; font-weight: 600; }
-  
-  .btn-logout { background: transparent; border: none; font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; padding: 0; transition: color 0.2s; }
-  .btn-logout:hover { color: var(--danger); }
-
-  .stage-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
-  .stage-header h2 { font-size: 24px; font-weight: 700; margin: 0; letter-spacing: -0.02em; }
-  .stage-header p { font-size: 14px; color: var(--text-muted); margin: 6px 0 0; }
-  
-  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
-  th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); background: var(--bg-body); padding: 14px 20px; border-bottom: 1px solid var(--border); }
-  td { padding: 16px 20px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-soft); vertical-align: middle; transition: background 0.2s; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--bg-body); cursor: pointer; }
-  
-  .status-pill { display: inline-flex; align-items: center; justify-content: center; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; }
-  
-  .drawer-back { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); display: flex; justify-content: flex-end; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-  .drawer-back.open { opacity: 1; pointer-events: auto; }
-  .drawer { background: var(--surface); width: 640px; max-width: 90vw; height: 100vh; overflow-y: auto; box-shadow: -10px 0 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-  .drawer-back.open .drawer { transform: translateX(0); }
-  
-  .drawer-head { padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; background: var(--surface); position: sticky; top: 0; z-index: 10; }
-  .drawer-head h3 { font-size: 20px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.01em; }
-  .drawer-head p { margin: 0; font-size: 13px; color: var(--text-muted); }
-  .drawer-close { background: var(--bg-body); border: 1px solid var(--border); border-radius: 50%; width: 32px; height: 32px; display: grid; place-items: center; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
-  .drawer-close:hover { background: var(--border); color: var(--text-main); }
-  
-  .drawer-body { padding: 32px; flex: 1; }
-  .section-title { font-size: 14px; font-weight: 600; color: var(--text-main); margin: 32px 0 16px; display: flex; align-items: center; gap: 12px; }
-  .section-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-  .section-title:first-child { margin-top: 0; }
-  
-  .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
-  .data-item .label { display: block; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px; }
-  .data-item span:not(.label) { font-size: 14px; color: var(--text-main); font-weight: 500; }
-  
-  .drawer-footer { padding: 20px 32px; border-top: 1px solid var(--border); background: var(--bg-body); display: flex; justify-content: space-between; position: sticky; bottom: 0; }
-
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--sidebar); color: white; padding: 12px 24px; border-radius: 99px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 10px; z-index: 300; }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .toast .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .rail { background:var(--sidebar); color:var(--text-light); padding:32px 24px 24px; position:sticky; top:0; height:100vh; overflow-y:auto; display:flex; flex-direction:column; border-right:1px solid rgba(255,255,255,0.05); }
+  .crest { display:flex; align-items:center; gap:14px; margin-bottom:40px; }
+  .crest-text h1, .crest h1 { font-size:16px; font-weight:600; margin:0; color:white; }
+  .nav-label { font-size:11px; font-weight:600; text-transform:uppercase; color:var(--text-muted); margin:0 0 10px; }
+  .gateway { width:100%; max-width:420px; }
+  .brand-head { margin-bottom:20px; }
+  .brand-head h1 { font-size:24px; font-weight:600; color:white; margin:0; }
+  .gateway-foot { margin-top:20px; color:#94A3B8; font-size:13px; text-align:center; }
+  .gateway-foot a, .field label a { color:#F87171; text-decoration:none; cursor:pointer; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); padding:32px; }
+  .field { display:flex; flex-direction:column; gap:6px; margin-bottom:20px; }
+  .field label { font-size:12px; font-weight:500; color:var(--text-muted); display:flex; justify-content:space-between; gap:8px; align-items:center; }
+  .field label input[type=checkbox] { width:auto; }
+  input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], input[type=tel], select, textarea, input[type=file] { font-family:var(--font); font-size:14px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:10px 14px; width:100%; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--primary); }
+  input:disabled, select:disabled { background:var(--bg-body); color:var(--text-muted); }
+  .form-error { background:#FEE2E2; color:#991B1B; font-size:13px; font-weight:500; padding:10px 14px; border-radius:var(--radius); margin-bottom:16px; display:none; }
+  .btn { font-family:var(--font); font-weight:500; font-size:14px; padding:10px 20px; border-radius:var(--radius); border:1px solid transparent; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; }
+  .btn:disabled { opacity:0.6; cursor:not-allowed; }
+  .btn-submit, .btn-primary { background:var(--primary); color:white; }
+  .btn-submit { width:100%; }
+  .btn-primary:hover, .btn-submit:hover { background:var(--primary-hover); }
+  .btn-ghost { background:transparent; color:var(--text-muted); border:1px solid var(--border); cursor:pointer; font-family:var(--font); font-size:14px; border-radius:var(--radius); padding:10px 20px; }
+  .rail .btn-ghost { color:#CBD5E1; border-color:rgba(255,255,255,0.15); }
+  .rail .btn-ghost[style*="border:none"] { border:none; }
+  .rank { display:flex; gap:8px; margin-bottom:32px; }
+  .sq { flex:1; height:6px; border-radius:99px; background:rgba(255,255,255,0.1); border:none; cursor:pointer; padding:0; }
+  .sq.done { background:var(--primary); }
+  .sq.current { background:var(--accent); }
+  .dossier { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); color:white; padding:20px; border-radius:var(--radius-lg); }
+  .dossier h2 { font-size:16px; font-weight:600; margin:0 0 16px; word-break:break-word; }
+  .dossier dl { margin:0; }
+  .dossier .row { display:flex; justify-content:space-between; gap:12px; font-size:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .dossier dt { color:#94A3B8; } .dossier dd { margin:0; text-align:right; word-break:break-word; }
+  .stage { padding:48px; overflow-y:auto; }
+  .stage-header h2 { margin:0; }
+  .stage-inner { max-width:680px; margin:0 auto; background:var(--surface); padding:40px; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); border:1px solid var(--border); }
+  .step { display:none; } .step.active { display:block; }
+  .field-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 20px; }
+  .field.full { grid-column:1 / -1; }
+  .actions { display:flex; justify-content:space-between; align-items:center; margin-top:28px; padding-top:20px; border-top:1px solid var(--border-soft); }
+  .nav-list { display:flex; flex-direction:column; gap:4px; margin-bottom:32px; }
+  .nav-item { display:flex; justify-content:space-between; align-items:center; background:transparent; border:none; color:#94A3B8; padding:10px 12px; border-radius:var(--radius); font-size:13px; font-weight:500; cursor:pointer; text-align:left; font-family:var(--font); }
+  .nav-item:hover { background:var(--sidebar-hover); }
+  .nav-item.active { background:rgba(220,38,38,0.15); color:var(--accent); font-weight:600; }
+  .badge { background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:99px; font-size:11px; }
+  .nav-item.active .badge { background:var(--primary); color:white; }
+  .table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; text-align:left; min-width:600px; }
+  th { font-size:11px; font-weight:600; text-transform:uppercase; color:var(--text-muted); background:var(--bg-body); padding:14px 20px; border-bottom:1px solid var(--border); }
+  td { padding:16px 20px; font-size:13px; border-bottom:1px solid var(--border-soft); }
+  tr:hover td { background:var(--bg-body); cursor:pointer; }
+  .empty-row td { text-align:center; color:var(--text-muted); cursor:default; padding:32px; }
+  .status-pill { display:inline-flex; padding:4px 12px; border-radius:99px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .drawer-back { position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(4px); display:flex; justify-content:flex-end; z-index:200; opacity:0; pointer-events:none; transition:opacity 0.3s ease; }
+  .drawer-back.open { opacity:1; pointer-events:auto; }
+  .drawer { background:var(--surface); width:640px; max-width:90vw; height:100vh; overflow-y:auto; box-shadow:-10px 0 40px rgba(0,0,0,0.1); display:flex; flex-direction:column; transform:translateX(100%); transition:transform 0.3s; }
+  .drawer-back.open .drawer { transform:translateX(0); }
+  .drawer-head { padding:24px 32px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start; background:var(--surface); position:sticky; top:0; z-index:10; }
+  .drawer-close { background:var(--bg-body); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:grid; place-items:center; cursor:pointer; font-size:18px; line-height:1; }
+  .drawer-body { padding:32px; flex:1; }
+  .drawer-footer { padding:20px 32px; border-top:1px solid var(--border); background:var(--bg-body); display:flex; justify-content:space-between; gap:10px; position:sticky; bottom:0; }
+  .data-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px 24px; }
+  .data-item .label { display:block; font-size:11px; font-weight:500; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; }
+  .data-item span:not(.label) { font-size:14px; font-weight:500; word-break:break-word; }
+  .combo { position:relative; }
+  .combo-panel { position:absolute; z-index:20; top:100%; left:0; right:0; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-lg); max-height:280px; overflow-y:auto; display:none; }
+  .combo-panel.open { display:block; }
+  .combo-search { padding:8px; border-bottom:1px solid var(--border-soft); position:sticky; top:0; background:var(--surface); }
+  .combo-group-label { font-size:11px; font-weight:600; text-transform:uppercase; color:var(--text-muted); background:var(--bg-body); padding:8px 14px; }
+  .combo-opt { padding:10px 14px; font-size:13px; cursor:pointer; border-bottom:1px solid var(--border-soft); }
+  .combo-opt:hover { background:var(--primary-light); color:var(--primary-hover); }
+  .review-row { display:flex; justify-content:space-between; gap:16px; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .review-row span:first-child { color:var(--text-muted); } .review-row span:last-child { font-weight:500; text-align:right; word-break:break-word; }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--sidebar); color:white; padding:12px 24px; border-radius:99px; font-size:13px; opacity:0; transition:all 0.3s; z-index:500; pointer-events:none; max-width:90vw; text-align:center; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
-<!-- ================= 1. LOGIN VIEW ================= -->
+<!-- 1. LOGIN VIEW -->
 <div id="view-login" class="view auth-view active">
   <div class="gateway">
     <header class="brand-head">
-      <div class="crest-mark" style="width: 90px; height: auto; background: transparent; margin-bottom: 12px;">
-        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
-      </div>
+      <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width:90px; margin-bottom:12px;">
       <h1>Portal Access</h1>
     </header>
     <main class="card">
       <div id="loginError" class="form-error"></div>
-      <form id="loginForm" novalidate>
-        <div class="field"><label>Email Address</label><input type="email" id="loginEmail" placeholder="organizer@klchess.my" required></div>
-        <div class="field"><label><span>Password</span><a class="link-opt" id="forgotPassLink">Forgot password?</a></label><input type="password" id="loginPass" placeholder="••••••••••••" required></div>
-        <button type="submit" class="btn-submit" id="loginBtn">Sign In</button>
+      <form id="loginForm">
+        <div class="field"><label>Email</label><input type="email" id="loginEmail" required></div>
+        <div class="field"><label><span>Password</span><a id="forgotPassLink">Forgot?</a></label><input type="password" id="loginPass" required></div>
+        <button type="submit" class="btn btn-submit" id="btnLogin">Sign In</button>
       </form>
     </main>
-    <footer class="gateway-foot"><span>Don't have an account? <a id="goToRegister">Sign Up Here</a></span></footer>
+    <footer class="gateway-foot"><span>No account? <a id="goToRegister" style="cursor:pointer;">Sign Up</a></span></footer>
   </div>
 </div>
 
-<!-- ================= 2. REGISTER VIEW ================= -->
+<!-- 2. REGISTER VIEW -->
 <div id="view-register" class="view auth-view">
   <div class="gateway">
-    <header class="brand-head">
-      <div class="crest-mark" style="width: 90px; height: auto; background: transparent; margin-bottom: 12px;">
-        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
-      </div>
-      <h1>Create Account</h1>
-    </header>
+    <header class="brand-head"><img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" style="width:90px; margin-bottom:12px;"><h1>Create Account</h1></header>
     <main class="card">
       <div id="regError" class="form-error"></div>
-      <form id="registerForm" novalidate>
-        <div class="field"><label>Full Name</label><input type="text" id="regName" placeholder="e.g. Ahmad bin Abdullah" required></div>
-        <div class="field"><label>Email Address</label><input type="email" id="regEmail" placeholder="you@domain.com" required></div>
-        <div class="field">
-          <label>State / Region</label>
-          <select id="regState" required>
-            <option value="" disabled selected>Select a State / Region...</option>
-            <option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Penang">Penang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option>
-          </select>
-        </div>
-        <div class="field"><label>Password</label><input type="password" id="regPass" placeholder="Minimum 6 characters" required></div>
-        <button type="submit" class="btn-submit" style="margin-top:8px;">Register Account</button>
+      <form id="registerForm">
+        <div class="field"><label>Name</label><input type="text" id="regName" required></div>
+        <div class="field"><label>Email</label><input type="email" id="regEmail" required></div>
+        <div class="field"><label>State</label><select id="regState" class="state-select" required><option value="" disabled selected>Select...</option></select></div>
+        <div class="field"><label>Password (min 6 characters)</label><input type="password" id="regPass" minlength="6" required></div>
+        <button type="submit" class="btn btn-submit" id="btnRegister">Register</button>
       </form>
     </main>
-    <footer class="gateway-foot"><span>Already have an account? <a id="goToLogin">Sign In Here</a></span></footer>
+    <footer class="gateway-foot"><span>Have an account? <a id="goToLogin" style="cursor:pointer;">Sign In</a></span></footer>
   </div>
 </div>
 
-<!-- ================= 3. USER PROFILE VIEW ================= -->
+<!-- 3. PROFILE VIEW -->
 <div id="view-profile" class="view dash-view">
-  <div class="mobile-nav-bar">
-    <h2>MCF Portal Settings</h2>
-    <button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰ Menu</button>
-  </div>
-  <aside class="rail" id="mainRailProfile">
-    <div class="crest">
-      <div class="crest-mark" style="width: 44px; height: auto; background: transparent;">
-        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
-      </div>
-      <div class="crest-text"><p class="eyebrow">Settings</p><h1>My Profile</h1></div>
-    </div>
-    <div class="rail-foot" style="margin-top:auto;"><button type="button" class="btn-logout" id="btnBackFromProfile">← Back to Dashboard</button></div>
+  <div class="mobile-nav-bar"><h2>Settings</h2><button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰</button></div>
+  <aside class="rail">
+    <div class="crest"><img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" style="width:44px;"><div><h1>Profile</h1></div></div>
+    <button class="btn btn-ghost btnBackDash" style="margin-top:auto;">← Back</button>
   </aside>
   <main class="stage">
     <div class="stage-inner">
-      <div class="step-head"><p class="step-eyebrow">Account</p><h2>Personal Information</h2><p>Update your details. These will be used as defaults for your applications.</p></div>
+      <h2>Personal Info</h2>
       <form id="profileForm">
-        <div id="profError" class="form-error"></div>
         <div class="field-grid">
-          <div class="field full"><label>Account Email</label><input type="email" id="profEmail" disabled></div>
-          <div class="field"><label>Full Name</label><input type="text" id="profName" required></div>
-          <div class="field"><label>Phone Number</label><input type="tel" id="profPhone" placeholder="e.g. 0123456789"></div>
-          <div class="field full">
-            <label>Default State / Region</label>
-            <select id="profState" required>
-              <option value="" disabled selected>Select a State / Region...</option>
-              <option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Penang">Penang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option>
-            </select>
-          </div>
+          <div class="field full"><label>Email</label><input type="email" id="profEmail" disabled></div>
+          <div class="field"><label>Name</label><input type="text" id="profName" required></div>
+          <div class="field"><label>Phone</label><input type="tel" id="profPhone"></div>
+          <div class="field full"><label>State</label><select id="profState" class="state-select" required></select></div>
         </div>
-        <div class="actions"><button type="submit" class="btn btn-primary" style="width:auto;" id="btnSaveProfile">Save Changes</button></div>
+        <button type="submit" class="btn btn-primary" id="btnSaveProfile">Save Changes</button>
       </form>
     </div>
   </main>
 </div>
 
-<!-- ================= 4. ORGANIZER DASHBOARD ================= -->
+<!-- 4. ORGANIZER DASHBOARD -->
 <div id="view-organizer-dash" class="view dash-view">
-  <div class="mobile-nav-bar">
-    <h2>Organizer Portal</h2>
-    <button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰ Menu</button>
-  </div>
-  <aside class="rail" id="mainRailOrg">
-    <div class="crest">
-      <div class="crest-mark" style="width: 44px; height: auto; background: transparent;">
-        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
-      </div>
-      <div class="crest-text"><p class="eyebrow">Malaysian Chess Federation</p><h1>Organizer Portal</h1></div>
-    </div>
-    
-    <div style="margin-top: 8px;"><button type="button" class="btn btn-primary" id="btnNewAppDash">+ New Application</button></div>
-
-    <p class="nav-label" style="margin-top: 36px;">My Events</p>
+  <div class="mobile-nav-bar"><h2>Organizer Portal</h2><button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰</button></div>
+  <aside class="rail">
+    <div class="crest"><img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" style="width:44px;"><div><h1>Organizer Portal</h1></div></div>
+    <button class="btn btn-primary btnNewAppDash">+ New Application</button>
+    <p class="nav-label" style="margin-top:36px;">My Events</p>
     <nav class="nav-list" id="navFilterOrg">
-      <button class="nav-item active" data-filter="all">All Applications <span class="badge" id="cntOrgAll">0</span></button>
+      <button class="nav-item active" data-filter="all">All <span class="badge" id="cntOrgAll">0</span></button>
       <button class="nav-item" data-filter="pending_state">Pending State <span class="badge" id="cntOrgPendingState">0</span></button>
       <button class="nav-item" data-filter="pending_admin">Pending MCF <span class="badge" id="cntOrgPendingAdmin">0</span></button>
       <button class="nav-item" data-filter="approved">Approved <span class="badge" id="cntOrgApproved">0</span></button>
-      <button class="nav-item" data-filter="revision">Revision Req. <span class="badge" id="cntOrgRevision">0</span></button>
     </nav>
-    <div class="rail-foot" style="margin-top:auto; display:flex; flex-direction:column; gap:16px; width:100%;">
-      <button type="button" class="btn btn-ghost" id="btnGoAdminView" style="display:none; width:100%; justify-content:center;">Switch to Admin View &rarr;</button>
-      <div style="display:flex; justify-content:space-between; width: 100%; border-top:1px solid rgba(255,255,255,0.05); padding-top:16px;">
-        <button type="button" class="btn-logout btnGoProfile">My Profile</button>
-        <button type="button" class="btn-logout btnLogOut">Log Out</button>
+    <div style="margin-top:auto; display:flex; flex-direction:column; gap:16px;">
+      <button class="btn btn-ghost btnGoAdminView" style="display:none;">Switch to Admin</button>
+      <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:16px;">
+        <button class="btn-ghost btnGoProfile" style="border:none; padding:0;">Profile</button>
+        <button class="btn-ghost btnLogOut" style="border:none; padding:0;">Log Out</button>
       </div>
     </div>
   </aside>
   <main class="stage">
-    <div class="stage-header">
-      <div><h2 id="viewTitleOrg">All Applications</h2><p>Track the approval status of your submitted FIDE rating requests.</p></div>
-      <div><button class="btn btn-ghost" id="btnRefreshOrg">↻ Refresh Data</button></div>
+    <div class="stage-header" style="display:flex; justify-content:space-between; margin-bottom:24px;">
+      <h2>My Applications</h2><button class="btn btn-ghost btnRefresh">↻ Refresh</button>
     </div>
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr>
-            <th>Event Name & Code</th>
-            <th>State</th>
-            <th>System / TC</th>
-            <th>Expected Pax</th>
-            <th>Fee & Ref</th>
-            <th>Status</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Event Name</th><th>State</th><th>System</th><th>Pax</th><th>Fee</th><th>Status</th></tr></thead>
         <tbody id="tableBodyOrg"></tbody>
       </table>
     </div>
   </main>
 </div>
 
-<!-- ================= 5. ORGANIZER WIZARD (FORM) ================= -->
+<!-- 5. WIZARD -->
 <div id="view-organizer-wizard" class="view wizard-view">
-  <div class="mobile-nav-bar">
-    <h2>Application Wizard</h2>
-    <button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰ Menu</button>
-  </div>
-  <aside class="rail" id="mainRailWizard">
-    <div class="crest">
-      <div class="crest-mark" style="width: 44px; height: auto; background: transparent;">
-        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
-      </div>
-      <div class="crest-text"><p class="eyebrow">Application Wizard</p><h1>FIDE-Rated Event</h1></div>
-    </div>
-    <p class="rail-lede">Complete this dossier to request MCF endorsement. Navigate via the progress steps below.</p>
-    
-    <div class="board-progress">
-      <p class="label">Step <span id="stepNumLabel">1</span> of 8</p>
-      <div class="rank" id="rank"></div>
-    </div>
-    
-    <div class="dossier" id="dossier">
-      <p class="tag">Live Draft</p><h2 id="dEventName">Untitled event</h2>
+  <div class="mobile-nav-bar"><h2>Wizard</h2><button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰</button></div>
+  <aside class="rail">
+    <div class="crest"><img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" style="width:44px;"><div><h1>FIDE Event</h1></div></div>
+    <div class="rank" id="rank"></div>
+    <div class="dossier">
+      <h2 id="dEventName">Untitled</h2>
       <dl>
         <div class="row"><dt>Venue</dt><dd id="dVenue">—</dd></div>
         <div class="row"><dt>Dates</dt><dd id="dDates">—</dd></div>
         <div class="row"><dt>System</dt><dd id="dSystem">—</dd></div>
-        <div class="row"><dt>Time Control</dt><dd id="dTC">—</dd></div>
-        <div class="row"><dt>Fee Due</dt><dd id="dFee" style="color:var(--accent); font-weight:600;">—</dd></div>
-        <div class="row"><dt>Arbiter</dt><dd id="dArbiter">—</dd></div>
+        <div class="row"><dt>Fee Due</dt><dd id="dFee" style="color:var(--accent);">—</dd></div>
       </dl>
     </div>
-    <div class="rail-foot" style="margin-top:32px;"><button type="button" id="btnCancelWizard" class="btn-logout">← Cancel & Return</button></div>
+    <button class="btn-ghost btnCancelWizard" style="margin-top:32px; border:none;">← Cancel</button>
   </aside>
   <main class="stage">
     <div class="stage-inner">
-      <form id="wizard" novalidate>
-        
-        <!-- STEP 1: Section A (FIDE Compliance & Event Details) -->
+      <form id="wizard" onsubmit="return false;">
         <section class="step active" data-step="1">
-          <div class="step-head"><p class="step-eyebrow">Section A</p><h2>Compliance & General Details</h2></div>
-          <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
-            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-              <input type="checkbox" id="chkFideLaws" style="width: 18px; height: 18px; accent-color: var(--primary);" checked required>
-              <label for="chkFideLaws" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">FIDE Laws to be followed *</label>
-            </div>
-            
-            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-              <input type="checkbox" id="chkNatChampionship" style="width: 18px; height: 18px; accent-color: var(--primary);">
-              <label for="chkNatChampionship" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">National Championship 1.43a (Check if National Championship)</label>
-            </div>
-            
-            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-              <input type="checkbox" id="chkTitleNorms" style="width: 18px; height: 18px; accent-color: var(--primary);" onchange="toggleNormFields()">
-              <label for="chkTitleNorms" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">Title norms available (Intl. Open)</label>
-            </div>
-
-            <div id="normAvailableWrap" class="field full" style="display: none; padding-left: 20px;">
-              <label>Norm type available</label>
-              <select id="normAvailable">
-                <option value="No">No norms</option>
-                <option value="GM/WGM">GM/WGM norm available</option>
-                <option value="IM/WIM">IM/WIM norm available</option>
-              </select>
-            </div>
-
-            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-              <input type="checkbox" id="chkDirectTitle" style="width: 18px; height: 18px; accent-color: var(--primary);">
-              <label for="chkDirectTitle" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">Direct title events</label>
-            </div>
-
-            <div class="field full">
-              <label>Tournament Type *</label>
-              <select id="tourneyType">
-                <option value="Over the Board">Over the Board</option>
-                <option value="Hybrid">Hybrid</option>
-              </select>
-            </div>
-
-            <div class="field full" style="margin-top: 10px;"><label>Event name *</label><input type="text" id="eventName" placeholder="e.g. Kuala Lumpur Open 2026"></div>
-            <div class="field"><label>Venue *</label><input type="text" id="venue" placeholder="e.g. City / building"></div>
-            <div class="field"><label>Expected players (Pax) *</label><input type="number" id="pax" min="1" placeholder="Expected players" oninput="updateDossier()"></div>
-            <div class="field"><label>Start date *</label><input type="date" id="dateStart" onchange="updateDossier()"></div>
+          <h2>Compliance & General</h2>
+          <div class="field-grid">
+            <div class="field full"><label><span><input type="checkbox" id="chkFideLaws" checked> FIDE Laws to be followed *</span></label></div>
+            <div class="field full"><label><span><input type="checkbox" id="chkNatChampionship"> National Championship 1.43a</span></label></div>
+            <div class="field full"><label><span><input type="checkbox" id="chkTitleNorms"> Title norms available</span></label></div>
+            <div id="normWrap" class="field full" style="display:none;"><select id="normAvailable"><option value="No">No norms</option><option value="GM/WGM">GM/WGM</option><option value="IM/WIM">IM/WIM</option></select></div>
+            <div class="field full"><label><span><input type="checkbox" id="chkDirectTitle"> Direct title events</span></label></div>
+            <div class="field full"><label>Tournament Type *</label><select id="tourneyType"><option>Over the Board</option><option>Hybrid</option></select></div>
+            <div class="field full"><label>Event name *</label><input type="text" id="eventName"></div>
+            <div class="field"><label>Venue *</label><input type="text" id="venue"></div>
+            <div class="field"><label>Expected pax * (min 32 for fee)</label><input type="number" id="pax" value="32" min="1"></div>
+            <div class="field"><label>Start date *</label><input type="date" id="dateStart"></div>
             <div class="field"><label>End date *</label><input type="date" id="dateEnd"></div>
           </div>
         </section>
 
-        <!-- STEP 2: Section B (Format & Organizer Category) -->
         <section class="step" data-step="2">
-          <div class="step-head"><p class="step-eyebrow">Section B</p><h2>Format & Organizer Category</h2></div>
+          <h2>Format & Organizer</h2>
           <div class="field-grid">
-            <div class="field full">
-              <label>Organizer Category (Fee Schedule - Clause 3.3) *</label>
-              <select id="orgCategory" required onchange="toggleAffiliateLetter(); updateDossier();">
-                <option value="Independent Organizer">Independent Organizer (Reg Fee: RM300)</option>
-                <option value="State Affiliate Organizer">State Affiliate Organizer (RM200 for Verified State Admins, else RM300)</option>
-              </select>
-            </div>
-            
-            <!-- Conditional State Affiliate Letter Upload -->
-            <div class="field full" id="affiliateLetterField" style="display: none; background: var(--bg-body); padding: 16px; border-radius: var(--radius); border: 1px dashed var(--primary);">
-              <label style="font-weight: 600; color: var(--text-main); margin-bottom: 6px;">State Affiliate Endorsement / Authorization Letter *</label>
-              <input type="file" id="affiliateLetterUpload" accept="image/*,.pdf" style="background:transparent; cursor:pointer;">
-              <p style="font-size: 11px; color: var(--text-muted); margin: 6px 0 0;">Please attach the official endorsement letter from the State Chess Association.</p>
-            </div>
-
-            <div class="field full">
-              <label>Tournament System *</label>
-              <select id="system" required onchange="updateDossier()">
-                <option value="">Select system…</option>
-                <option value="Swiss">Swiss</option>
-                <option value="Round Robin">Round Robin</option>
-                <option value="Double RR">Double RR</option>
-                <option value="Team League">Team League</option>
-                <option value="Partial League">Partial League</option>
-                <option value="Knock Out">Knock Out</option>
-                <option value="Match">Match</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div class="field full">
-              <label>State / Region *</label>
-              <select id="orgState" required>
-                <option value="" disabled selected>Select a State...</option>
-                <option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Penang">Penang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option>
-              </select>
-            </div>
-            <div class="field"><label>Number of Rounds Reported *</label><input type="number" id="rounds" min="1" value="7"></div>
-            <div class="field"><label>Number of Multiple Round Days *</label><input type="number" id="multiRoundDays" min="0" value="1"></div>
+            <div class="field full"><label>Organizer Category *</label><select id="orgCategory"><option value="Independent Organizer">Independent Organizer (Reg: RM300)</option><option value="State Affiliate Organizer">State Affiliate Organizer (RM200 for Verified State Admins, else RM300)</option></select></div>
+            <div id="affLetter" class="field full" style="display:none; border:1px dashed var(--primary); padding:16px; border-radius:var(--radius);"><label>State Endorsement Letter *</label><input type="file" id="affiliateLetterUpload" accept=".pdf,image/*"></div>
+            <div class="field full"><label>System *</label><select id="system"><option>Swiss</option><option>Round Robin</option><option>Double RR</option><option>Team League</option></select></div>
+            <div class="field full"><label>State / Region *</label><select id="orgState" class="state-select"></select></div>
+            <div class="field"><label>Rounds *</label><input type="number" id="rounds" value="7" min="1"></div>
+            <div class="field"><label>Multi Round Days *</label><input type="number" id="multiRoundDays" value="1" min="1"></div>
           </div>
         </section>
 
-        <!-- STEP 3: Section C (Officials & Arbiters) -->
         <section class="step" data-step="3">
-          <div class="step-head"><p class="step-eyebrow">Section C</p><h2>Officials & Arbiters (B.06.3 – 8.3)</h2></div>
-          <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
-            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
-              <div class="field" style="margin-bottom:0;"><label>Chief Arbiter Name * (1 person, licensed)</label><input type="text" id="chiefArbiter" placeholder="Full Name" required oninput="updateDossier()"></div>
-              <div class="field" style="margin-bottom:0;"><label>FIDE ID *</label><input type="text" id="chiefArbiterFide" placeholder="FIDE ID" required></div>
-            </div>
-
-            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
-              <div class="field" style="margin-bottom:0;"><label>Deputy Chief Arbiter (Up to 2, licensed)</label><input type="text" id="deputyChiefArbiter" placeholder="Full Name"></div>
-              <div class="field" style="margin-bottom:0;"><label>FIDE ID</label><input type="text" id="deputyChiefArbiterFide" placeholder="FIDE ID"></div>
-            </div>
-
-            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
-              <div class="field" style="margin-bottom:0;"><label>Chief Organizer Name *</label><input type="text" id="chiefOrg" placeholder="Full Name" required></div>
-              <div class="field" style="margin-bottom:0;"><label>FIDE ID *</label><input type="text" id="chiefOrgFide" placeholder="FIDE ID" required></div>
-            </div>
-
-            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
-              <div class="field" style="margin-bottom:0;"><label>Organiser (Up to 10 names allowed)</label><input type="text" id="orgBody" placeholder="Organizer Name / Club"></div>
-              <div class="field" style="margin-bottom:0;"><label>FIDE ID</label><input type="text" id="orgBodyFide" placeholder="FIDE ID"></div>
-            </div>
-
-            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
-              <div class="field" style="margin-bottom:0;"><label>Fair Play Officer Name</label><input type="text" id="fairPlayOfficer" placeholder="Full Name"></div>
-              <div class="field" style="margin-bottom:0;"><label>FIDE ID</label><input type="text" id="fairPlayOfficerFide" placeholder="FIDE ID"></div>
-            </div>
-            
-            <div class="field full" style="background: var(--bg-body); padding: 16px; border-radius: var(--radius); border: 1px solid var(--border);">
-              <label style="margin-bottom: 12px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;">Additional Arbiters & Roles</label>
-              
-              <!-- Sector Arbiters -->
-              <div style="margin-bottom: 10px;">
-                <label style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; margin-bottom: 6px;">
-                  <input type="checkbox" id="addSectorArbiters" style="accent-color: var(--primary);" onchange="toggleArbiterInput('Sector')"> Add Sector Arbiters (SA / A, only licensed)
-                </label>
-                <div id="sectorArbiterFields" style="display: none; padding-left: 20px; margin-top: 6px;">
-                  <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom:0;">
-                    <input type="text" id="sectorArbiterName" placeholder="Sector Arbiter Name">
-                    <input type="text" id="sectorArbiterFide" placeholder="FIDE ID">
-                  </div>
-                </div>
-              </div>
-
-              <!-- Arbiters -->
-              <div style="margin-bottom: 10px;">
-                <label style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; margin-bottom: 6px;">
-                  <input type="checkbox" id="addArbiters" style="accent-color: var(--primary);" onchange="toggleArbiterInput('Arbiter')"> Add Arbiters (SA / A, only licensed)
-                </label>
-                <div id="arbiterFields" style="display: none; padding-left: 20px; margin-top: 6px;">
-                  <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom:0;">
-                    <input type="text" id="arbiterName" placeholder="Arbiter Name">
-                    <input type="text" id="arbiterFide" placeholder="FIDE ID">
-                  </div>
-                </div>
-              </div>
-
-              <!-- Assistant Arbiters -->
-              <div style="margin-bottom: 10px;">
-                <label style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; margin-bottom: 6px;">
-                  <input type="checkbox" id="addAssistantArbiters" style="accent-color: var(--primary);" onchange="toggleArbiterInput('Assistant')"> Add Assistant Arbiters (AA: for helpers / NA norm seekers / licensed)
-                </label>
-                <div id="assistantArbiterFields" style="display: none; padding-left: 20px; margin-top: 6px;">
-                  <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom:0;">
-                    <input type="text" id="assistantArbiterName" placeholder="Assistant Arbiter Name">
-                    <input type="text" id="assistantArbiterFide" placeholder="FIDE ID">
-                  </div>
-                </div>
-              </div>
-
-              <!-- Pairings Arbiters -->
-              <div>
-                <label style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; margin-bottom: 6px;">
-                  <input type="checkbox" id="addPairingsArbiters" style="accent-color: var(--primary);" onchange="toggleArbiterInput('Pairings')"> Add Pairings Arbiters
-                </label>
-                <div id="pairingsArbiterFields" style="display: none; padding-left: 20px; margin-top: 6px;">
-                  <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom:0;">
-                    <input type="text" id="pairingsArbiterName" placeholder="Pairings Arbiter Name">
-                    <input type="text" id="pairingsArbiterFide" placeholder="FIDE ID">
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            <div class="field full"><label>1st Tiebreak Method *</label><input type="text" id="tb1" placeholder="e.g. Direct encounter" value="Direct encounter"></div>
-            <div class="field full"><label>2nd Tiebreak Method</label><input type="text" id="tb2" placeholder="e.g. Buchholz"></div>
-            <div class="field full"><label>3rd Tiebreak Method</label><input type="text" id="tb3" placeholder="e.g. Sonneborn-Berger"></div>
+          <h2>Officials & Arbiters</h2>
+          <div class="field-grid">
+            <div class="field"><label>Chief Arbiter *</label><input type="text" id="chiefArbiter"></div>
+            <div class="field"><label>FIDE ID *</label><input type="text" id="chiefArbiterFide"></div>
+            <div class="field"><label>Deputy Arbiter</label><input type="text" id="deputyChiefArbiter"></div>
+            <div class="field"><label>FIDE ID</label><input type="text" id="deputyChiefArbiterFide"></div>
+            <div class="field"><label>Chief Organizer *</label><input type="text" id="chiefOrg"></div>
+            <div class="field"><label>FIDE ID *</label><input type="text" id="chiefOrgFide"></div>
+            <div class="field full"><label>1st Tiebreak *</label><input type="text" id="tb1" value="Direct encounter"></div>
+            <div class="field full"><label>2nd Tiebreak</label><input type="text" id="tb2" value="Buchholz"></div>
+            <div class="field full"><label>3rd Tiebreak</label><input type="text" id="tb3"></div>
           </div>
         </section>
 
-        <!-- STEP 4: Section D (Time Control, Software & Limits) -->
         <section class="step" data-step="4">
-          <div class="step-head"><p class="step-eyebrow">Section D</p><h2>Time Control & Settings</h2></div>
-          <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
-            
+          <h2>Time Control</h2>
+          <div class="field-grid">
             <div class="field full combo">
-              <label>Time Control Specification * (Select from list or type custom)</label>
-              <input type="text" id="tcInput" class="combo-input" placeholder="e.g. 90 mins + 30 sec increment or choose below..." oninput="updateDossier()">
+              <label>Time Control Specification * (Select or type)</label>
+              <input type="text" id="tcInput" placeholder="e.g. 90 mins + 30 sec..." autocomplete="off">
               <div class="combo-panel" id="tcPanel">
                 <div class="combo-search"><input type="text" id="tcSearch" placeholder="Search presets..."></div>
                 <div id="tcList"></div>
               </div>
             </div>
-
-            <div class="field full"><label>Pairing Software *</label><select id="software"><option value="ChessManager">ChessManager</option><option value="Swiss Manager">Swiss Manager</option><option value="Vega">Vega</option><option value="Tornelo">Tornelo</option><option value="Other">Other</option></select></div>
-
-            <div class="field full"><label>Max Rating Limit (optional)</label><input type="text" id="maxRatingCond" placeholder="No limit"></div>
-            <div class="field full"><label>Age Limit (optional)</label><input type="text" id="ageLimit" placeholder="None"></div>
+            <div class="field full"><label>Software *</label><select id="software"><option>ChessManager</option><option>Swiss Manager</option><option>Vega</option><option>Tornelo</option></select></div>
+            <div class="field"><label>Max Rating Limit</label><input type="text" id="maxRatingCond" placeholder="No limit"></div>
+            <div class="field"><label>Age Limit</label><input type="text" id="ageLimit" placeholder="None"></div>
           </div>
         </section>
 
-        <!-- STEP 5: Section E (Additional Info & Payment) -->
         <section class="step" data-step="5">
-          <div class="step-head"><p class="step-eyebrow">Section E</p><h2>Additional Info, Prize Fund & Payment</h2></div>
-          <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
-            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-              <input type="checkbox" id="chkDigitalClock" style="width: 18px; height: 18px; accent-color: var(--primary);" checked>
-              <label for="chkDigitalClock" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">All digital clocks</label>
-            </div>
-
-            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-              <input type="checkbox" id="chkPgnProvided" style="width: 18px; height: 18px; accent-color: var(--primary);">
-              <label for="chkPgnProvided" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">Will PGN be provided</label>
-            </div>
-
-            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-              <input type="checkbox" id="chkInternetLive" style="width: 18px; height: 18px; accent-color: var(--primary);">
-              <label for="chkInternetLive" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">Internet transmission</label>
-            </div>
-
-            <div class="field full"><label>Contact Email *</label><input type="email" id="contactEmail" placeholder="organizer@federation.org" required></div>
-            <div class="field full"><label>Internet Homepage / Website URL</label><input type="text" id="internetHomepage" placeholder="https://..."></div>
-            <div class="field full"><label>Prize Fund (RM)</label><input type="text" id="prizeFund" placeholder="Total prize fund"></div>
-            <div class="field full"><label>Remarks / Additional Notes</label><textarea id="remarks" rows="2" placeholder="Remarks..."></textarea></div>
-          </div>
-
-          <div class="fee-box" id="feeCalc" style="margin-top: 20px;">
-            <p class="fee-box-label">MCF Registration Fee Due (Clause 3.3)</p>
-            <div class="fee-row"><span>Base Registration fee</span><span id="feeBase">RM 0</span></div>
-            <div class="fee-row"><span>Per-player Rating fee (Min 32 players deposit)</span><span id="feePerPlayer">RM 0</span></div>
-            <div class="fee-total"><span>Total due (Deposit)</span><span id="feeTotal">RM 0</span></div>
-          </div>
-          <div style="margin-top:20px; padding:20px; background:var(--bg-body); border:1px solid var(--border); border-radius:var(--radius);">
-            <h4 style="margin:0 0 10px; font-size:14px; font-weight:600;">Payment Instructions</h4>
-            <p style="margin:0 0 16px; font-size:13px; color:var(--text-muted); line-height:1.5;">Please transfer the exact <b>Total Due</b> to the Malaysian Chess Federation account before submitting this dossier.</p>
-            <div style="display:flex; justify-content:space-between; border-bottom:1px dashed var(--border); padding-bottom:10px; margin-bottom:10px;"><span style="font-size:12px; color:var(--text-muted);">Bank Name</span><b style="font-size:13px;">CIMB Bank Berhad</b></div>
-            <div style="display:flex; justify-content:space-between; border-bottom:1px dashed var(--border); padding-bottom:10px; margin-bottom:20px;"><span style="font-size:12px; color:var(--text-muted);">Account Number</span><b style="font-size:13px;">8000-1234-5678</b></div>
-            <div class="field full" style="margin:0;"><label>Bank Transaction Reference Number *</label><input type="text" id="paymentRef" placeholder="e.g. CIMB-9876543210" required></div>
-            <div class="field full" style="margin-top:16px;"><label>Upload Payment Receipt (PDF/Image) *</label><input type="file" id="receiptUpload" accept="image/*,.pdf" style="background:transparent; border:1px dashed var(--primary); padding:16px; cursor:pointer;" required></div>
+          <h2>Payment & Info</h2>
+          <div class="field-grid">
+            <div class="field full"><label><span><input type="checkbox" id="chkDigitalClock" checked> Digital clocks</span></label></div>
+            <div class="field full"><label><span><input type="checkbox" id="chkPgnProvided"> PGN Provided</span></label></div>
+            <div class="field full"><label>Contact Email *</label><input type="email" id="contactEmail"></div>
+            <div class="field full"><label>Payment Ref *</label><input type="text" id="paymentRef"></div>
+            <div class="field full"><label>Receipt (PDF/Image) *</label><input type="file" id="receiptUpload" accept=".pdf,image/*"></div>
           </div>
         </section>
 
-        <!-- STEP 6: Section F (Event Poster & Regulations) -->
         <section class="step" data-step="6">
-          <div class="step-head"><p class="step-eyebrow">Section F</p><h2>Event Poster / Rules & Regulations</h2></div>
-          <div class="field-grid">
-            <div class="field full">
-              <label>Upload Event Poster / Rules & Regulations (PDF / Image) *</label>
-              <input type="file" id="posterUpload" accept="image/*,.pdf" style="background:transparent; border:1px dashed var(--primary); padding:16px; cursor:pointer;" required>
-              <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Upload the official prospectus, invitation letter, or tournament regulations flyer.</p>
-            </div>
-          </div>
+          <h2>Poster</h2>
+          <div class="field full"><label>Event Poster (PDF/Image) *</label><input type="file" id="posterUpload" accept=".pdf,image/*"></div>
         </section>
 
-        <!-- STEP 7: Section G (Objectives) -->
         <section class="step" data-step="7">
-          <div class="step-head"><p class="step-eyebrow">Section G</p><h2>Objectives</h2></div>
-          <div class="field-grid"><div class="field full"><label>Objective 1 *</label><textarea id="obj1" rows="4" required>Provide FIDE-rated competition for local chess players.</textarea></div></div>
+          <h2>Objectives</h2>
+          <div class="field full"><textarea id="obj1" rows="3">Provide FIDE-rated competition.</textarea></div>
         </section>
 
-        <!-- STEP 8: Section H (Declaration) -->
         <section class="step" data-step="8">
-          <div class="step-head"><p class="step-eyebrow">Section H</p><h2>Declaration</h2></div>
-          <div class="field-grid">
-            <div class="field"><label>Signed Name *</label><input type="text" id="signName" placeholder="Full name"></div>
-            <div class="field"><label>Date *</label><input type="date" id="signDate"></div>
-          </div>
+          <h2>Declaration</h2>
+          <div class="field"><label>Signed Name *</label><input type="text" id="signName"></div>
+          <div class="field"><label>Date *</label><input type="date" id="signDate"></div>
         </section>
 
         <section class="step" data-step="review">
-          <div class="step-head"><p class="step-eyebrow">Checkmate</p><h2>Review your dossier</h2></div>
-          <div id="reviewOut"></div>
+          <h2>Review</h2>
+          <div id="reviewOut" style="background:var(--bg-body); padding:20px; border-radius:var(--radius);"></div>
         </section>
 
         <div class="actions">
           <button type="button" class="btn btn-ghost" id="backBtn">← Back</button>
-          <div style="display:flex; gap:12px; margin-left:auto;">
+          <div>
             <button type="button" class="btn btn-primary" id="nextBtn">Continue →</button>
             <button type="button" class="btn btn-primary" id="submitAppBtn" style="display:none;">Submit Application</button>
           </div>
@@ -730,1050 +327,538 @@
   </main>
 </div>
 
-<!-- ================= 6. ADMIN DASHBOARD ================= -->
+<!-- 6. ADMIN DASHBOARD -->
 <div id="view-admin" class="view dash-view">
-  <div class="mobile-nav-bar">
-    <h2>Admin Portal</h2>
-    <button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰ Menu</button>
-  </div>
-  <aside class="rail" id="mainRailAdmin">
-    <div class="crest">
-      <div class="crest-mark" style="width: 44px; height: auto; background: transparent;">
-        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
-      </div>
-      <div class="crest-text"><p class="eyebrow" id="adminRoleEyebrow">Administration</p><h1>Admin Portal</h1></div>
-    </div>
-    <p class="nav-label">Queue Filter</p>
+  <div class="mobile-nav-bar"><h2>Admin</h2><button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰</button></div>
+  <aside class="rail">
+    <div class="crest"><img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" style="width:44px;"><div><h1 id="adminRoleEyebrow">Admin</h1></div></div>
+    <p class="nav-label">Filters</p>
     <nav class="nav-list" id="navFilter">
-      <button class="nav-item active" data-filter="all">All Applications <span class="badge" id="cntAll">0</span></button>
+      <button class="nav-item active" data-filter="all">All <span class="badge" id="cntAll">0</span></button>
       <button class="nav-item" data-filter="pending_state">Pending State <span class="badge" id="cntPendingState">0</span></button>
       <button class="nav-item" data-filter="pending_admin">Pending MCF <span class="badge" id="cntPendingAdmin">0</span></button>
       <button class="nav-item" data-filter="approved">Approved <span class="badge" id="cntApproved">0</span></button>
-      <button class="nav-item" data-filter="revision">Revision Req. <span class="badge" id="cntRevision">0</span></button>
     </nav>
-    <div id="systemAdminMenu" style="display:none;">
-        <p class="nav-label" style="margin-top: 16px;">System Admin</p>
-        <nav class="nav-list"><button class="nav-item" id="btnNavUsers">Manage Users</button></nav>
-    </div>
-    <div class="admin-stats">
-      <div class="stat-row"><span>Approved Fees:</span><strong id="statFees">RM 0</strong></div>
-      <div class="stat-row"><span>Pending Action:</span><strong id="statAction">0 Events</strong></div>
-    </div>
-    <div class="rail-foot" style="margin-top:auto; display:flex; flex-direction:column; gap:16px; width:100%;">
-      <button type="button" class="btn btn-ghost" id="btnGoOrgView" style="width:100%; justify-content:center;">Switch to Organizer View</button>
-      <div style="display:flex; justify-content:space-between; width: 100%; border-top:1px solid rgba(255,255,255,0.05); padding-top:16px;">
-        <button type="button" class="btn-logout btnGoProfile">My Profile</button>
-        <button type="button" class="btn-logout btnLogOut">Log Out</button>
+    <div style="margin-top:auto; display:flex; flex-direction:column; gap:16px;">
+      <button class="btn btn-ghost btnGoOrgView">Switch to Organizer</button>
+      <div style="display:flex; justify-content:space-between;">
+        <button class="btn-ghost btnGoProfile" style="border:none; padding:0;">Profile</button>
+        <button class="btn-ghost btnLogOut" style="border:none; padding:0;">Log Out</button>
       </div>
     </div>
   </aside>
   <main class="stage">
-    <div id="adminAppsWrap">
-      <div class="stage-header">
-        <div><h2 id="viewTitle">All Applications</h2><p>Review dossiers, check endorsements, and assign rating approval.</p></div>
-        <div style="display:flex; gap:12px; align-items:center;">
-          <select id="stateFilter" style="width: 180px; padding: 10px 14px;">
-            <option value="all">All States / Regions</option>
-            <option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Penang">Penang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option>
-          </select>
-          <input type="text" id="searchInput" placeholder="Search event or organizer..." style="width:240px;">
-          <button class="btn btn-ghost" id="btnRefreshData">↻ Refresh</button>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Event Name & Code</th>
-              <th>State</th>
-              <th>System / TC</th>
-              <th>Expected Pax</th>
-              <th>Fee & Ref</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
+    <div class="stage-header" style="display:flex; justify-content:space-between; margin-bottom:24px; gap:10px; flex-wrap:wrap;">
+      <h2>All Applications</h2>
+      <div style="display:flex; gap:10px;">
+        <select id="stateFilter" class="state-select" style="width:auto;"><option value="all">All States</option></select>
+        <button class="btn btn-ghost btnRefresh">↻ Refresh</button>
       </div>
     </div>
-
-    <div id="adminUsersWrap" style="display:none;">
-      <div class="stage-header">
-        <div><h2>User Management</h2><p>View registered users and instantly sort or search.</p></div>
-        <div style="display:flex; gap:12px; align-items:center;">
-          <select id="userRoleFilter" style="width: 150px; padding: 10px 14px;">
-            <option value="all">All Roles</option>
-            <option value="organizer">Organizer</option>
-            <option value="state_admin">State Admin</option>
-            <option value="admin">MCF Admin</option>
-            <option value="core_admin">Core Admin</option>
-          </select>
-          <select id="userStateFilter" style="width: 170px; padding: 10px 14px;">
-            <option value="all">All States</option>
-            <option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Penang">Penang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option>
-          </select>
-          <input type="text" id="searchUsers" placeholder="Search name or email..." style="width:220px;">
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Name</th><th>Email</th><th>State</th><th>Role</th><th>Actions</th></tr></thead>
-          <tbody id="tableBodyUsers"></tbody>
-        </table>
-      </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Event Name</th><th>State</th><th>System</th><th>Pax</th><th>Fee</th><th>Status</th></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
     </div>
   </main>
 </div>
 
-<!-- DRAWER (ADMIN MODAL) -->
+<!-- MODAL DRAWER -->
 <div class="drawer-back" id="drawerBack">
   <div class="drawer">
     <div class="drawer-head">
-      <div><h3 id="dTitle">Event Title</h3><p id="dSubtitle">ID: </p></div>
-      <button class="drawer-close" id="drawerClose">×</button>
+      <div><h3 id="dTitle" style="margin:0;">Event</h3></div>
+      <button type="button" class="drawer-close" id="drawerCloseBtn">×</button>
     </div>
     <div class="drawer-body" id="drawerContent"></div>
     <div class="drawer-footer" id="drawerFooter"></div>
   </div>
 </div>
 
-<!-- FORGOT PASSWORD MODAL -->
-<div id="forgotModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); z-index:400; align-items:center; justify-content:center;">
-  <div style="background:var(--surface); padding:32px; border-radius:var(--radius-lg); width:100%; max-width:380px; box-shadow:var(--shadow-lg);">
-    <h3 style="margin:0 0 8px; font-size:18px; color:var(--text-main);">Reset Password</h3>
-    <p style="margin:0 0 20px; font-size:13px; color:var(--text-muted);">Enter your account email and we'll send you a password reset link.</p>
-    <div class="field" style="margin-bottom:16px;">
-      <label>Email Address</label>
-      <input type="email" id="resetEmail" placeholder="you@domain.com">
-    </div>
-    <div style="display:flex; gap:10px; justify-content:flex-end;">
-      <button type="button" class="btn btn-ghost" id="btnCloseReset">Cancel</button>
-      <button type="button" class="btn btn-primary" id="btnSendReset" style="width:auto;">Send Link</button>
+<!-- MODAL FORGOT PASSWORD -->
+<div id="forgotModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:400; align-items:center; justify-content:center;">
+  <div class="card" style="width:380px; max-width:90vw;">
+    <h3>Reset Password</h3>
+    <input type="email" id="resetEmail" style="margin:16px 0;" placeholder="Email">
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button type="button" class="btn btn-ghost" id="btnCancelReset">Cancel</button>
+      <button type="button" class="btn btn-primary" id="btnSendReset">Send</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
 
-<!-- ================= SCRIPTS ================= -->
 <script>
 // ============================================================================
-// CRITICAL: REPLACE THE URL BELOW WITH YOUR ACTUAL APPS SCRIPT WEB APP URL
+// PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL (the one ending in /exec)
 // ============================================================================
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec";
 // ============================================================================
 </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js"></script>
 
 <script>
+/* ===================== SETUP ===================== */
 const firebaseConfig = {
-    apiKey: "AIzaSyD1TGam7x7DaVq-ZhC5Drx3dNfR9Cmzquo",
-    authDomain: "mcf-fide-portal.firebaseapp.com",
-    projectId: "mcf-fide-portal",
-    storageBucket: "mcf-fide-portal.firebasestorage.app",
-    messagingSenderId: "207429811337",
-    appId: "1:207429811337:web:0ae95296abc1c7856d9a58"
+  apiKey: "AIzaSyD1TGam7x7DaVq-ZhC5Drx3dNfR9Cmzquo",
+  authDomain: "mcf-fide-portal.firebaseapp.com",
+  projectId: "mcf-fide-portal"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-const CORE_ADMIN_EMAIL = "mrsyaifulzamani02@gmail.com"; 
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-let applications = [];
-let usersList = [];
-let currentFilterAdmin = "all";
-let currentFilterOrg = "all";
-let searchQ = "";
-let selectedStateFilter = "all";
-let searchUsersQ = "";
-let selectedUserRoleFilter = "all";
-let selectedUserStateFilter = "all";
-let selectedId = null;
-
-let currentUserProfile = { uid: "", email: "", role: "", name: "", phone: "", state: "" };
-let stepIdx = 0;
-const steps = ["1","2","3","4","5","6","7","8","review"];
+const STATES = ["Johor","Kedah","Kelantan","Melaka","Negeri Sembilan","Pahang","Penang","Perak","Perlis","Sabah","Sarawak","Selangor","Terengganu","W.P. Kuala Lumpur","W.P. Labuan","W.P. Putrajaya"];
+document.querySelectorAll('.state-select').forEach(el => STATES.forEach(st => el.add(new Option(st, st))));
 
 const TC = {
-    "FIDE Blitz": [
-        "3 minutes for game with 2 seconds increment from move 1",
-        "5 minutes for game",
-        "4 minutes for game with 2 seconds increment from move 1",
-        "3 minutes for game with 1 second increment from move 1",
-        "5 minutes for game with 3 seconds increment from move 1"
-    ],
-    "FIDE Rapid": [
-        "15 minutes for game with 10 seconds increment from move 1",
-        "10 minutes for game with 5 seconds increment from move 1",
-        "25 minutes for game with 10 seconds increment from move 1",
-        "15 minutes for game",
-        "20 minutes for game",
-        "30 minutes for game"
-    ],
-    "FIDE Standard": [
-        "90 minutes for first 40 moves and 30 minutes for the rest of the game with 30sec increment from move 1",
-        "90 minutes for game with 30 seconds increment from move 1",
-        "60 minutes for game with 30 seconds increment from move 1",
-        "45 minutes for game with 15 seconds increment from move 1"
-    ]
+  "FIDE Blitz": ["3 minutes for game with 2 seconds increment from move 1","5 minutes for game","4 minutes for game with 2 seconds increment from move 1","3 minutes for game with 1 second increment from move 1","5 minutes for game with 3 seconds increment from move 1"],
+  "FIDE Rapid": ["15 minutes for game with 10 seconds increment from move 1","10 minutes for game with 5 seconds increment from move 1","25 minutes for game with 10 seconds increment from move 1","15 minutes for game","20 minutes for game","30 minutes for game"],
+  "FIDE Standard": ["90 minutes for first 40 moves and 30 minutes for the rest of the game with 30sec increment from move 1","90 minutes for game with 30 seconds increment from move 1","60 minutes for game with 30 seconds increment from move 1","45 minutes for game with 15 seconds increment from move 1"]
 };
+const STATUS_MAP = { pending_state:'PENDING STATE', pending_admin:'PENDING MCF', approved:'APPROVED' };
 
-// Clean Helper for Malaysia Local Time (GMT+8) formatting
-function formatLocalDate(dateStr) {
-    if (!dateStr) return '—';
-    try {
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return dateStr;
-        return d.toLocaleDateString('en-GB', { timeZone: 'Asia/Kuala_Lumpur', day: '2-digit', month: 'short', year: 'numeric' });
-    } catch(e) {
-        return dateStr;
-    }
-}
+let applications = [], currentUserProfile = {}, stepIdx = 0, selectedId = null;
+let adminFilter = 'all', orgFilter = 'all', isRegistering = false;
+const steps = ["1","2","3","4","5","6","7","8","review"];
+const isAdmin = () => ['admin','core_admin','state_admin'].includes(currentUserProfile.role);
 
-function toggleSidebar(btn) {
-    const activeView = document.querySelector('.view.active');
-    const rail = activeView ? activeView.querySelector('.rail') : null;
-    if (rail) {
-        rail.classList.toggle('mobile-open');
-        btn.textContent = rail.classList.contains('mobile-open') ? '✕ Close' : '☰ Menu';
-    }
-}
-
-function toggleNormFields() {
-    const chk = document.getElementById('chkTitleNorms');
-    const wrap = document.getElementById('normAvailableWrap');
-    if (chk && wrap) {
-        wrap.style.display = chk.checked ? 'block' : 'none';
-    }
-}
-
-function toggleAffiliateLetter() {
-    const orgCat = document.getElementById('orgCategory')?.value || '';
-    const field = document.getElementById('affiliateLetterField');
-    if (field) {
-        field.style.display = orgCat.includes('State Affiliate') ? 'block' : 'none';
-    }
-}
-
-function toggleArbiterInput(type) {
-    const chk = document.getElementById(type === 'Sector' ? 'addSectorArbiters' : type === 'Arbiter' ? 'addArbiters' : type === 'Assistant' ? 'addAssistantArbiters' : 'addPairingsArbiters');
-    const container = document.getElementById(type === 'Sector' ? 'sectorArbiterFields' : type === 'Arbiter' ? 'arbiterFields' : type === 'Assistant' ? 'assistantArbiterFields' : 'pairingsArbiterFields');
-    if (chk && container) {
-        container.style.display = chk.checked ? 'block' : 'none';
-    }
-}
+/* ===================== HELPERS ===================== */
+window.toggleSidebar = btn => btn.closest('.view').querySelector('.rail').classList.toggle('mobile-open');
+window.closeDrawer = () => $('drawerBack').classList.remove('open');
 
 function showView(viewId){
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById('view-' + viewId).classList.add('active');
-    window.scrollTo({top:0, behavior:'instant'});
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $('view-' + viewId).classList.add('active');
+  document.querySelectorAll('.rail.mobile-open').forEach(r => r.classList.remove('mobile-open'));
+  window.scrollTo({ top:0, behavior:'instant' });
+}
+
+function showToast(msg){
+  const t = $('toast'); $('toastMsg').textContent = msg; t.classList.add('show');
+  clearTimeout(window._toastTimer); window._toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+async function api(action, data){
+  if (!auth.currentUser) throw new Error('Please sign in again.');
+  const idToken = await auth.currentUser.getIdToken();
+  // No custom headers -> avoids CORS preflight with Apps Script
+  const res = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({ action, idToken, ...data }) });
+  return res.json();
+}
+
+/* ===================== AUTH ===================== */
+async function routeUser(user){
+  const doc = await db.collection('users').doc(user.uid).get();
+  if (!doc.exists) { await auth.signOut(); return; }
+  currentUserProfile = { role:'organizer', ...doc.data(), uid:user.uid, email:(user.email || '').toLowerCase() };
+  document.querySelectorAll('.btnGoAdminView').forEach(b => b.style.display = isAdmin() ? 'inline-flex' : 'none');
+  if (isAdmin()) {
+    $('adminRoleEyebrow').innerText = currentUserProfile.role === 'state_admin' ? 'State Admin' : 'MCF Admin';
+    if (currentUserProfile.role === 'state_admin') {
+      $('stateFilter').value = currentUserProfile.state;
+      $('stateFilter').disabled = true;
+    } else { $('stateFilter').disabled = false; }
+    showView('admin');
+  } else showView('organizer-dash');
+  fetchDossiers();
 }
 
 auth.onAuthStateChanged(user => {
-    if (user) {
-        db.collection('users').doc(user.uid).get().then(doc => {
-            if(doc.exists) {
-                currentUserProfile = { uid: user.uid, email: user.email, ...doc.data() };
-                
-                if (user.email.toLowerCase() === CORE_ADMIN_EMAIL.toLowerCase() && currentUserProfile.role !== 'core_admin') {
-                    db.collection('users').doc(user.uid).update({ role: 'core_admin' });
-                    currentUserProfile.role = 'core_admin';
-                }
-                
-                if(currentUserProfile.role === 'admin' || currentUserProfile.role === 'core_admin' || currentUserProfile.role === 'state_admin') {
-                    document.getElementById('btnGoAdminView').style.display = 'inline-flex'; 
-                    document.getElementById('adminRoleEyebrow').innerText = currentUserProfile.role === 'state_admin' ? (currentUserProfile.state + ' Association') : 'MCF Administration';
-                    
-                    if (currentUserProfile.role === 'state_admin') {
-                        const stateSel = document.getElementById('stateFilter');
-                        if (stateSel) {
-                            stateSel.value = currentUserProfile.state;
-                            stateSel.disabled = true;
-                            selectedStateFilter = currentUserProfile.state;
-                        }
-                    }
-
-                    if (currentUserProfile.role === 'core_admin') {
-                        document.getElementById('systemAdminMenu').style.display = 'block';
-                        listenForUsers();
-                    }
-                    showView('admin');
-                } else {
-                    document.getElementById('btnGoAdminView').style.display = 'none'; 
-                    showView('organizer-dash');
-                }
-                fetchDossiers(); 
-            } else { auth.signOut(); }
-        });
-    } else {
-        showView('login');
-        currentUserProfile = {}; 
-    }
+  if (isRegistering) return;
+  if (user) routeUser(user).catch(e => showToast('Load failed: ' + e.message));
+  else { currentUserProfile = {}; applications = []; showView('login'); }
 });
 
-document.getElementById('goToRegister').addEventListener('click', () => showView('register'));
-document.getElementById('goToLogin').addEventListener('click', () => showView('login'));
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    try {
-        const cred = await auth.createUserWithEmailAndPassword(document.getElementById('regEmail').value, document.getElementById('regPass').value);
-        await db.collection('users').doc(cred.user.uid).set({ name: document.getElementById('regName').value, email: document.getElementById('regEmail').value.toLowerCase(), role: "organizer", phone: "", state: document.getElementById('regState').value });
-        showToast("Account created successfully!");
-    } catch (error) { document.getElementById('regError').textContent = error.message; document.getElementById('regError').style.display = 'block'; }
-});
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    try { await auth.signInWithEmailAndPassword(document.getElementById('loginEmail').value, document.getElementById('loginPass').value); showToast("Welcome back!"); } 
-    catch (error) { document.getElementById('loginError').textContent = "Invalid credentials."; document.getElementById('loginError').style.display = 'block'; }
-});
-document.querySelectorAll('.btnLogOut').forEach(btn => btn.addEventListener('click', () => auth.signOut()));
-document.getElementById('btnGoOrgView')?.addEventListener('click', () => showView('organizer-dash'));
-document.getElementById('btnGoAdminView')?.addEventListener('click', () => showView('admin'));
+$('goToRegister').onclick = () => showView('register');
+$('goToLogin').onclick = () => showView('login');
+document.querySelectorAll('.btnLogOut').forEach(b => b.onclick = () => auth.signOut());
+document.querySelectorAll('.btnGoOrgView').forEach(b => b.onclick = () => { renderOrgTable(); showView('organizer-dash'); });
+document.querySelectorAll('.btnGoAdminView').forEach(b => b.onclick = () => { renderAdminTable(); showView('admin'); });
+document.querySelectorAll('.btnBackDash').forEach(b => b.onclick = () => showView(isAdmin() ? 'admin' : 'organizer-dash'));
 
-document.getElementById('forgotPassLink').addEventListener('click', () => {
-    const loginEmail = document.getElementById('loginEmail').value;
-    if (loginEmail) {
-        document.getElementById('resetEmail').value = loginEmail;
-    }
-    document.getElementById('forgotModal').style.display = 'flex';
+document.querySelectorAll('.btnGoProfile').forEach(b => b.onclick = () => {
+  $('profEmail').value = currentUserProfile.email || '';
+  $('profName').value = currentUserProfile.name || '';
+  $('profPhone').value = currentUserProfile.phone || '';
+  $('profState').value = currentUserProfile.state || '';
+  showView('profile');
 });
 
-document.getElementById('btnCloseReset').addEventListener('click', () => {
-    document.getElementById('forgotModal').style.display = 'none';
-});
+$('loginForm').onsubmit = async e => {
+  e.preventDefault();
+  const err = $('loginError'); err.style.display = 'none';
+  $('btnLogin').disabled = true;
+  try {
+    await auth.signInWithEmailAndPassword($('loginEmail').value.trim(), $('loginPass').value);
+    showToast('Welcome back!');
+  } catch (ex) { err.textContent = 'Invalid email or password.'; err.style.display = 'block'; }
+  $('btnLogin').disabled = false;
+};
 
-document.getElementById('btnSendReset').addEventListener('click', async () => {
-    const email = document.getElementById('resetEmail').value.trim();
-    if (!email) {
-        showToast("Please enter your email address.");
-        return;
-    }
-    const btn = document.getElementById('btnSendReset');
-    btn.textContent = "Sending...";
-    btn.disabled = true;
-    try {
-        await auth.sendPasswordResetEmail(email);
-        showToast("✓ Password reset email sent! Check your inbox.");
-        document.getElementById('forgotModal').style.display = 'none';
-    } catch (error) {
-        showToast("Error: " + error.message);
-    } finally {
-        btn.textContent = "Send Link";
-        btn.disabled = false;
-    }
-});
-
-document.querySelectorAll('.btnGoProfile').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.getElementById('profEmail').value = currentUserProfile.email;
-        document.getElementById('profName').value = currentUserProfile.name || "";
-        document.getElementById('profPhone').value = currentUserProfile.phone || "";
-        document.getElementById('profState').value = currentUserProfile.state || "";
-        showView('profile');
+$('registerForm').onsubmit = async e => {
+  e.preventDefault();
+  const err = $('regError'); err.style.display = 'none';
+  $('btnRegister').disabled = true;
+  isRegistering = true;          // stops onAuthStateChanged from signing the new user out
+  try {
+    const cred = await auth.createUserWithEmailAndPassword($('regEmail').value.trim(), $('regPass').value);
+    await db.collection('users').doc(cred.user.uid).set({
+      name: $('regName').value.trim(),
+      state: $('regState').value,
+      role: 'organizer'
     });
-});
-document.getElementById('btnBackFromProfile').addEventListener('click', () => {
-    if(currentUserProfile.role === 'admin' || currentUserProfile.role === 'core_admin' || currentUserProfile.role === 'state_admin') showView('admin');
-    else showView('organizer-dash');
-});
-document.getElementById('profileForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('btnSaveProfile'); btn.textContent = "Saving...";
-    const updates = { name: document.getElementById('profName').value, phone: document.getElementById('profPhone').value, state: document.getElementById('profState').value };
-    try { await db.collection('users').doc(currentUserProfile.uid).update(updates); currentUserProfile = { ...currentUserProfile, ...updates }; showToast("Profile updated!"); btn.textContent = "Save Changes"; } 
-    catch (error) { document.getElementById('profError').textContent = "Update failed."; document.getElementById('profError').style.display = 'block'; btn.textContent = "Save Changes"; }
-});
+    isRegistering = false;
+    await routeUser(cred.user);
+    showToast('Account created!');
+  } catch (ex) {
+    isRegistering = false;
+    err.textContent = ex.message; err.style.display = 'block';
+  }
+  $('btnRegister').disabled = false;
+};
 
-function getBadgeStyle(status) {
-    if (status === 'PENDING STATE') return 'background: #FEF3C7; color: #92400E;';
-    if (status === 'PENDING ADMIN') return 'background: #DBEAFE; color: #1E40AF;';
-    if (status === 'APPROVED') return 'background: #D1FAE5; color: #065F46;';
-    return 'background: #FEE2E2; color: #991B1B;';
+$('forgotPassLink').onclick = () => $('forgotModal').style.display = 'flex';
+$('btnCancelReset').onclick = () => $('forgotModal').style.display = 'none';
+$('btnSendReset').onclick = async () => {
+  try {
+    await auth.sendPasswordResetEmail($('resetEmail').value.trim());
+    showToast('Reset email sent'); $('forgotModal').style.display = 'none';
+  } catch (ex) { showToast(ex.message); }
+};
+
+$('profileForm').onsubmit = async e => {
+  e.preventDefault();
+  const data = { name: $('profName').value.trim(), phone: $('profPhone').value.trim(), state: $('profState').value };
+  $('btnSaveProfile').disabled = true;
+  try {
+    await db.collection('users').doc(currentUserProfile.uid).set(data, { merge:true });
+    Object.assign(currentUserProfile, data);
+    showToast('Profile saved');
+  } catch (ex) { showToast('Save failed: ' + ex.message); }
+  $('btnSaveProfile').disabled = false;
+};
+
+/* ===================== DATA & TABLES ===================== */
+window.fetchDossiers = async function(){
+  if (!auth.currentUser) return;
+  try {
+    const data = await api('getDossiers', {});
+    if (!Array.isArray(data)) {
+      throw new Error(data.message || 'The server did not return an application list.');
+    }
+    applications = data.reverse();   // newest first
+    renderAdminTable();
+    renderOrgTable();
+  } catch (e) {
+    showToast('Failed to fetch data: ' + e.message);
+    console.error('fetchDossiers failed:', e);
+  }
+};
+document.querySelectorAll('.btnRefresh').forEach(b => b.onclick = fetchDossiers);
+
+function getBadgeStyle(st){
+  if (st === 'PENDING STATE') return 'background:#FEF3C7; color:#92400E;';
+  if (st === 'APPROVED') return 'background:#D1FAE5; color:#065F46;';
+  if (st === 'REJECTED') return 'background:#FEE2E2; color:#991B1B;';
+  return 'background:#DBEAFE; color:#1E40AF;';
 }
 
-async function fetchDossiers() {
-    if (!SCRIPT_URL || SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL")) {
-        console.warn("SCRIPT_URL is not set. Data fetch skipped.");
-        return;
-    }
-    try {
-        const res = await fetch(`${SCRIPT_URL}?action=getDossiers`);
-        const data = await res.json();
-        applications = (data || []).reverse();
-        updateAdminCounts(); renderAdminTable();
-        updateOrgCounts(); renderOrgTable();
-    } catch (err) {
-        showToast("Error loading data from Sheets.");
-    }
+function rowHtml(a){
+  return `<td><b>${esc(a.eventName)}</b><br><span style="font-size:11px; color:var(--text-muted);">${esc(a.id)}</span></td>
+    <td>${esc(a.state)}</td><td>${esc(a.system)}</td><td>${esc(a.pax)}</td>
+    <td><b>RM ${esc(a.fee)}</b></td>
+    <td><span class="status-pill" style="${getBadgeStyle(a.status)}">${esc(a.status)}</span></td>`;
 }
 
-document.getElementById('btnRefreshData')?.addEventListener('click', fetchDossiers);
-document.getElementById('btnRefreshOrg')?.addEventListener('click', fetchDossiers);
+function fillTable(tbId, list, filter){
+  const tb = $(tbId); tb.innerHTML = '';
+  const shown = list.filter(a => filter === 'all' || a.status === STATUS_MAP[filter]);
+  if (!shown.length) { tb.innerHTML = '<tr class="empty-row"><td colspan="6">No applications found.</td></tr>'; return; }
+  shown.forEach(a => {
+    const tr = document.createElement('tr'); tr.innerHTML = rowHtml(a);
+    tr.onclick = () => openDrawer(a.id); tb.appendChild(tr);
+  });
+}
+const cnt = (list, st) => list.filter(a => a.status === st).length;
 
-function updateAdminCounts() {
-    let viewableApps = applications;
-    if (currentUserProfile.role === 'state_admin') viewableApps = applications.filter(a => a.state === currentUserProfile.state);
-    document.getElementById('cntAll').innerText = viewableApps.length;
-    document.getElementById('cntPendingState').innerText = viewableApps.filter(a => a.status === 'PENDING STATE').length;
-    document.getElementById('cntPendingAdmin').innerText = viewableApps.filter(a => a.status === 'PENDING ADMIN').length;
-    document.getElementById('cntApproved').innerText = viewableApps.filter(a => a.status === 'APPROVED').length;
-    document.getElementById('cntRevision').innerText = viewableApps.filter(a => a.status === 'REVISION REQ.').length;
-    document.getElementById('statFees').innerText = 'RM ' + viewableApps.filter(a => a.status === 'APPROVED').reduce((sum, app) => sum + (Number(app.fee) || 0), 0);
-    
-    const pendingCount = viewableApps.filter(a => a.status === 'PENDING STATE' || a.status === 'PENDING ADMIN').length;
-    document.getElementById('statAction').innerText = pendingCount + ' Events';
+function renderAdminTable(){
+  let f = applications;
+  const sf = $('stateFilter').value;
+  if (currentUserProfile.role === 'state_admin') f = f.filter(a => a.state === currentUserProfile.state);
+  else if (sf !== 'all') f = f.filter(a => a.state === sf);
+  $('cntAll').innerText = f.length;
+  $('cntPendingState').innerText = cnt(f, 'PENDING STATE');
+  $('cntPendingAdmin').innerText = cnt(f, 'PENDING MCF');
+  $('cntApproved').innerText = cnt(f, 'APPROVED');
+  fillTable('tableBody', f, adminFilter);
 }
 
-function renderAdminTable() {
-    const tbody = document.getElementById('tableBody');
-    if (!tbody) return; tbody.innerHTML = '';
-    
-    let filtered = applications; 
-    
-    if (currentUserProfile.role === 'state_admin') {
-        filtered = filtered.filter(a => a.state === currentUserProfile.state);
-    } else if (selectedStateFilter !== 'all') {
-        filtered = filtered.filter(a => a.state === selectedStateFilter);
-    }
-
-    if (currentFilterAdmin !== 'all') {
-        let target = currentFilterAdmin === 'pending_state' ? 'PENDING STATE' : currentFilterAdmin === 'pending_admin' ? 'PENDING ADMIN' : currentFilterAdmin === 'approved' ? 'APPROVED' : 'REVISION REQ.';
-        filtered = filtered.filter(a => a.status === target);
-    }
-
-    if (searchQ.trim() !== '') {
-        const q = searchQ.toLowerCase();
-        filtered = filtered.filter(a => 
-            (a.eventName || '').toLowerCase().includes(q) || 
-            (a.organizerEmail || '').toLowerCase().includes(q) ||
-            (a.id || '').toLowerCase().includes(q)
-        );
-    }
-    
-    filtered.forEach(app => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>
-                <b style="font-size:14px; color:var(--text-main);">${app.eventName}</b><br>
-                <span style="font-size:11px; color:var(--text-muted);">${app.id} &bull; ${app.organizerEmail}</span>
-            </td>
-            <td>${app.state}<br><span style="font-size:11px; color:var(--text-muted);">${formatLocalDate(app.startDate)}</span></td>
-            <td>${app.system} (${app.rounds || '-'} Rds)<br><span style="font-size:11px; color:var(--text-muted);">${app.timeControl || '-'}</span></td>
-            <td>${app.pax} pax</td>
-            <td>
-                <b style="color:var(--text-main);">RM ${app.fee || 0}</b><br>
-                <span style="font-size:11px; color:var(--text-muted);">Ref: ${app.paymentRef || '-'}</span>
-            </td>
-            <td>
-                <div style="display:flex; align-items:center; gap:8px; justify-content:space-between;">
-                    <span class="status-pill" style="${getBadgeStyle(app.status)}">${app.status}</span>
-                    <button type="button" class="btn btn-ghost" style="padding:4px 10px; font-size:11px;">Review</button>
-                </div>
-            </td>
-        `;
-        tr.addEventListener('click', () => openDrawer(app.id));
-        tbody.appendChild(tr);
-    });
+function renderOrgTable(){
+  const me = (currentUserProfile.email || '').toLowerCase();
+  const my = applications.filter(a => a.organizerEmail === me);
+  $('cntOrgAll').innerText = my.length;
+  $('cntOrgPendingState').innerText = cnt(my, 'PENDING STATE');
+  $('cntOrgPendingAdmin').innerText = cnt(my, 'PENDING MCF');
+  $('cntOrgApproved').innerText = cnt(my, 'APPROVED');
+  fillTable('tableBodyOrg', my, orgFilter);
 }
 
-document.getElementById('searchInput').addEventListener('input', e => { searchQ = e.target.value; renderAdminTable(); });
-document.getElementById('stateFilter').addEventListener('change', e => { selectedStateFilter = e.target.value; renderAdminTable(); });
-
-function updateOrgCounts() {
-    const myApps = applications.filter(a => a.organizerEmail === currentUserProfile.email);
-    document.getElementById('cntOrgAll').innerText = myApps.length;
-    document.getElementById('cntOrgPendingState').innerText = myApps.filter(a => a.status === 'PENDING STATE').length;
-    document.getElementById('cntOrgPendingAdmin').innerText = myApps.filter(a => a.status === 'PENDING ADMIN').length;
-    document.getElementById('cntOrgApproved').innerText = myApps.filter(a => a.status === 'APPROVED').length;
-    document.getElementById('cntOrgRevision').innerText = myApps.filter(a => a.status === 'REVISION REQ.').length;
+function wireNav(navId, setter){
+  document.querySelectorAll(`#${navId} .nav-item`).forEach(btn => btn.onclick = () => {
+    document.querySelectorAll(`#${navId} .nav-item`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); setter(btn.dataset.filter);
+    renderAdminTable(); renderOrgTable();
+  });
 }
+wireNav('navFilter', v => adminFilter = v);
+wireNav('navFilterOrg', v => orgFilter = v);
+$('stateFilter').onchange = renderAdminTable;
 
-function renderOrgTable() {
-    const tbody = document.getElementById('tableBodyOrg');
-    if (!tbody) return; tbody.innerHTML = '';
-    let myApps = applications.filter(a => a.organizerEmail === currentUserProfile.email);
-    if (currentFilterOrg !== 'all') {
-        let target = currentFilterOrg === 'pending_state' ? 'PENDING STATE' : currentFilterOrg === 'pending_admin' ? 'PENDING ADMIN' : currentFilterOrg === 'approved' ? 'APPROVED' : 'REVISION REQ.';
-        myApps = myApps.filter(a => a.status === target);
-    }
-    myApps.forEach(app => {
-        const tr = document.createElement('tr');
-        
-        let reportBadgeHtml = '';
-        if (app.status === 'APPROVED') {
-            const tunStatus = app.tunStatus || 'PENDING';
-            if (tunStatus === 'RECEIVED') {
-                reportBadgeHtml = `<br><span class="status-pill" style="background:#D1FAE5; color:#065F46; font-size:10px; margin-top:4px;">✓ .tun Received by MCF</span>`;
-            } else if (tunStatus === 'REJECTED') {
-                reportBadgeHtml = `<br><span class="status-pill" style="background:#FEE2E2; color:#991B1B; font-size:10px; margin-top:4px;">✗ .tun Rejected - Re-upload Req.</span>`;
-            } else {
-                const hasTun = app.tunUrl && app.tunUrl.startsWith('http');
-                reportBadgeHtml = hasTun 
-                    ? `<br><span class="status-pill" style="background:#DBEAFE; color:#1E40AF; font-size:10px; margin-top:4px;">⏳ .tun Pending Review</span>` 
-                    : `<br><span class="status-pill" style="background:#FEF3C7; color:#92400E; font-size:10px; margin-top:4px;">⚠ .tun Report Missing</span>`;
-            }
-        }
+/* ===================== DRAWER ===================== */
+$('drawerCloseBtn').onclick = window.closeDrawer;
+$('drawerBack').onclick = e => { if (e.target.id === 'drawerBack') window.closeDrawer(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') window.closeDrawer(); });
 
-        tr.innerHTML = `
-            <td>
-                <b style="font-size:14px; color:var(--text-main);">${app.eventName}</b><br>
-                <span style="font-size:11px; color:var(--text-muted);">${app.id}</span>
-            </td>
-            <td>${app.state}<br><span style="font-size:11px; color:var(--text-muted);">${formatLocalDate(app.startDate)}</span></td>
-            <td>${app.system} (${app.rounds || '-'} Rds)<br><span style="font-size:11px; color:var(--text-muted);">${app.timeControl || '-'}</span></td>
-            <td>${app.pax} pax</td>
-            <td>
-                <b style="color:var(--text-main);">RM ${app.fee || 0}</b><br>
-                <span style="font-size:11px; color:var(--text-muted);">Ref: ${app.paymentRef || '-'}</span>
-            </td>
-            <td>
-                <div style="display:flex; align-items:center; gap:8px; justify-content:space-between;">
-                    <span class="status-pill" style="${getBadgeStyle(app.status)}">${app.status}</span>
-                    <button type="button" class="btn btn-ghost" style="padding:4px 10px; font-size:11px;">View</button>
-                </div>
-                ${reportBadgeHtml}
-            </td>
-        `;
-        tr.addEventListener('click', () => openDrawer(app.id));
-        tbody.appendChild(tr);
-    });
+function linkBtn(url, label){
+  return url ? `<a href="${esc(url)}" target="_blank" rel="noopener" class="btn btn-ghost" style="font-size:11px; padding:6px 12px; background:white;">🔗 ${label}</a>` : '';
 }
-document.querySelectorAll('#navFilterOrg .nav-item').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('#navFilterOrg .nav-item').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active'); currentFilterOrg = btn.getAttribute('data-filter'); renderOrgTable();
-    });
-});
-document.querySelectorAll('#navFilter .nav-item').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active'); currentFilterAdmin = btn.getAttribute('data-filter'); renderAdminTable();
-        document.getElementById('adminAppsWrap').style.display = 'block'; document.getElementById('adminUsersWrap').style.display = 'none';
-    });
-});
-
-function listenForUsers() {
-    db.collection("users").onSnapshot((snapshot) => {
-        usersList = []; snapshot.forEach(doc => usersList.push({ id: doc.id, ...doc.data() }));
-        usersList.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-        renderUsersTable();
-    });
-}
-
-function renderUsersTable() {
-    const tbody = document.getElementById('tableBodyUsers'); 
-    if (!tbody) return; 
-    tbody.innerHTML = '';
-    
-    let filteredUsers = usersList;
-
-    if (selectedUserRoleFilter !== 'all') {
-        filteredUsers = filteredUsers.filter(u => (u.role || 'organizer') === selectedUserRoleFilter);
-    }
-
-    if (selectedUserStateFilter !== 'all') {
-        filteredUsers = filteredUsers.filter(u => (u.state || '') === selectedUserStateFilter);
-    }
-
-    if (searchUsersQ.trim() !== '') {
-        const q = searchUsersQ.toLowerCase();
-        filteredUsers = filteredUsers.filter(u => 
-            (u.name || '').toLowerCase().includes(q) || 
-            (u.email || '').toLowerCase().includes(q)
-        );
-    }
-
-    filteredUsers.forEach(u => {
-        const tr = document.createElement('tr');
-        let roleBadge = 'ORGANIZER', badgeStyle = 'background:#F1F5F9; color:#64748B;';
-        if (u.role === 'state_admin') { roleBadge = 'STATE ADMIN'; badgeStyle = 'background:#FEF3C7; color:#92400E;'; }
-        if (u.role === 'admin') { roleBadge = 'MCF ADMIN'; badgeStyle = 'background:#DBEAFE; color:#1E40AF;'; }
-        if (u.role === 'core_admin') { roleBadge = 'CORE ADMIN'; badgeStyle = 'background:#FEE2E2; color:#991B1B;'; }
-
-        let actionHtml = '-';
-        
-        if (currentUserProfile.role === 'core_admin') {
-            if (u.email !== currentUserProfile.email) {
-                actionHtml = `
-                <div style="display:flex; gap:6px; align-items:center;">
-                    <select class="role-select" id="role_${u.id}" style="padding:4px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
-                        <option value="organizer" ${u.role === 'organizer' ? 'selected' : ''}>Organizer</option>
-                        <option value="state_admin" ${u.role === 'state_admin' ? 'selected' : ''}>State Admin</option>
-                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>MCF Admin</option>
-                        <option value="core_admin" ${u.role === 'core_admin' ? 'selected' : ''}>Core Admin</option>
-                    </select>
-                    <button class="btn btn-gold btnChangeRole" data-id="${u.id}" style="padding: 3px 8px; font-size: 10px;">Save</button>
-                </div>`;
-            } else {
-                actionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic;">(Your Account)</span>`;
-            }
-        } else {
-            actionHtml = `<span style="font-size:12px; color:var(--text-muted);">Restricted</span>`;
-        }
-
-        tr.innerHTML = `<td><b style="font-size:14px;">${u.name || 'N/A'}</b></td><td>${u.email}</td><td>${u.state || '-'}</td><td><span class="status-pill" style="${badgeStyle}">${roleBadge}</span></td><td>${actionHtml}</td>`;
-        tbody.appendChild(tr);
-    });
-
-    document.querySelectorAll('.btnChangeRole').forEach(b => b.addEventListener('click', (e) => {
-        if (currentUserProfile.role !== 'core_admin') {
-            showToast("Unauthorized action.");
-            return;
-        }
-        db.collection('users').doc(e.target.dataset.id).update({ role: document.getElementById(`role_${e.target.dataset.id}`).value }); 
-        showToast("Role updated successfully.");
-    }));
-}
-
-document.getElementById('searchUsers').addEventListener('input', (e) => {
-    searchUsersQ = e.target.value;
-    renderUsersTable();
-});
-
-document.getElementById('userRoleFilter').addEventListener('change', (e) => {
-    selectedUserRoleFilter = e.target.value;
-    renderUsersTable();
-});
-
-document.getElementById('userStateFilter').addEventListener('change', (e) => {
-    selectedUserStateFilter = e.target.value;
-    renderUsersTable();
-});
-
-document.getElementById('btnNavUsers')?.addEventListener('click', (e) => {
-    document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active')); e.target.classList.add('active');
-    document.getElementById('adminAppsWrap').style.display = 'none'; document.getElementById('adminUsersWrap').style.display = 'block';
-});
+function item(label, val){ return `<div class="data-item"><span class="label">${label}</span><span>${esc(val) || '—'}</span></div>`; }
 
 function openDrawer(id){
-    selectedId = id; const t = applications.find(x => x.id === id); if(!t) return;
-    document.getElementById('dTitle').textContent = t.eventName;
-    document.getElementById('dSubtitle').textContent = "Application ID: " + t.id;
-    
-    let tunSectionHtml = '';
-    const isApproved = t.status === 'APPROVED';
-    const isOrganizer = currentUserProfile.email === t.organizerEmail;
-    const isMCFAdmin = ['admin', 'core_admin'].includes(currentUserProfile.role);
+  selectedId = id;
+  const t = applications.find(x => x.id === id); if (!t) return;
+  $('dTitle').innerText = t.eventName;
 
-    if (isApproved) {
-        const tunStatus = t.tunStatus || 'PENDING';
-        let statusBadge = '';
-        if (tunStatus === 'RECEIVED') {
-            statusBadge = `<span style="font-size:12px; color:#065F46; font-weight:600; background:#D1FAE5; padding:4px 10px; border-radius:99px;">✓ .tun Received & Accepted</span>`;
-        } else if (tunStatus === 'REJECTED') {
-            statusBadge = `<span style="font-size:12px; color:#991B1B; font-weight:600; background:#FEE2E2; padding:4px 10px; border-radius:99px;">✗ .tun Rejected: ${t.tunRejectReason || 'No reason provided'}</span>`;
-        } else {
-            statusBadge = `<span style="font-size:12px; color:#1E40AF; font-weight:600; background:#DBEAFE; padding:4px 10px; border-radius:99px;">⏳ Pending MCF Review</span>`;
-        }
-
-        let tunActionHtml = '';
-        if (t.tunUrl && t.tunUrl.startsWith('http')) {
-            tunActionHtml = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                <a href="${t.tunUrl}" target="_blank" class="btn btn-ghost" style="padding:6px 12px; font-size:12px; text-decoration:none; background:white;">Download Submitted .tun Report</a>
-                ${isMCFAdmin && tunStatus !== 'RECEIVED' ? `
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn btn-primary" style="padding:6px 12px; font-size:12px; background:#059669;" onclick="setTunStatus('${t.id}', 'RECEIVED')">Receive .tun</button>
-                        <button class="btn btn-ghost" style="padding:6px 12px; font-size:12px; color:#DC2626; border-color:#DC2626;" onclick="promptRejectTun('${t.id}')">Reject .tun</button>
-                    </div>
-                ` : ''}
-            </div>`;
-        } else {
-            tunActionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic; display:block; margin-top:8px;">No report uploaded yet by organizer.</span>`;
-        }
-
-        let organizerUploadHtml = '';
-        if (isOrganizer && (tunStatus === 'REJECTED' || !t.tunUrl || !t.tunUrl.startsWith('http'))) {
-            organizerUploadHtml = `
-            <div style="margin-top: 16px; border-top: 1px dashed var(--border); padding-top: 14px;">
-                <p style="font-size:12px; font-weight:600; color:var(--text-main); margin:0 0 8px;">${tunStatus === 'REJECTED' ? 'Please re-upload corrected .tun file:' : 'Upload tournament report file:'}</p>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <input type="file" id="tunUploadInput" style="padding:6px; font-size:12px; background:white;">
-                    <button class="btn btn-primary" style="padding:8px 16px; font-size:12px; white-space:nowrap;" onclick="uploadTunFile('${t.id}')">Upload .tun File</button>
-                </div>
-            </div>`;
-        }
-
-        tunSectionHtml = `
-        <div style="background: var(--bg-body); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-top: 24px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Tournament Report File (.tun / Results)</div>
-                ${statusBadge}
-            </div>
-            <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px;">Submit or review the official pairing and results report.</p>
-            ${tunActionHtml}
-            ${organizerUploadHtml}
-        </div>`;
-    }
-
-    let previewUrl = t.previewReceiptUrl || t.receiptUrl || '';
-    let letterPreviewUrl = t.previewLetterUrl || t.letterUrl || '';
-    let posterPreviewUrl = t.previewPosterUrl || t.posterUrl || '';
-
-    document.getElementById('drawerContent').innerHTML = `
-    <div style="background: var(--bg-body); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 24px;">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 12px;">
-            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 600;">Payment & Status Audit</span>
-            <span class="status-pill" style="${getBadgeStyle(t.status)}">${t.status}</span>
-        </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items:center;">
-            <div>
-                <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block; margin-bottom:4px;">Calculated Fee</span>
-                <b style="font-size: 18px; color: var(--text-main);">RM ${t.fee || 0}</b>
-                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Ref: ${t.paymentRef || '-'}</div>
-            </div>
-            <div style="text-align:right;">
-                ${t.receiptUrl && t.receiptUrl.startsWith('http') ? `<a href="${t.receiptUrl}" target="_blank" class="btn btn-ghost" style="padding:6px 12px; font-size:11px; text-decoration:none; background:white;">🔗 Open Receipt</a>` : `<span style="font-size:12px; color:var(--text-muted);">No Receipt Attached</span>`}
-            </div>
-        </div>
-        ${t.receiptUrl && t.receiptUrl.startsWith('http') ? `
-        <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
-            <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block; margin-bottom:8px;">Payment Receipt Preview</span>
-            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 300px; display: flex; align-items: center; justify-content: center;">
-                ${t.receiptUrl.toLowerCase().includes('.pdf') || t.receiptUrl.includes('application/pdf') 
-                    ? `<iframe src="${previewUrl}" style="width:100%; height:100%; border:none;"></iframe>`
-                    : `<img src="${previewUrl}" alt="Payment Receipt" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.onerror=null; this.src='${t.receiptUrl}';">`
-                }
-            </div>
-        </div>` : ''}
-
-        ${t.letterUrl && t.letterUrl.startsWith('http') ? `
-        <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block;">State Affiliate Letter</span>
-                <a href="${t.letterUrl}" target="_blank" class="btn btn-ghost" style="padding:4px 10px; font-size:11px; text-decoration:none; background:white;">🔗 Open Letter</a>
-            </div>
-            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 250px; display: flex; align-items: center; justify-content: center;">
-                ${t.letterUrl.toLowerCase().includes('.pdf') || t.letterUrl.includes('application/pdf') 
-                    ? `<iframe src="${letterPreviewUrl}" style="width:100%; height:100%; border:none;"></iframe>`
-                    : `<img src="${letterPreviewUrl}" alt="Affiliate Letter" style="max-width:100%; max-height:100%; object-fit:contain;">`
-                }
-            </div>
-        </div>` : ''}
-
-        ${t.posterUrl && t.posterUrl.startsWith('http') ? `
-        <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block;">Event Poster / Regulations</span>
-                <a href="${t.posterUrl}" target="_blank" class="btn btn-ghost" style="padding:4px 10px; font-size:11px; text-decoration:none; background:white;">🔗 Open Poster</a>
-            </div>
-            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 250px; display: flex; align-items: center; justify-content: center;">
-                ${t.posterUrl.toLowerCase().includes('.pdf') || t.posterUrl.includes('application/pdf') 
-                    ? `<iframe src="${posterPreviewUrl}" style="width:100%; height:100%; border:none;"></iframe>`
-                    : `<img src="${posterPreviewUrl}" alt="Event Poster" style="max-width:100%; max-height:100%; object-fit:contain;">`
-                }
-            </div>
-        </div>` : ''}
+  $('drawerContent').innerHTML = `
+    <div style="margin-bottom:24px;">
+      <span class="status-pill" style="${getBadgeStyle(t.status)}">${esc(t.status)}</span>
+      <h3 style="margin:10px 0 0;">RM ${esc(t.fee || 0)} <span style="font-size:12px; font-weight:400; color:var(--text-muted);">(Ref: ${esc(t.paymentRef)})</span></h3>
+      <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+        ${linkBtn(t.receiptUrl,'View Receipt')}${linkBtn(t.letterUrl,'View State Letter')}${linkBtn(t.posterUrl,'View Poster')}
+      </div>
     </div>
-    
-    <div class="section-title">FIDE Tournament Registration Fields (Copy & Paste Ready)</div>
     <div class="data-grid">
-        <div class="data-item"><span class="label">Event Name</span><span>${t.eventName || '-'}</span></div>
-        <div class="data-item"><span class="label">Venue & State</span><span>${t.venue || '-'}, ${t.state || '-'}</span></div>
-        <div class="data-item"><span class="label">Organizer Category</span><span>${t.orgCategory || '-'}</span></div>
-        <div class="data-item"><span class="label">FIDE Laws Followed</span><span>${t.fideLaws || 'Yes'}</span></div>
-        <div class="data-item"><span class="label">National Championship (1.43a)</span><span>${t.natChampionship || 'No'}</span></div>
-        <div class="data-item"><span class="label">Title Norms Available</span><span>${t.titleNorms || 'No'} (${t.normAvailable || 'No'})</span></div>
-        <div class="data-item"><span class="label">Direct Title Events</span><span>${t.directTitle || 'No'}</span></div>
-        <div class="data-item"><span class="label">Tournament Type</span><span>${t.tourneyType || 'Over the Board'}</span></div>
-        <div class="data-item"><span class="label">Start Date</span><span>${formatLocalDate(t.startDate)}</span></div>
-        <div class="data-item"><span class="label">End Date</span><span>${formatLocalDate(t.endDate)}</span></div>
-        <div class="data-item"><span class="label">Expected Players</span><span>${t.pax || 0}</span></div>
-        <div class="data-item"><span class="label">Tournament System</span><span>${t.system || '-'}</span></div>
-        <div class="data-item"><span class="label">Number of Rounds Reported</span><span>${t.rounds || '-'}</span></div>
-        <div class="data-item"><span class="label">Number of Multiple Round Days</span><span>${t.multiRoundDays || '1'}</span></div>
-        <div class="data-item"><span class="label">Chief Arbiter</span><span>${t.chiefArbiter || '-'} (FIDE ID: ${t.chiefArbiterFide || '-'})</span></div>
-        <div class="data-item"><span class="label">Deputy Chief Arbiter</span><span>${t.deputyArbiter || 'None'} (FIDE ID: ${t.deputyArbiterFide || '-'})</span></div>
-        <div class="data-item"><span class="label">Chief Organizer</span><span>${t.chiefOrg || '-'} (FIDE ID: ${t.chiefOrgFide || '-'})</span></div>
-        <div class="data-item"><span class="label">Organizing Body</span><span>${t.orgBody || '-'} (FIDE ID: ${t.orgBodyFide || '-'})</span></div>
-        <div class="data-item"><span class="label">Fair Play Officer</span><span>${t.fairPlay || 'None'} (FIDE ID: ${t.fairPlayFide || '-'})</span></div>
-        <div class="data-item" style="grid-column: 1 / -1;"><span class="label">Time Control & Specification</span><span>${t.timeControl || '-'}</span></div>
-        <div class="data-item"><span class="label">Pairing Software</span><span>${t.software || '-'}</span></div>
-        <div class="data-item"><span class="label">1st Tiebreak Method</span><span>${t.tb1 || '-'}</span></div>
-        <div class="data-item"><span class="label">2nd Tiebreak Method</span><span>${t.tb2 || '-'}</span></div>
-        <div class="data-item"><span class="label">3rd Tiebreak Method</span><span>${t.tb3 || '-'}</span></div>
-        <div class="data-item"><span class="label">Female Only?</span><span>${t.femaleOnly || 'No'}</span></div>
-        <div class="data-item"><span class="label">Max Rating Limit</span><span>${t.maxRating || 'No limit'}</span></div>
-        <div class="data-item"><span class="label">Age Limit</span><span>${t.ageLimit || 'None'}</span></div>
-        <div class="data-item"><span class="label">All Digital Clocks?</span><span>${t.digitalClock || 'Yes'}</span></div>
-        <div class="data-item"><span class="label">Will PGN be Provided?</span><span>${t.pgnProvided || 'No'}</span></div>
-        <div class="data-item"><span class="label">Internet Transmission?</span><span>${t.internetLive || 'No'}</span></div>
-        <div class="data-item"><span class="label">Contact Email</span><span>${t.contactEmail || t.organizerEmail || '-'}</span></div>
-        <div class="data-item"><span class="label">Internet Homepage</span><span>${t.homepage || '-'}</span></div>
-        <div class="data-item"><span class="label">Prize Fund</span><span>${t.prizeFund || '-'}</span></div>
-        <div class="data-item" style="grid-column: 1 / -1;"><span class="label">Remarks</span><span>${t.remarks || '-'}</span></div>
+      ${item('Venue', t.venue)}
+      ${item('State', t.state)}
+      ${item('Org Category', t.orgCategory)}
+      ${item('Date', (t.startDate || '—') + ' to ' + (t.endDate || '—'))}
+      ${item('System', t.system + ' (' + t.rounds + ' Rds)')}
+      ${item('Tournament Type', t.tourneyType)}
+      ${item('Time Control', t.timeControl)}
+      ${item('Expected Pax', t.pax)}
+      ${item('Chief Arbiter', t.chiefArbiter + ' (ID: ' + t.chiefArbiterFide + ')')}
+      ${item('Deputy Arbiter', t.deputyArbiter ? t.deputyArbiter + ' (ID: ' + t.deputyArbiterFide + ')' : '')}
+      ${item('Chief Organizer', t.chiefOrg + ' (ID: ' + t.chiefOrgFide + ')')}
+      ${item('Tiebreaks', [t.tb1, t.tb2, t.tb3].filter(Boolean).join(' → '))}
+      ${item('Software', t.software)}
+      ${item('Title Norms', t.titleNorms === 'Yes' ? t.normAvailable : 'No')}
+      ${item('Rating / Age Limit', (t.maxRating || 'No limit') + ' / ' + (t.ageLimit || 'None'))}
+      ${item('Contact', t.contactEmail)}
+      ${item('Organizer Account', t.organizerEmail)}
+      ${item('Submitted', t.timestamp)}
+      ${item('Signed By', t.signName + (t.signDate ? ' (' + t.signDate + ')' : ''))}
     </div>
+    <div class="data-item" style="margin-top:20px;"><span class="label">Objectives</span><span>${esc(t.obj1) || '—'}</span></div>`;
 
-    ${tunSectionHtml}
-    
-    <div style="margin-top: 32px;">
-        <button class="btn btn-ghost" onclick="generateDossierPDF('${t.id}')" style="width: 100%; border-style: dashed; justify-content:center;">↓ Download Official Summary PDF</button>
-    </div>
-    `;
-
-    let footerHtml = '';
-    const isAdmin = ['admin', 'core_admin', 'state_admin'].includes(currentUserProfile.role);
-    if (isAdmin) {
-        const isStateAdmin = currentUserProfile.role === 'state_admin';
-        const isPendingState = t.status === 'PENDING STATE';
-        const isAlreadyApproved = t.status === 'APPROVED';
-
-        footerHtml = `
-            <button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger); border-color:var(--danger);">Reject Application</button>
-            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end;">
-                <button class="btn btn-gold" onclick="changeStatus('REVISION REQ.')">Request Revision</button>
-        `;
-
-        if (isStateAdmin) {
-            footerHtml += `<button class="btn btn-primary" style="width:auto;" onclick="changeStatus('PENDING ADMIN')">✓ 1. Endorse (State)</button>`;
-        } else {
-            if (isPendingState) {
-                footerHtml += `
-                    <span style="font-size:12px; color:var(--warning); font-weight:500;">⚠️ Waiting for State Endorsement</span>
-                    <button class="btn btn-primary" style="width:auto; opacity:0.5; cursor:not-allowed;" disabled title="State must endorse first">✓ 2. Approve (MCF Final)</button>
-                `;
-            } else {
-                if (isAlreadyApproved) {
-                    footerHtml += `
-                        <button class="btn btn-gold" style="width:auto;" onclick="changeStatus('PENDING STATE')">Revert to State</button>
-                        <button class="btn btn-primary" style="width:auto; background:#9CA3AF; color:#FFFFFF; opacity:0.7; cursor:not-allowed;" disabled>✓ Approved & Finalized</button>
-                    `;
-                } else {
-                    footerHtml += `
-                        <button class="btn btn-gold" style="width:auto;" onclick="changeStatus('PENDING STATE')">Revert to State</button>
-                        <button class="btn btn-primary" style="width:auto;" onclick="changeStatus('APPROVED')">✓ 2. Approve (MCF Final)</button>
-                    `;
-                }
-            }
-        }
-        footerHtml += `</div>`;
-    } else {
-        footerHtml = `<div style="width:100%; text-align:right;"><button class="btn btn-ghost" onclick="closeDrawer()">Close Window</button></div>`;
+  let foot = '';
+  const role = currentUserProfile.role;
+  if (role === 'admin' || role === 'core_admin') {
+    if (t.status !== 'APPROVED' && t.status !== 'REJECTED') {
+      foot = `<button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger);">Reject</button>
+              <button class="btn btn-primary" onclick="changeStatus('APPROVED')">✓ Approve Application</button>`;
     }
-    
-    document.getElementById('drawerFooter').innerHTML = footerHtml;
-    document.getElementById('drawerBack').classList.add('open');
+  } else if (role === 'state_admin' && t.state === currentUserProfile.state && t.status === 'PENDING STATE') {
+    foot = `<button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger);">Reject</button>
+            <button class="btn btn-primary" onclick="changeStatus('PENDING MCF')">✓ Forward to MCF</button>`;
+  }
+  $('drawerFooter').innerHTML = foot;
+  $('drawerFooter').style.display = foot ? 'flex' : 'none';
+  $('drawerBack').classList.add('open');
 }
-function closeDrawer(){ document.getElementById('drawerBack').classList.remove('open'); }
 
-async function uploadTunFile(id) {
-    const fileInput = document.getElementById('tunUploadInput');
-    if (!fileInput || fileInput.files.length === 0) {
-        showToast("Please select a file first.");
-        return;
-    }
-    const file = fileInput.files[0];
-    showToast("Uploading tournament report...");
+window.changeStatus = async function(st){
+  if (!selectedId) return;
+  if (st === 'REJECTED' && !confirm('Reject this application?')) return;
+  showToast('Saving...');
+  try {
+    const j = await api('updateDossierStatus', { id:selectedId, status:st });
+    if (j.status === 'success') { showToast('✓ Updated'); window.closeDrawer(); fetchDossiers(); }
+    else showToast(j.message || 'Update failed');
+  } catch (e) { showToast('Error updating: ' + e.message); }
+};
 
-    const fileData = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(file);
+/* ===================== WIZARD ===================== */
+function computeFee(){
+  const pax = Math.max(parseInt($('pax').value, 10) || 0, 32);
+  const orgCat = $('orgCategory').value || '';
+  const base = (orgCat.includes('State Affiliate') && currentUserProfile.role === 'state_admin') ? 200 : 300;
+  const perPlayer = /rapid|blitz/i.test($('tcInput').value) ? 3 : 10;
+  return { base, perPlayer, total: base + perPlayer * pax };
+}
+
+function updateDossier(){
+  const fee = computeFee();
+  $('dFee').innerText = 'RM ' + fee.total;
+  $('dEventName').innerText = $('eventName').value || 'Untitled';
+  $('dVenue').innerText = $('venue').value || '—';
+  $('dDates').innerText = $('dateStart').value ? ($('dateStart').value + ($('dateEnd').value ? ' → ' + $('dateEnd').value : '')) : '—';
+  $('dSystem').innerText = $('system').value || '—';
+}
+['eventName','venue','pax','dateStart','dateEnd','system','orgCategory','tcInput'].forEach(id => {
+  $(id).addEventListener('input', updateDossier); $(id).addEventListener('change', updateDossier);
+});
+$('chkTitleNorms').onchange = function(){ $('normWrap').style.display = this.checked ? 'block' : 'none'; if (!this.checked) $('normAvailable').value = 'No'; };
+$('orgCategory').addEventListener('change', function(){ $('affLetter').style.display = this.value.includes('State Affiliate') ? 'block' : 'none'; });
+
+const REQUIRED = {
+  0: [['eventName','Event name'],['venue','Venue'],['pax','Expected pax'],['dateStart','Start date'],['dateEnd','End date']],
+  1: [['orgState','State / Region'],['rounds','Rounds'],['multiRoundDays','Multi round days']],
+  2: [['chiefArbiter','Chief Arbiter'],['chiefArbiterFide','Chief Arbiter FIDE ID'],['chiefOrg','Chief Organizer'],['chiefOrgFide','Chief Organizer FIDE ID'],['tb1','1st Tiebreak']],
+  3: [['tcInput','Time control']],
+  4: [['contactEmail','Contact email'],['paymentRef','Payment ref'],['receiptUpload','Receipt','file']],
+  5: [['posterUpload','Poster','file']],
+  6: [['obj1','Objectives']],
+  7: [['signName','Signed name'],['signDate','Signature date']]
+};
+
+function validateStep(i){
+  for (const [id, label, type] of (REQUIRED[i] || [])) {
+    const el = $(id);
+    if (type === 'file' ? !el.files.length : !String(el.value).trim()) return `${label} is required.`;
+  }
+  if (i === 0 && $('dateEnd').value < $('dateStart').value) return 'End date cannot be before start date.';
+  if (i === 1 && $('orgCategory').value.includes('State Affiliate') && !$('affiliateLetterUpload').files.length) return 'State endorsement letter is required.';
+  return '';
+}
+
+function renderWizard(){
+  document.querySelectorAll('#wizard .step').forEach(s => s.classList.remove('active'));
+  document.querySelector('#wizard .step[data-step="' + steps[stepIdx] + '"]').classList.add('active');
+
+  $('rank').innerHTML = '';
+  for (let i = 0; i < 8; i++) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'sq' + (i < stepIdx ? ' done' : '') + (i === stepIdx ? ' current' : '');
+    b.onclick = () => { if (i <= stepIdx) { stepIdx = i; renderWizard(); } };
+    $('rank').appendChild(b);
+  }
+
+  const isRev = steps[stepIdx] === 'review';
+  $('backBtn').style.visibility = stepIdx === 0 ? 'hidden' : 'visible';
+  $('nextBtn').style.display = isRev ? 'none' : 'inline-flex';
+  $('submitAppBtn').style.display = isRev ? 'inline-flex' : 'none';
+  if (isRev) {
+    const f = computeFee();
+    const rows = [
+      ['Event', $('eventName').value], ['Venue', $('venue').value],
+      ['Dates', $('dateStart').value + ' → ' + $('dateEnd').value], ['State', $('orgState').value],
+      ['System', $('system').value + ' (' + $('rounds').value + ' rounds)'], ['Time control', $('tcInput').value],
+      ['Chief Arbiter', $('chiefArbiter').value], ['Chief Organizer', $('chiefOrg').value],
+      ['Expected pax', $('pax').value], ['Payment ref', $('paymentRef').value]
+    ].map(r => `<div class="review-row"><span>${r[0]}</span><span>${esc(r[1])}</span></div>`).join('');
+    $('reviewOut').innerHTML = rows + `<h3 style="margin:16px 0 0;">Total fee: RM ${f.total}</h3>
+      <p style="font-size:12px; color:var(--text-muted); margin:4px 0 0;">RM ${f.base} registration + RM ${f.perPlayer} × ${Math.max(parseInt($('pax').value,10)||0,32)} players</p>`;
+  }
+  updateDossier();
+  window.scrollTo({ top:0, behavior:'instant' });
+}
+
+$('nextBtn').onclick = () => {
+  const msg = validateStep(stepIdx);
+  if (msg) return showToast(msg);
+  if (stepIdx < steps.length - 1) { stepIdx++; renderWizard(); }
+};
+$('backBtn').onclick = () => { if (stepIdx > 0) { stepIdx--; renderWizard(); } };
+
+document.querySelector('.btnNewAppDash').onclick = () => {
+  stepIdx = 0; $('wizard').reset();
+  $('normWrap').style.display = 'none'; $('affLetter').style.display = 'none';
+  $('signName').value = currentUserProfile.name || '';
+  $('signDate').value = new Date().toISOString().split('T')[0];
+  $('orgState').value = currentUserProfile.state || STATES[0];
+  $('contactEmail').value = currentUserProfile.email || '';
+  renderWizard(); showView('organizer-wizard');
+};
+document.querySelector('.btnCancelWizard').onclick = () => { if (confirm('Discard this application?')) showView('organizer-dash'); };
+
+/* Time Control combobox */
+const tcInput = $('tcInput'), tcPanel = $('tcPanel'), tcSearch = $('tcSearch');
+function renderTC(filter){
+  const l = $('tcList'); l.innerHTML = '';
+  Object.keys(TC).forEach(g => {
+    const m = TC[g].filter(o => o.toLowerCase().includes((filter || '').toLowerCase()));
+    if (!m.length) return;
+    const lbl = document.createElement('div'); lbl.className = 'combo-group-label'; lbl.innerText = g; l.appendChild(lbl);
+    m.forEach(o => {
+      const d = document.createElement('div'); d.className = 'combo-opt'; d.innerText = o;
+      d.onclick = () => { tcInput.value = o + ' (' + g + ')'; tcPanel.classList.remove('open'); updateDossier(); };
+      l.appendChild(d);
+    });
+  });
+}
+tcInput.onfocus = () => { tcPanel.classList.add('open'); renderTC(tcSearch.value); };
+tcSearch.oninput = e => renderTC(e.target.value);
+document.addEventListener('click', e => { if (!e.target.closest('.combo')) tcPanel.classList.remove('open'); });
+
+/* Submit */
+const file2Data = async el => {
+  if (!el || !el.files.length) return { data:null, name:null };
+  const file = el.files[0];
+  if (file.size > 8 * 1024 * 1024) throw new Error(file.name + ' is larger than 8 MB.');
+  const data = await new Promise((res, rej) => { const r = new FileReader(); r.onloadend = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+  return { data, name: file.name };
+};
+
+$('submitAppBtn').onclick = async function(){
+  for (let i = 0; i <= 7; i++) {
+    const msg = validateStep(i);
+    if (msg) { stepIdx = i; renderWizard(); return showToast(msg); }
+  }
+  const btn = this; btn.innerText = 'Uploading...'; btn.disabled = true;
+  try {
+    const receipt = await file2Data($('receiptUpload'));
+    const letter = $('orgCategory').value.includes('State Affiliate') ? await file2Data($('affiliateLetterUpload')) : { data:null, name:null };
+    const poster = await file2Data($('posterUpload'));
+    const yn = id => $(id).checked ? 'Yes' : 'No';
+
+    const j = await api('submitDossier', {
+      eventName: $('eventName').value.trim(), venue: $('venue').value.trim(),
+      state: $('orgState').value, orgCategory: $('orgCategory').value, pax: $('pax').value,
+      startDate: $('dateStart').value, endDate: $('dateEnd').value,
+      fideLaws: yn('chkFideLaws'), natChampionship: yn('chkNatChampionship'),
+      titleNorms: yn('chkTitleNorms'), normAvailable: $('normAvailable').value,
+      directTitle: yn('chkDirectTitle'), tourneyType: $('tourneyType').value,
+      system: $('system').value, rounds: $('rounds').value, multiRoundDays: $('multiRoundDays').value,
+      maxRating: $('maxRatingCond').value.trim() || 'No limit', software: $('software').value,
+      tb1: $('tb1').value, tb2: $('tb2').value, tb3: $('tb3').value,
+      timeControl: tcInput.value.trim(), totalFee: computeFee().total, paymentRef: $('paymentRef').value.trim(),
+      chiefArbiter: $('chiefArbiter').value.trim(), chiefArbiterFide: $('chiefArbiterFide').value.trim(),
+      deputyArbiter: $('deputyChiefArbiter').value.trim(), deputyArbiterFide: $('deputyChiefArbiterFide').value.trim(),
+      chiefOrg: $('chiefOrg').value.trim(), chiefOrgFide: $('chiefOrgFide').value.trim(),
+      ageLimit: $('ageLimit').value.trim() || 'None',
+      digitalClock: yn('chkDigitalClock'), pgnProvided: yn('chkPgnProvided'),
+      contactEmail: $('contactEmail').value.trim(), obj1: $('obj1').value.trim(),
+      signName: $('signName').value.trim(), signDate: $('signDate').value,
+      fileData: receipt.data, fileName: receipt.name,
+      letterData: letter.data, letterName: letter.name,
+      posterData: poster.data, posterName: poster.name
     });
 
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'submitTunFile', id: id, fileData: fileData, fileName: file.name })
-        });
-        const result = await response.json();
-        if (result.status === 'success') {
-            showToast("✓ Tournament report uploaded successfully!");
-            const item = applications.find(x => x.id === id);
-            if (item) {
-                item.tunUrl = result.tunUrl;
-                item.tunStatus = 'PENDING';
-                item.tunRejectReason = '';
-            }
-            openDrawer(id);
-            fetchDossiers();
-        } else {
-            showToast("Error uploading file: " + result.message);
-        }
-    } catch (err) {
-        showToast("Connection Error: " + err.message);
-    }
-}
-
-async function setTunStatus(id, status) {
-    showToast("Updating .tun status...");
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'updateTunStatus', id: id, status: status, reason: "" })
-        });
-        const result = await response.json();
-        if (result.status === 'success') {
-            showToast("✓ Tournament report marked as Received!");
-            const item = applications.find(x => x.id === id);
-            if (item) item.tunStatus = status;
-            openDrawer(id);
-            fetchDossiers();
-        } else {
-            showToast("Error: " + result.message);
-        }
-    } catch (err) {
-        showToast("Connection Error: " + err.message);
-    }
-}
-
-async function promptRejectTun(id) {
-    const reason = prompt("Please provide a reason why this .tun report is being rejected:");
-    if (reason === null) return;
-    if (!reason.trim()) {
-        alert("Rejection reason cannot be empty.");
-        return;
-    }
-
-    showToast("Submitting rejection comment...");
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'updateTunStatus', id: id, status: 'REJECTED', reason: reason })
-        });
-        const result = await response.json();
-        if (result.status === 'success') {
-            showToast("✓ .tun report rejected with comments.");
-            const item = applications.find(x => x.id === id);
-            if (item) {
-                item.tunStatus = 'REJECTED';
-                item.tunRejectReason = reason;
-            }
-            openDrawer(id);
-            fetchDossiers();
-        } else {
-            showToast("Error: " + result.message);
-        }
-    } catch (err) {
-        showToast("Connection Error: " + err.message);
-    }
-}
-
-async function changeStatus(newStatus){
-    if (!selectedId) {
-        showToast("Error: No application selected.");
-        return;
-    }
-    if (!SCRIPT_URL || SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL")) {
-        alert('Backend script disconnected.');
-        return;
-    }
-
-    const footerBtns = document.querySelectorAll('#drawerFooter button');
-    footerBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
-    showToast("Saving status to Google Sheets...");
-
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'updateDossierStatus', id: selectedId, status: newStatus })
-        });
-        const result = await response.json();
-        footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
-        
-        if (result.status === 'success') { 
-            const item = applications.find(x => x.id === selectedId);
-            if (item) item.status = newStatus;
-            
-            updateAdminCounts(); 
-            renderAdminTable();
-            updateOrgCounts(); 
-            renderOrgTable();
-            
-            closeDrawer(); 
-            showToast("✓ Status updated to " + newStatus); 
-            fetchDossiers(); 
-        } else {
-            showToast("Error: " + result.message);
-        }
-    } catch (err) {
-        footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
-        console.error("Fetch API Error:", err);
-        showToast("Script Error: " + err.message);
-    }
-}
-
-window.generateDossierPDF = function(id) {
-    const app = applications.find(x => x.id === id); if (!app) return;
-    const { jsPDF } = window.jspdf; const doc = new jsPDF();
-
-    doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 45, 'F'); 
-    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(22); doc.text("MALAYSIAN CHESS FEDERATION", 105, 22, { align: "center" });
-    doc.setTextColor(220, 38, 38); doc.setFont("helvetica", "normal"); doc.setFontSize(14); doc.text("FIDE-Rated Event Application Summary", 105, 32, { align: "center" });
-
-    let currentY = 55; const labelX = 20, valueX = 85;
-
-    const drawSection = (title) => {
-        if (currentY > 250) { doc.addPage(); currentY = 20; } 
-        currentY += 4;
-        doc.setTextColor(15, 23, 42); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text(title, 20, currentY);
-        currentY += 3; doc.setDrawColor(226, 232, 240); doc.setLineWidth(0.5); doc.line(20, currentY, 190, currentY); currentY += 7;
-    };
-
-    const printRow = (label, value) => {
-        if (currentY > 270) { doc.addPage(); currentY = 20; }
-        doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text(label + ":", labelX, currentY);
-        doc.setFont("helvetica", "normal"); const splitValue = doc.splitTextToSize(String(value || '-'), 105); doc.text(splitValue, valueX, currentY); currentY += (splitValue.length * 5) + 2; 
-    };
-
-    drawSection("1. Compliance & General Details");
-    printRow("Application ID", app.id);
-    printRow("Approval Status", app.status);
-    printRow("Event Name", app.eventName);
-    printRow("Venue & State", `${app.venue || '-'}, ${app.state || '-'}`);
-    printRow("Organizer Category", app.orgCategory);
-    printRow("FIDE Laws Followed", app.fideLaws);
-    printRow("National Championship (1.43a)", app.natChampionship);
-    printRow("Title Norms Available", `${app.titleNorms} (${app.normAvailable || 'No'})`);
-    printRow("Direct Title Events", app.directTitle);
-    printRow("Tournament Type", app.tourneyType);
-    printRow("Start Date", formatLocalDate(app.startDate));
-    printRow("End Date", formatLocalDate(app.endDate));
-
-    drawSection("2. Format & Technical Specifications");
-    printRow("Expected Players", app.pax);
-    printRow("Tournament System", app.system);
-    printRow("Number of Rounds Reported", app.rounds);
-    printRow("Multiple Round Days", app.multiRoundDays);
-    printRow("Time Control Category", app.timeControl);
-    printRow("Pairing Software", app.software);
-    printRow("1st Tiebreak Method", app.tb1);
-    printRow("2nd Tiebreak Method", app.tb2);
-    printRow("3rd Tiebreak Method", app.tb3 || '-');
-
-    drawSection("3. Officials & Arbiters");
-    printRow("Chief Arbiter", `${app.chiefArbiter || '-'} (FIDE ID: ${app.chiefArbiterFide || '-'})`);
-    printRow("Deputy Chief Arbiter", `${app.deputyArbiter || 'None'} (FIDE ID: ${app.deputyArbiterFide || '-'})`);
-    printRow("Chief Organizer", `${app.chiefOrg || '-'} (FIDE ID: ${app.chiefOrgFide || '-'})`);
-    printRow("Organizing Body", `${app.orgBody || '-'} (FIDE ID: ${app.orgBodyFide || '-'})`);
-    printRow("Fair Play Officer", `${app.fairPlay || 'None'} (FIDE ID: ${app.fairPlayFide || '-'})`);
-
-    drawSection("4. Additional Info, Payment & Declaration");
-    printRow("Female Only?", app.femaleOnly);
-    printRow("Max Rating Limit", app.maxRating);
-    printRow("Age Limit", app.ageLimit);
-    printRow("All Digital Clocks?", app.digitalClock);
-    printRow("Will PGN be Provided?", app.pgnProvided);
-    printRow("Internet Transmission?", app.internetLive);
-    printRow("Contact Email", app.contactEmail || app.organizerEmail);
-    printRow("Internet Homepage", app.homepage);
-    printRow("Prize Fund", app.prizeFund);
-    printRow("Remarks", app.remarks);
-    printRow("Total Fee Due (Deposit)", 'RM ' + (app.fee || 0));
-    printRow("Payment Reference", app.paymentRef);
-    printRow("Objectives", app.obj1);
-    printRow("Signed By", `${app.signName || '-'} on ${formatLocalDate(app.signDate)}`);
-
-    doc.save(`MCF_FIDE_Dossier_${(app.eventName || 'Event').replace(/\s+/g, '_')}.pdf`);
+    if (j.status === 'success') {
+      showToast('Submitted Successfully! ID: ' + j.id);
+      $('wizard').reset(); showView('organizer-dash'); fetchDossiers();
+    } else showToast(j.message || 'Submit failed');
+  } catch (e) { showToast('Error submitting: ' + e.message); }
+  btn.innerText = 'Submit Application'; btn.disabled = false;
 };
 </script>
 </body>
