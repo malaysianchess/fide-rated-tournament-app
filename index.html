@@ -270,7 +270,7 @@
     <main class="card">
       <div id="loginError" class="form-error"></div>
       <form id="loginForm" novalidate>
-        <div class="field"><label>Email Address</label><input type="email" id="loginEmail" placeholder="organizer@klchess.my" required></div>
+        <div class="field"><label>Email Address or MCF ID</label><input type="text" id="loginEmail" placeholder="organizer@klchess.my or MCF ID" required></div>
         <div class="field"><label><span>Password</span><a class="link-opt" id="forgotPassLink">Forgot password?</a></label><input type="password" id="loginPass" placeholder="••••••••••••" required></div>
         <button type="submit" class="btn-submit" id="loginBtn">Sign In</button>
       </form>
@@ -291,16 +291,17 @@
     <main class="card">
       <div id="regError" class="form-error"></div>
       <form id="registerForm" novalidate>
-        <div class="field"><label>Full Name</label><input type="text" id="regName" placeholder="e.g. Ahmad bin Abdullah" required></div>
-        <div class="field"><label>Email Address</label><input type="email" id="regEmail" placeholder="you@domain.com" required></div>
+        <div class="field"><label>Full Name *</label><input type="text" id="regName" placeholder="e.g. Ahmad bin Abdullah" required></div>
+        <div class="field"><label>MCF ID (Required for Organizers) *</label><input type="text" id="regMcfId" placeholder="e.g. 102938" required></div>
+        <div class="field"><label>Email Address *</label><input type="email" id="regEmail" placeholder="you@domain.com" required></div>
         <div class="field">
-          <label>State / Region</label>
+          <label>State / Region *</label>
           <select id="regState" required>
             <option value="" disabled selected>Select a State / Region...</option>
             <option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Penang">Penang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option>
           </select>
         </div>
-        <div class="field"><label>Password</label><input type="password" id="regPass" placeholder="Minimum 6 characters" required></div>
+        <div class="field"><label>Password *</label><input type="password" id="regPass" placeholder="Minimum 6 characters" required></div>
         <button type="submit" class="btn-submit" style="margin-top:8px;">Register Account</button>
       </form>
     </main>
@@ -895,7 +896,7 @@ let selectedUserRoleFilter = "all";
 let selectedUserStateFilter = "all";
 let selectedId = null;
 
-let currentUserProfile = { uid: "", email: "", role: "", name: "", phone: "", state: "" };
+let currentUserProfile = { uid: "", email: "", role: "", name: "", phone: "", state: "", mcfId: "" };
 let stepIdx = 0;
 const steps = ["1","2","3","4","5","6","7","8","review"];
 
@@ -1023,19 +1024,78 @@ auth.onAuthStateChanged(user => {
 
 document.getElementById('goToRegister').addEventListener('click', () => showView('register'));
 document.getElementById('goToLogin').addEventListener('click', () => showView('login'));
+
+// Strict Registration with MCF ID & All Sections Required
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const name = document.getElementById('regName').value.trim();
+    const mcfId = document.getElementById('regMcfId').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const state = document.getElementById('regState').value;
+    const pass = document.getElementById('regPass').value;
+    const errBox = document.getElementById('regError');
+    errBox.style.display = 'none';
+
+    if (!name || !mcfId || !email || !state || !pass) {
+        errBox.textContent = "Please fill in all sections to register.";
+        errBox.style.display = 'block';
+        return;
+    }
+
     try {
-        const cred = await auth.createUserWithEmailAndPassword(document.getElementById('regEmail').value, document.getElementById('regPass').value);
-        await db.collection('users').doc(cred.user.uid).set({ name: document.getElementById('regName').value, email: document.getElementById('regEmail').value.toLowerCase(), role: "organizer", phone: "", state: document.getElementById('regState').value });
+        const mcfCheck = await db.collection('users').where('mcfId', '==', mcfId).get();
+        if (!mcfCheck.empty) {
+            throw new Error("This MCF ID is already registered to another account.");
+        }
+
+        const cred = await auth.createUserWithEmailAndPassword(email, pass);
+        await db.collection('users').doc(cred.user.uid).set({ 
+            name: name, 
+            mcfId: mcfId, 
+            email: email.toLowerCase(), 
+            role: "organizer", 
+            phone: "", 
+            state: state 
+        });
         showToast("Account created successfully!");
-    } catch (error) { document.getElementById('regError').textContent = error.message; document.getElementById('regError').style.display = 'block'; }
+    } catch (error) { 
+        errBox.textContent = error.message; 
+        errBox.style.display = 'block'; 
+    }
 });
+
+// Flexible Login: Email or MCF ID
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    try { await auth.signInWithEmailAndPassword(document.getElementById('loginEmail').value, document.getElementById('loginPass').value); showToast("Welcome back!"); } 
-    catch (error) { document.getElementById('loginError').textContent = "Invalid credentials."; document.getElementById('loginError').style.display = 'block'; }
+    let loginInput = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value;
+    const errorBox = document.getElementById('loginError');
+    errorBox.style.display = 'none';
+
+    if (!loginInput || !password) {
+        errorBox.textContent = "Please enter your credentials.";
+        errorBox.style.display = 'block';
+        return;
+    }
+
+    try {
+        let targetEmail = loginInput;
+        if (!loginInput.includes('@')) {
+            const userQuery = await db.collection('users').where('mcfId', '==', loginInput).get();
+            if (userQuery.empty) {
+                throw new Error("MCF ID not found. Please check your ID or sign up.");
+            }
+            targetEmail = userQuery.docs[0].data().email;
+        }
+
+        await auth.signInWithEmailAndPassword(targetEmail, password); 
+        showToast("Welcome back!"); 
+    } catch (error) { 
+        errorBox.textContent = error.message; 
+        errorBox.style.display = 'block'; 
+    }
 });
+
 document.querySelectorAll('.btnLogOut').forEach(btn => btn.addEventListener('click', () => auth.signOut()));
 document.getElementById('btnGoOrgView')?.addEventListener('click', () => showView('organizer-dash'));
 document.getElementById('btnGoAdminView')?.addEventListener('click', () => showView('admin'));
@@ -1045,7 +1105,7 @@ document.getElementById('btnCancelWizard')?.addEventListener('click', () => { sh
 
 document.getElementById('forgotPassLink').addEventListener('click', () => {
     const loginEmail = document.getElementById('loginEmail').value;
-    if (loginEmail) { document.getElementById('resetEmail').value = loginEmail; }
+    if (loginEmail && loginEmail.includes('@')) { document.getElementById('resetEmail').value = loginEmail; }
     document.getElementById('forgotModal').style.display = 'flex';
 });
 
@@ -1657,8 +1717,7 @@ window.submitFinanceActionToSheet = async function(id, actionType, comment) {
                 item.financeAction = actionType;
                 item.financeComment = comment;
             }
-            openDrawer(id);
-            fetchDossiers();
+            openDrawer(id); fetchDossiers();
         } else { alert("Error: " + (res.message || "Unknown error")); }
     } catch (err) { alert("Connection Error: " + err.message); }
 };
