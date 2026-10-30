@@ -826,7 +826,6 @@
 </div>
 
 <!-- DRAWER (ADMIN MODAL) -->
-<!-- Fix: explicit inline onclick for pure JS environment -->
 <div class="drawer-back" id="drawerBack" onclick="if(event.target.id === 'drawerBack') closeDrawer();">
   <div class="drawer">
     <div class="drawer-head">
@@ -900,19 +899,14 @@ let currentUserProfile = { uid: "", email: "", role: "", name: "", phone: "", st
 let stepIdx = 0;
 const steps = ["1","2","3","4","5","6","7","8","review"];
 
-// Toast notification helper
 window.showToast = function(msg) {
     const toast = document.getElementById('toast');
     const toastMsg = document.getElementById('toastMsg');
     if (toast && toastMsg) {
         toastMsg.textContent = msg;
         toast.classList.add('show');
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
-    } else {
-        alert(msg);
-    }
+        setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    } else { alert(msg); }
 };
 
 const TC = {
@@ -939,16 +933,13 @@ const TC = {
     ]
 };
 
-// Clean Helper for Malaysia Local Time (GMT+8) formatting
 function formatLocalDate(dateStr) {
     if (!dateStr) return '—';
     try {
         const d = new Date(dateStr);
         if (isNaN(d.getTime())) return dateStr;
         return d.toLocaleDateString('en-GB', { timeZone: 'Asia/Kuala_Lumpur', day: '2-digit', month: 'short', year: 'numeric' });
-    } catch(e) {
-        return dateStr;
-    }
+    } catch(e) { return dateStr; }
 }
 
 window.closeDrawer = function() { 
@@ -967,25 +958,19 @@ function toggleSidebar(btn) {
 function toggleNormFields() {
     const chk = document.getElementById('chkTitleNorms');
     const wrap = document.getElementById('normAvailableWrap');
-    if (chk && wrap) {
-        wrap.style.display = chk.checked ? 'block' : 'none';
-    }
+    if (chk && wrap) { wrap.style.display = chk.checked ? 'block' : 'none'; }
 }
 
 function toggleAffiliateLetter() {
     const orgCat = document.getElementById('orgCategory')?.value || '';
     const field = document.getElementById('affiliateLetterField');
-    if (field) {
-        field.style.display = orgCat.includes('State Affiliate') ? 'block' : 'none';
-    }
+    if (field) { field.style.display = orgCat.includes('State Affiliate') ? 'block' : 'none'; }
 }
 
 function toggleArbiterInput(type) {
     const chk = document.getElementById(type === 'Sector' ? 'addSectorArbiters' : type === 'Arbiter' ? 'addArbiters' : type === 'Assistant' ? 'addAssistantArbiters' : 'addPairingsArbiters');
     const container = document.getElementById(type === 'Sector' ? 'sectorArbiterFields' : type === 'Arbiter' ? 'arbiterFields' : type === 'Assistant' ? 'assistantArbiterFields' : 'pairingsArbiterFields');
-    if (chk && container) {
-        container.style.display = chk.checked ? 'block' : 'none';
-    }
+    if (chk && container) { container.style.display = chk.checked ? 'block' : 'none'; }
 }
 
 function showView(viewId){
@@ -1055,45 +1040,28 @@ document.querySelectorAll('.btnLogOut').forEach(btn => btn.addEventListener('cli
 document.getElementById('btnGoOrgView')?.addEventListener('click', () => showView('organizer-dash'));
 document.getElementById('btnGoAdminView')?.addEventListener('click', () => showView('admin'));
 
-// Wizard New App and Cancel Buttons
-document.getElementById('btnNewAppDash')?.addEventListener('click', () => {
-    showView('organizer-wizard');
-});
-document.getElementById('btnCancelWizard')?.addEventListener('click', () => {
-    showView('organizer-dash');
-});
+document.getElementById('btnNewAppDash')?.addEventListener('click', () => { showView('organizer-wizard'); });
+document.getElementById('btnCancelWizard')?.addEventListener('click', () => { showView('organizer-dash'); });
 
 document.getElementById('forgotPassLink').addEventListener('click', () => {
     const loginEmail = document.getElementById('loginEmail').value;
-    if (loginEmail) {
-        document.getElementById('resetEmail').value = loginEmail;
-    }
+    if (loginEmail) { document.getElementById('resetEmail').value = loginEmail; }
     document.getElementById('forgotModal').style.display = 'flex';
 });
 
-document.getElementById('btnCloseReset').addEventListener('click', () => {
-    document.getElementById('forgotModal').style.display = 'none';
-});
+document.getElementById('btnCloseReset').addEventListener('click', () => { document.getElementById('forgotModal').style.display = 'none'; });
 
 document.getElementById('btnSendReset').addEventListener('click', async () => {
     const email = document.getElementById('resetEmail').value.trim();
-    if (!email) {
-        showToast("Please enter your email address.");
-        return;
-    }
+    if (!email) { showToast("Please enter your email address."); return; }
     const btn = document.getElementById('btnSendReset');
-    btn.textContent = "Sending...";
-    btn.disabled = true;
+    btn.textContent = "Sending..."; btn.disabled = true;
     try {
         await auth.sendPasswordResetEmail(email);
         showToast("✓ Password reset email sent! Check your inbox.");
         document.getElementById('forgotModal').style.display = 'none';
-    } catch (error) {
-        showToast("Error: " + error.message);
-    } finally {
-        btn.textContent = "Send Link";
-        btn.disabled = false;
-    }
+    } catch (error) { showToast("Error: " + error.message); }
+    finally { btn.textContent = "Send Link"; btn.disabled = false; }
 });
 
 document.querySelectorAll('.btnGoProfile').forEach(btn => {
@@ -1124,7 +1092,6 @@ function getBadgeStyle(status) {
     return 'background: #FEE2E2; color: #991B1B;';
 }
 
-// 100% PURE FETCH
 window.fetchDossiers = async function() {
     if (!SCRIPT_URL) return;
     try {
@@ -1132,9 +1099,7 @@ window.fetchDossiers = async function() {
         const data = await res.json();
         applications = (data || []).reverse();
         updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
-    } catch (err) {
-        showToast("Error loading data via API.");
-    }
+    } catch (err) { showToast("Error loading data via API."); }
 };
 
 document.getElementById('btnRefreshData')?.addEventListener('click', fetchDossiers);
@@ -1159,7 +1124,6 @@ function renderAdminTable() {
     if (!tbody) return; tbody.innerHTML = '';
     
     let filtered = applications; 
-    
     if (currentUserProfile.role === 'state_admin') {
         filtered = filtered.filter(a => a.state === currentUserProfile.state);
     } else if (selectedStateFilter !== 'all') {
@@ -1233,9 +1197,9 @@ function renderOrgTable() {
         if (app.status === 'APPROVED') {
             const tunStatus = app.tunStatus || 'PENDING';
             if (tunStatus === 'RECEIVED') {
-                reportBadgeHtml = `<br><span class="status-pill" style="background:#D1FAE5; color:#065F46; font-size:10px; margin-top:4px;">✓ .tun Received by MCF</span>`;
+                reportBadgeHtml = `<br><span class="status-pill" style="background:#D1FAE5; color:#065F46; font-size:10px; margin-top:4px;">✓ .tun Received & Verified</span>`;
             } else if (tunStatus === 'REJECTED') {
-                reportBadgeHtml = `<br><span class="status-pill" style="background:#FEE2E2; color:#991B1B; font-size:10px; margin-top:4px;">✗ .tun Rejected - Re-upload Req.</span>`;
+                reportBadgeHtml = `<br><span class="status-pill" style="background:#FEE2E2; color:#991B1B; font-size:10px; margin-top:4px;">✗ .tun Rejected</span>`;
             } else {
                 const hasTun = app.tunUrl && app.tunUrl.startsWith('http');
                 reportBadgeHtml = hasTun 
@@ -1292,25 +1256,14 @@ function listenForUsers() {
 
 function renderUsersTable() {
     const tbody = document.getElementById('tableBodyUsers'); 
-    if (!tbody) return; 
-    tbody.innerHTML = '';
-    
+    if (!tbody) return; tbody.innerHTML = '';
     let filteredUsers = usersList;
 
-    if (selectedUserRoleFilter !== 'all') {
-        filteredUsers = filteredUsers.filter(u => (u.role || 'organizer') === selectedUserRoleFilter);
-    }
-
-    if (selectedUserStateFilter !== 'all') {
-        filteredUsers = filteredUsers.filter(u => (u.state || '') === selectedUserStateFilter);
-    }
-
+    if (selectedUserRoleFilter !== 'all') filteredUsers = filteredUsers.filter(u => (u.role || 'organizer') === selectedUserRoleFilter);
+    if (selectedUserStateFilter !== 'all') filteredUsers = filteredUsers.filter(u => (u.state || '') === selectedUserStateFilter);
     if (searchUsersQ.trim() !== '') {
         const q = searchUsersQ.toLowerCase();
-        filteredUsers = filteredUsers.filter(u => 
-            (u.name || '').toLowerCase().includes(q) || 
-            (u.email || '').toLowerCase().includes(q)
-        );
+        filteredUsers = filteredUsers.filter(u => (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q));
     }
 
     filteredUsers.forEach(u => {
@@ -1321,7 +1274,6 @@ function renderUsersTable() {
         if (u.role === 'core_admin') { roleBadge = 'CORE ADMIN'; badgeStyle = 'background:#FEE2E2; color:#991B1B;'; }
 
         let actionHtml = '-';
-        
         if (currentUserProfile.role === 'core_admin') {
             if (u.email !== currentUserProfile.email) {
                 actionHtml = `
@@ -1334,42 +1286,23 @@ function renderUsersTable() {
                     </select>
                     <button class="btn btn-gold btnChangeRole" data-id="${u.id}" style="padding: 3px 8px; font-size: 10px;">Save</button>
                 </div>`;
-            } else {
-                actionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic;">(Your Account)</span>`;
-            }
-        } else {
-            actionHtml = `<span style="font-size:12px; color:var(--text-muted);">Restricted</span>`;
-        }
+            } else { actionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic;">(Your Account)</span>`; }
+        } else { actionHtml = `<span style="font-size:12px; color:var(--text-muted);">Restricted</span>`; }
 
         tr.innerHTML = `<td><b style="font-size:14px;">${u.name || 'N/A'}</b></td><td>${u.email}</td><td>${u.state || '-'}</td><td><span class="status-pill" style="${badgeStyle}">${roleBadge}</span></td><td>${actionHtml}</td>`;
         tbody.appendChild(tr);
     });
 
     document.querySelectorAll('.btnChangeRole').forEach(b => b.addEventListener('click', (e) => {
-        if (currentUserProfile.role !== 'core_admin') {
-            showToast("Unauthorized action.");
-            return;
-        }
+        if (currentUserProfile.role !== 'core_admin') { showToast("Unauthorized action."); return; }
         db.collection('users').doc(e.target.dataset.id).update({ role: document.getElementById(`role_${e.target.dataset.id}`).value }); 
         showToast("Role updated successfully.");
     }));
 }
 
-document.getElementById('searchUsers').addEventListener('input', (e) => {
-    searchUsersQ = e.target.value;
-    renderUsersTable();
-});
-
-document.getElementById('userRoleFilter').addEventListener('change', (e) => {
-    selectedUserRoleFilter = e.target.value;
-    renderUsersTable();
-});
-
-document.getElementById('userStateFilter').addEventListener('change', (e) => {
-    selectedUserStateFilter = e.target.value;
-    renderUsersTable();
-});
-
+document.getElementById('searchUsers').addEventListener('input', (e) => { searchUsersQ = e.target.value; renderUsersTable(); });
+document.getElementById('userRoleFilter').addEventListener('change', (e) => { selectedUserRoleFilter = e.target.value; renderUsersTable(); });
+document.getElementById('userStateFilter').addEventListener('change', (e) => { selectedUserStateFilter = e.target.value; renderUsersTable(); });
 document.getElementById('btnNavUsers')?.addEventListener('click', (e) => {
     document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active')); e.target.classList.add('active');
     document.getElementById('adminAppsWrap').style.display = 'none'; document.getElementById('adminUsersWrap').style.display = 'block';
@@ -1389,9 +1322,9 @@ function openDrawer(id){
         const tunStatus = t.tunStatus || 'PENDING';
         let statusBadge = '';
         if (tunStatus === 'RECEIVED') {
-            statusBadge = `<span style="font-size:12px; color:#065F46; font-weight:600; background:#D1FAE5; padding:4px 10px; border-radius:99px;">✓ .tun Received & Accepted</span>`;
+            statusBadge = `<span style="font-size:12px; color:#065F46; font-weight:600; background:#D1FAE5; padding:4px 10px; border-radius:99px;">✓ .tun Received & Verified</span>`;
         } else if (tunStatus === 'REJECTED') {
-            statusBadge = `<span style="font-size:12px; color:#991B1B; font-weight:600; background:#FEE2E2; padding:4px 10px; border-radius:99px;">✗ .tun Rejected: ${t.tunRejectReason || 'No reason provided'}</span>`;
+            statusBadge = `<span style="font-size:12px; color:#991B1B; font-weight:600; background:#FEE2E2; padding:4px 10px; border-radius:99px;">✗ .tun Rejected: ${t.tunRejectReason || 'No reason'}</span>`;
         } else {
             statusBadge = `<span style="font-size:12px; color:#1E40AF; font-weight:600; background:#DBEAFE; padding:4px 10px; border-radius:99px;">⏳ Pending MCF Review</span>`;
         }
@@ -1399,17 +1332,53 @@ function openDrawer(id){
         let tunActionHtml = '';
         if (t.tunUrl && t.tunUrl.startsWith('http')) {
             tunActionHtml = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:10px;">
                 <a href="${t.tunUrl}" target="_blank" class="btn btn-ghost" style="padding:6px 12px; font-size:12px; text-decoration:none; background:white;">Download Submitted .tun Report</a>
                 ${isMCFAdmin && tunStatus !== 'RECEIVED' ? `
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn btn-primary" style="padding:6px 12px; font-size:12px; background:#059669;" onclick="setTunStatus('${t.id}', 'RECEIVED')">Receive .tun</button>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn btn-primary" style="padding:6px 12px; font-size:12px; background:#059669;" onclick="promptFinanceAdjustment('${t.id}')">Receive & Adjust Fees...</button>
                         <button class="btn btn-ghost" style="padding:6px 12px; font-size:12px; color:#DC2626; border-color:#DC2626;" onclick="promptRejectTun('${t.id}')">Reject .tun</button>
                     </div>
                 ` : ''}
             </div>`;
         } else {
             tunActionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic; display:block; margin-top:8px;">No report uploaded yet by organizer.</span>`;
+        }
+
+        let financeUI = '';
+        if (t.financeAction) {
+            const isRefund = t.financeAction === 'REFUND';
+            financeUI = `
+            <div style="margin-top: 16px; background: ${isRefund ? '#FEF3C7' : '#FEE2E2'}; border: 1px solid ${isRefund ? '#F59E0B' : '#DC2626'}; padding: 16px; border-radius: var(--radius);">
+                <h4 style="margin:0 0 6px; font-size:13px; color:${isRefund ? '#92400E' : '#991B1B'};">
+                    ${isRefund ? '💰 MCF Fee Refund Notice' : '⚠️ Additional Balance Top-Up Required'}
+                </h4>
+                <p style="margin:0 0 12px; font-size:13px; color:var(--text-main);"><b>Admin Comment:</b> ${t.financeComment || 'No comments.'}</p>
+                
+                ${isOrganizer ? `
+                    ${isRefund ? `
+                        <div style="background:white; padding:12px; border-radius:var(--radius); border:1px solid var(--border);">
+                            <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Enter Bank Details for Refund (Bank Name, Account No, Holder Name):</label>
+                            <input type="text" id="orgBankInput" value="${t.bankDetails || ''}" placeholder="e.g. Maybank 1234567890 (Ahmad)" style="margin-bottom:8px;">
+                            <button class="btn btn-primary" style="padding:6px 14px; font-size:12px;" onclick="submitOrganizerBank('${t.id}')">Submit Bank Details</button>
+                            ${t.bankDetails ? '<span style="font-size:11px; color:#059669; display:block; margin-top:6px;">✓ Bank details submitted successfully.</span>' : ''}
+                        </div>
+                    ` : `
+                        <div style="background:white; padding:12px; border-radius:var(--radius); border:1px solid var(--border);">
+                            <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Upload Remaining Balance Receipt (PDF/Image):</label>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <input type="file" id="topUpFileInput" accept="image/*,.pdf" style="font-size:12px; padding:4px;">
+                                <button class="btn btn-primary" style="padding:6px 14px; font-size:12px; white-space:nowrap;" onclick="submitOrganizerTopUp('${t.id}')">Upload Receipt</button>
+                            </div>
+                            ${t.topUpReceiptUrl ? `<a href="${t.topUpReceiptUrl}" target="_blank" style="font-size:11px; color:#2563EB; display:block; margin-top:6px;">🔗 View Uploaded Top-Up Receipt</a>` : ''}
+                        </div>
+                    `}
+                ` : `
+                    <div style="font-size:12px; color:var(--text-muted);">
+                        ${isRefund ? `<b>Organizer Bank Info:</b> ${t.bankDetails || 'Pending organizer input...'}` : `<b>Top-Up Receipt:</b> ${t.topUpReceiptUrl ? `<a href="${t.topUpReceiptUrl}" target="_blank">View Receipt</a>` : 'Pending receipt upload...'}`}
+                    </div>
+                `}
+            </div>`;
         }
 
         let organizerUploadHtml = '';
@@ -1427,11 +1396,12 @@ function openDrawer(id){
         tunSectionHtml = `
         <div style="background: var(--bg-body); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-top: 24px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Tournament Report File (.tun / Results)</div>
+                <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Tournament Report File (.tun / Results) & Fee Adjustments</div>
                 ${statusBadge}
             </div>
-            <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px;">Submit or review the official pairing and results report.</p>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px;">Submit or review the official pairing report and handle player count fee variations.</p>
             ${tunActionHtml}
+            ${financeUI}
             ${organizerUploadHtml}
         </div>`;
     }
@@ -1585,13 +1555,9 @@ function openDrawer(id){
     document.getElementById('drawerBack').classList.add('open');
 }
 
-// 100% PURE FETCH for file uploads & status changes
 window.uploadTunFile = async function(id) {
     const fileInput = document.getElementById('tunUploadInput');
-    if (!fileInput || fileInput.files.length === 0) {
-        showToast("Please select a file first.");
-        return;
-    }
+    if (!fileInput || fileInput.files.length === 0) { showToast("Please select a file first."); return; }
     const file = fileInput.files[0];
     showToast("Uploading tournament report...");
 
@@ -1605,9 +1571,7 @@ window.uploadTunFile = async function(id) {
     try {
         const response = await fetch(SCRIPT_URL, { 
             method: 'POST', 
-            headers: {
-                "Content-Type": "text/plain;charset=utf-8"
-            },
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ action: 'submitTunFile', id: id, fileData: fileData, fileName: file.name }) 
         });
         const res = await response.json();
@@ -1623,87 +1587,133 @@ window.uploadTunFile = async function(id) {
 window.setTunStatus = async function(id, status) {
     if (typeof showToast === "function") showToast("Updating .tun status...");
     if (!SCRIPT_URL) return alert("SCRIPT_URL missing."); 
-    
     try {
         const response = await fetch(SCRIPT_URL, { 
             method: 'POST', 
-            headers: {
-                "Content-Type": "text/plain;charset=utf-8"
-            },
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ action: 'updateTunStatus', id: id, status: status, reason: "" }) 
         });
-        
         const res = await response.json();
-        
         if (res && res.status === 'success') {
             if (typeof showToast === "function") showToast("✓ Tournament report marked as Received!");
             const item = applications.find(x => x.id === id);
-            if (item) {
-                item.tunStatus = status;
-                item.tunRejectReason = ""; 
-            }
-            updateAdminCounts(); 
-            renderAdminTable(); 
-            updateOrgCounts(); 
-            renderOrgTable();
-            openDrawer(id); 
-            fetchDossiers();
-        } else { 
-            alert("Error: " + (res.message || "Unknown error")); 
-        }
-    } catch (err) { 
-        alert("Connection Error: " + err.message); 
-    }
+            if (item) { item.tunStatus = status; item.tunRejectReason = ""; }
+            updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
+            openDrawer(id); fetchDossiers();
+        } else { alert("Error: " + (res.message || "Unknown error")); }
+    } catch (err) { alert("Connection Error: " + err.message); }
 };
 
 window.promptRejectTun = async function(id) {
     const reason = prompt("Please provide a reason why this .tun report is being rejected:");
     if (reason === null) return; 
-    if (!reason.trim()) { 
-        alert("Rejection reason cannot be empty. Please try again."); 
-        return; 
-    }
+    if (!reason.trim()) { alert("Rejection reason cannot be empty."); return; }
 
     if (typeof showToast === "function") showToast("Submitting rejection comment...");
     if (!SCRIPT_URL) return alert("SCRIPT_URL missing."); 
-    
     try {
         const response = await fetch(SCRIPT_URL, { 
             method: 'POST', 
-            headers: {
-                "Content-Type": "text/plain;charset=utf-8"
-            },
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ action: 'updateTunStatus', id: id, status: 'REJECTED', reason: reason }) 
         });
-        
         const res = await response.json();
-        
         if (res && res.status === 'success') {
             if (typeof showToast === "function") showToast("✓ .tun report rejected with comments.");
             const item = applications.find(x => x.id === id);
-            if (item) { 
-                item.tunStatus = 'REJECTED'; 
-                item.tunRejectReason = reason; 
+            if (item) { item.tunStatus = 'REJECTED'; item.tunRejectReason = reason; }
+            updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
+            openDrawer(id); fetchDossiers();
+        } else { alert("Error: " + (res.message || "Unknown error")); }
+    } catch (err) { alert("Connection Error: " + err.message); }
+};
+
+window.promptFinanceAdjustment = function(id) {
+    const choice = prompt("Select Action:\nType '1' for Refund (overpaid pax)\nType '2' for Insufficient Balance / Top-Up (underpaid pax)");
+    if (choice !== '1' && choice !== '2') return;
+    
+    const actionType = choice === '1' ? 'REFUND' : 'TOPUP';
+    const comment = prompt(choice === '1' ? "Enter reason / details for the Refund:" : "Enter reason / details for the Insufficient Balance Top-Up:");
+    if (comment === null) return;
+
+    submitFinanceActionToSheet(id, actionType, comment);
+};
+
+window.submitFinanceActionToSheet = async function(id, actionType, comment) {
+    if (typeof showToast === "function") showToast("Saving adjustment...");
+    if (!SCRIPT_URL) return alert("SCRIPT_URL missing.");
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: 'submitFinanceAdjustment', id: id, actionType: actionType, comment: comment })
+        });
+        const res = await response.json();
+        if (res && res.status === 'success') {
+            showToast("✓ Adjustment recorded successfully!");
+            const item = applications.find(x => x.id === id);
+            if (item) {
+                item.tunStatus = 'RECEIVED';
+                item.financeAction = actionType;
+                item.financeComment = comment;
             }
-            updateAdminCounts(); 
-            renderAdminTable(); 
-            updateOrgCounts(); 
-            renderOrgTable();
-            openDrawer(id); 
+            openDrawer(id);
             fetchDossiers();
-        } else { 
-            alert("Error: " + (res.message || "Unknown error")); 
-        }
-    } catch (err) { 
-        alert("Connection Error: " + err.message); 
-    }
+        } else { alert("Error: " + (res.message || "Unknown error")); }
+    } catch (err) { alert("Connection Error: " + err.message); }
+};
+
+window.submitOrganizerBank = async function(id) {
+    const bankDetails = document.getElementById('orgBankInput')?.value.trim();
+    if (!bankDetails) { alert("Please enter your bank details."); return; }
+    
+    showToast("Submitting bank details...");
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: 'submitOrganizerResponse', id: id, bankDetails: bankDetails })
+        });
+        const res = await response.json();
+        if (res && res.status === 'success') {
+            showToast("✓ Bank details submitted successfully!");
+            const item = applications.find(x => x.id === id);
+            if (item) item.bankDetails = bankDetails;
+            openDrawer(id); fetchDossiers();
+        } else { alert("Error: " + (res.message || "Unknown error")); }
+    } catch (err) { alert("Connection Error: " + err.message); }
+};
+
+window.submitOrganizerTopUp = async function(id) {
+    const fileInput = document.getElementById('topUpFileInput');
+    if (!fileInput || fileInput.files.length === 0) { alert("Please select a receipt file."); return; }
+    const file = fileInput.files[0];
+    
+    showToast("Uploading top-up receipt...");
+    const fileData = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+    });
+
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: 'submitOrganizerResponse', id: id, fileData: fileData, fileName: file.name })
+        });
+        const res = await response.json();
+        if (res && res.status === 'success') {
+            showToast("✓ Top-up receipt uploaded successfully!");
+            const item = applications.find(x => x.id === id);
+            if (item) item.topUpReceiptUrl = res.topUpReceiptUrl;
+            openDrawer(id); fetchDossiers();
+        } else { alert("Error: " + (res.message || "Unknown error")); }
+    } catch (err) { alert("Connection Error: " + err.message); }
 };
 
 window.changeStatus = async function(newStatus){
-    if (!selectedId) {
-        showToast("Error: No application selected.");
-        return;
-    }
+    if (!selectedId) { showToast("Error: No application selected."); return; }
     const footerBtns = document.querySelectorAll('#drawerFooter button');
     footerBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
     showToast("Saving status...");
@@ -1712,9 +1722,7 @@ window.changeStatus = async function(newStatus){
     try {
         const response = await fetch(SCRIPT_URL, { 
             method: 'POST', 
-            headers: {
-                "Content-Type": "text/plain;charset=utf-8"
-            },
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ action: 'updateDossierStatus', id: selectedId, status: newStatus }) 
         });
         const res = await response.json();
@@ -1725,9 +1733,7 @@ window.changeStatus = async function(newStatus){
             updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
             closeDrawer(); showToast("✓ Status updated to " + newStatus); 
             fetchDossiers();
-        } else {
-            showToast("Error: " + (res.message || "Unknown error"));
-        }
+        } else { showToast("Error: " + (res.message || "Unknown error")); }
     } catch (err) {
         footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
         showToast("Connection Error: " + err.message);
