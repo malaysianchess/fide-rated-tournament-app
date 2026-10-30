@@ -900,6 +900,21 @@ let currentUserProfile = { uid: "", email: "", role: "", name: "", phone: "", st
 let stepIdx = 0;
 const steps = ["1","2","3","4","5","6","7","8","review"];
 
+// Toast notification helper
+window.showToast = function(msg) {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    if (toast && toastMsg) {
+        toastMsg.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    } else {
+        alert(msg);
+    }
+};
+
 const TC = {
     "FIDE Blitz": [
         "3 minutes for game with 2 seconds increment from move 1",
@@ -1109,9 +1124,9 @@ function getBadgeStyle(status) {
     return 'background: #FEE2E2; color: #991B1B;';
 }
 
-// 100% PURE FETCH (No google.script.run dependency)
+// 100% PURE FETCH
 window.fetchDossiers = async function() {
-    if (!SCRIPT_URL) return; // FIXED SAFETY CHECK
+    if (!SCRIPT_URL) return;
     try {
         const res = await fetch(`${SCRIPT_URL}?action=getDossiers`);
         const data = await res.json();
@@ -1572,79 +1587,39 @@ function openDrawer(id){
 
 // 100% PURE FETCH for file uploads & status changes
 window.uploadTunFile = async function(id) {
-    console.log("Upload button clicked for ID:", id);
-    
     const fileInput = document.getElementById('tunUploadInput');
     if (!fileInput || fileInput.files.length === 0) {
-        alert("Please select a file first."); // Fallback if showToast fails
-        if (typeof showToast === "function") showToast("Please select a file first.");
+        showToast("Please select a file first.");
         return;
     }
-    
     const file = fileInput.files[0];
-    console.log("File selected:", file.name);
-    
-    if (typeof showToast === "function") {
-        showToast("Uploading tournament report...");
-    } else {
-        console.warn("showToast function is missing from your HTML!");
-    }
+    showToast("Uploading tournament report...");
 
+    const fileData = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+    });
+
+    if (!SCRIPT_URL) return showToast("SCRIPT_URL missing."); 
     try {
-        const fileData = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-
-        if (!SCRIPT_URL) {
-            alert("SCRIPT_URL is missing.");
-            return;
-        }
-
-        console.log("Sending payload to Google Apps Script...");
         const response = await fetch(SCRIPT_URL, { 
             method: 'POST', 
             headers: {
                 "Content-Type": "text/plain;charset=utf-8"
             },
-            body: JSON.stringify({ 
-                action: 'submitTunFile', 
-                id: id, 
-                fileData: fileData, 
-                fileName: file.name 
-            }) 
+            body: JSON.stringify({ action: 'submitTunFile', id: id, fileData: fileData, fileName: file.name }) 
         });
-
-        console.log("Received response from Apps Script");
         const res = await response.json();
-        console.log("Response data:", res);
-
         if (res && res.status === 'success') {
-            if (typeof showToast === "function") showToast("✓ Tournament report uploaded successfully!");
-            else alert("✓ Tournament report uploaded successfully!");
-            
+            showToast("✓ Tournament report uploaded successfully!");
             const item = applications.find(x => x.id === id);
-            if (item) { 
-                item.tunUrl = res.tunUrl; 
-                item.tunStatus = 'PENDING'; 
-                item.tunRejectReason = ''; 
-            }
-            openDrawer(id); 
-            fetchDossiers();
-        } else { 
-            const errorMsg = "Error uploading file: " + (res.message || "Unknown error");
-            console.error(errorMsg);
-            if (typeof showToast === "function") showToast(errorMsg);
-            else alert(errorMsg);
-        }
-    } catch (err) { 
-        console.error("Fetch/Upload Error:", err);
-        if (typeof showToast === "function") showToast("Connection Error: " + err.message);
-        else alert("Connection Error: " + err.message);
-    }
+            if (item) { item.tunUrl = res.tunUrl; item.tunStatus = 'PENDING'; item.tunRejectReason = ''; }
+            openDrawer(id); fetchDossiers();
+        } else { showToast("Error uploading file: " + (res.message || "Unknown error")); }
+    } catch (err) { showToast("Connection Error: " + err.message); }
 };
+
 window.setTunStatus = async function(id, status) {
     if (typeof showToast === "function") showToast("Updating .tun status...");
     if (!SCRIPT_URL) return alert("SCRIPT_URL missing."); 
@@ -1665,10 +1640,14 @@ window.setTunStatus = async function(id, status) {
             const item = applications.find(x => x.id === id);
             if (item) {
                 item.tunStatus = status;
-                item.tunRejectReason = ""; // Clear any previous rejection reasons
+                item.tunRejectReason = ""; 
             }
-            openDrawer(id); // Reload the modal UI
-            fetchDossiers(); // Refresh the background data
+            updateAdminCounts(); 
+            renderAdminTable(); 
+            updateOrgCounts(); 
+            renderOrgTable();
+            openDrawer(id); 
+            fetchDossiers();
         } else { 
             alert("Error: " + (res.message || "Unknown error")); 
         }
@@ -1678,13 +1657,8 @@ window.setTunStatus = async function(id, status) {
 };
 
 window.promptRejectTun = async function(id) {
-    // 1. Ask the admin for the reason
     const reason = prompt("Please provide a reason why this .tun report is being rejected:");
-    
-    // If they click 'Cancel' on the prompt, stop the process
     if (reason === null) return; 
-    
-    // If they leave it blank and hit OK, warn them
     if (!reason.trim()) { 
         alert("Rejection reason cannot be empty. Please try again."); 
         return; 
@@ -1694,7 +1668,6 @@ window.promptRejectTun = async function(id) {
     if (!SCRIPT_URL) return alert("SCRIPT_URL missing."); 
     
     try {
-        // 2. Send the Rejection status and the reason to Google Sheets
         const response = await fetch(SCRIPT_URL, { 
             method: 'POST', 
             headers: {
@@ -1712,7 +1685,11 @@ window.promptRejectTun = async function(id) {
                 item.tunStatus = 'REJECTED'; 
                 item.tunRejectReason = reason; 
             }
-            openDrawer(id); // Reload the UI so the admin sees the red rejected badge
+            updateAdminCounts(); 
+            renderAdminTable(); 
+            updateOrgCounts(); 
+            renderOrgTable();
+            openDrawer(id); 
             fetchDossiers();
         } else { 
             alert("Error: " + (res.message || "Unknown error")); 
@@ -1731,9 +1708,15 @@ window.changeStatus = async function(newStatus){
     footerBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
     showToast("Saving status...");
 
-    if (!SCRIPT_URL) return showToast("SCRIPT_URL missing."); // FIXED SAFETY CHECK
+    if (!SCRIPT_URL) return showToast("SCRIPT_URL missing.");
     try {
-        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateDossierStatus', id: selectedId, status: newStatus }) });
+        const response = await fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8"
+            },
+            body: JSON.stringify({ action: 'updateDossierStatus', id: selectedId, status: newStatus }) 
+        });
         const res = await response.json();
         footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
         if (res && res.status === 'success') { 
