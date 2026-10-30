@@ -450,10 +450,17 @@ function showToast(msg){
 async function api(action, data){
   if (!auth.currentUser) throw new Error('Please sign in again.');
   const idToken = await auth.currentUser.getIdToken();
-  // No custom headers -> avoids CORS preflight with Apps Script
   const res = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({ action, idToken, ...data }) });
   return res.json();
 }
+
+window.file2Data = async el => {
+  if (!el || !el.files.length) return { data:null, name:null };
+  const file = el.files[0];
+  if (file.size > 8 * 1024 * 1024) throw new Error(file.name + ' is larger than 8 MB.');
+  const data = await new Promise((res, rej) => { const r = new FileReader(); r.onloadend = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+  return { data, name: file.name };
+};
 
 /* ===================== AUTH ===================== */
 async function routeUser(user){
@@ -508,7 +515,7 @@ $('registerForm').onsubmit = async e => {
   e.preventDefault();
   const err = $('regError'); err.style.display = 'none';
   $('btnRegister').disabled = true;
-  isRegistering = true;          // stops onAuthStateChanged from signing the new user out
+  isRegistering = true;
   try {
     const cred = await auth.createUserWithEmailAndPassword($('regEmail').value.trim(), $('regPass').value);
     await db.collection('users').doc(cred.user.uid).set({
@@ -552,15 +559,12 @@ window.fetchDossiers = async function(){
   if (!auth.currentUser) return;
   try {
     const data = await api('getDossiers', {});
-    if (!Array.isArray(data)) {
-      throw new Error(data.message || 'The server did not return an application list.');
-    }
-    applications = data.reverse();   // newest first
+    if (!Array.isArray(data)) throw new Error(data.message || 'Server did not return a list.');
+    applications = data.reverse(); 
     renderAdminTable();
     renderOrgTable();
   } catch (e) {
     showToast('Failed to fetch data: ' + e.message);
-    console.error('fetchDossiers failed:', e);
   }
 };
 document.querySelectorAll('.btnRefresh').forEach(b => b.onclick = fetchDossiers);
@@ -623,7 +627,7 @@ wireNav('navFilter', v => adminFilter = v);
 wireNav('navFilterOrg', v => orgFilter = v);
 $('stateFilter').onchange = renderAdminTable;
 
-/* ===================== DRAWER ===================== */
+/* ===================== DRAWER & TUN ===================== */
 $('drawerCloseBtn').onclick = window.closeDrawer;
 $('drawerBack').onclick = e => { if (e.target.id === 'drawerBack') window.closeDrawer(); };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') window.closeDrawer(); });
@@ -637,8 +641,9 @@ function openDrawer(id){
   selectedId = id;
   const t = applications.find(x => x.id === id); if (!t) return;
   $('dTitle').innerText = t.eventName;
+  const role = currentUserProfile.role;
 
-  $('drawerContent').innerHTML = `
+  let html = `
     <div style="margin-bottom:24px;">
       <span class="status-pill" style="${getBadgeStyle(t.status)}">${esc(t.status)}</span>
       <h3 style="margin:10px 0 0;">RM ${esc(t.fee || 0)} <span style="font-size:12px; font-weight:400; color:var(--text-muted);">(Ref: ${esc(t.paymentRef)})</span></h3>
@@ -667,10 +672,45 @@ function openDrawer(id){
       ${item('Submitted', t.timestamp)}
       ${item('Signed By', t.signName + (t.signDate ? ' (' + t.signDate + ')' : ''))}
     </div>
-    <div class="data-item" style="margin-top:20px;"><span class="label">Objectives</span><span>${esc(t.obj1) || '—'}</span></div>`;
+    <div class="data-item" style="margin-top:20px; margin-bottom:20px;"><span class="label">Objectives</span><span>${esc(t.obj1) || '—'}</span></div>`;
 
+  // TUN FILE (Tournament Report) Section (Only visible if the event is APPROVED)
+  if (t.status === 'APPROVED') {
+    html += `<div style="padding-top:24px; border-top:1px solid var(--border);">
+      <h3 style="margin-bottom:12px;">Tournament Report (TUN)</h3>
+      <div style="margin-bottom:12px; font-size:13px;">Status: <span class="status-pill" style="${getBadgeStyle(t.tunStatus)}">${esc(t.tunStatus || 'NOT SUBMITTED')}</span></div>`;
+
+    if (t.tunUrl) {
+      html += `<div style="margin-bottom:12px;">${linkBtn(t.tunUrl, 'View Submitted Report')}</div>`;
+    }
+    if (t.tunRejectReason && t.tunStatus === 'REJECTED') {
+      html += `<div style="color:var(--danger); font-size:13px; margin-bottom:12px;"><strong>Reason for rejection:</strong> ${esc(t.tunRejectReason)}</div>`;
+    }
+
+    // Upload section for Organizer (if not yet APPROVED)
+    if (t.tunStatus !== 'APPROVED') {
+      html += `<div style="background:var(--bg-body); padding:16px; border-radius:var(--radius); margin-top:16px;">
+        <label style="font-size:12px; font-weight:600; display:block; margin-bottom:8px;">Upload / Update Report (PDF or ZIP)</label>
+        <input type="file" id="tunUploadInput_${t.id}" style="margin-bottom:10px;">
+        <button class="btn btn-primary" onclick="uploadTun('${t.id}')" id="btnUploadTun_${t.id}" style="font-size:12px; padding:6px 12px;">Submit Report</button>
+      </div>`;
+    }
+
+    // MCF Admin Approval Buttons
+    if ((role === 'admin' || role === 'core_admin') && t.tunStatus === 'PENDING' && t.tunUrl) {
+      html += `<div style="margin-top:16px; display:flex; gap:10px;">
+        <button class="btn btn-ghost" onclick="reviewTun('${t.id}', 'REJECTED')" style="color:var(--danger); font-size:12px; padding:6px 12px;">Reject Report</button>
+        <button class="btn btn-primary" onclick="reviewTun('${t.id}', 'APPROVED')" style="font-size:12px; padding:6px 12px;">✓ Approve Report</button>
+      </div>`;
+    }
+
+    html += `</div>`;
+  }
+
+  $('drawerContent').innerHTML = html;
+
+  // Drawer Footer actions (Event Approval logic)
   let foot = '';
-  const role = currentUserProfile.role;
   if (role === 'admin' || role === 'core_admin') {
     if (t.status !== 'APPROVED' && t.status !== 'REJECTED') {
       foot = `<button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger);">Reject</button>
@@ -680,6 +720,7 @@ function openDrawer(id){
     foot = `<button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger);">Reject</button>
             <button class="btn btn-primary" onclick="changeStatus('PENDING MCF')">✓ Forward to MCF</button>`;
   }
+  
   $('drawerFooter').innerHTML = foot;
   $('drawerFooter').style.display = foot ? 'flex' : 'none';
   $('drawerBack').classList.add('open');
@@ -694,6 +735,50 @@ window.changeStatus = async function(st){
     if (j.status === 'success') { showToast('✓ Updated'); window.closeDrawer(); fetchDossiers(); }
     else showToast(j.message || 'Update failed');
   } catch (e) { showToast('Error updating: ' + e.message); }
+};
+
+window.uploadTun = async function(id) {
+  const el = document.getElementById('tunUploadInput_' + id);
+  if (!el.files.length) return showToast('Please select a file first.');
+  
+  const btn = document.getElementById('btnUploadTun_' + id);
+  btn.innerText = 'Uploading...'; btn.disabled = true;
+  
+  try {
+    const file = await window.file2Data(el);
+    const j = await api('submitTunFile', { id: id, fileData: file.data, fileName: file.name });
+    if (j.status === 'success') {
+      showToast('Report uploaded successfully!');
+      fetchDossiers(); // refresh data
+      setTimeout(() => openDrawer(id), 600); // re-open drawer with fresh data
+    } else {
+      showToast(j.message || 'Upload failed');
+    }
+  } catch (e) {
+    showToast('Error: ' + e.message);
+  }
+  btn.innerText = 'Submit Report'; btn.disabled = false;
+};
+
+window.reviewTun = async function(id, status) {
+  let reason = '';
+  if (status === 'REJECTED') {
+    reason = prompt('Enter reason for rejecting the report:');
+    if (reason === null) return; // user cancelled
+  }
+  showToast('Updating Report Status...');
+  try {
+    const j = await api('updateTunStatus', { id: id, status: status, reason: reason });
+    if (j.status === 'success') {
+      showToast('Report status updated');
+      fetchDossiers();
+      setTimeout(() => openDrawer(id), 600);
+    } else {
+      showToast(j.message || 'Update failed');
+    }
+  } catch (e) {
+    showToast('Error: ' + e.message);
+  }
 };
 
 /* ===================== WIZARD ===================== */
@@ -810,14 +895,6 @@ tcSearch.oninput = e => renderTC(e.target.value);
 document.addEventListener('click', e => { if (!e.target.closest('.combo')) tcPanel.classList.remove('open'); });
 
 /* Submit */
-const file2Data = async el => {
-  if (!el || !el.files.length) return { data:null, name:null };
-  const file = el.files[0];
-  if (file.size > 8 * 1024 * 1024) throw new Error(file.name + ' is larger than 8 MB.');
-  const data = await new Promise((res, rej) => { const r = new FileReader(); r.onloadend = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
-  return { data, name: file.name };
-};
-
 $('submitAppBtn').onclick = async function(){
   for (let i = 0; i <= 7; i++) {
     const msg = validateStep(i);
@@ -825,9 +902,9 @@ $('submitAppBtn').onclick = async function(){
   }
   const btn = this; btn.innerText = 'Uploading...'; btn.disabled = true;
   try {
-    const receipt = await file2Data($('receiptUpload'));
-    const letter = $('orgCategory').value.includes('State Affiliate') ? await file2Data($('affiliateLetterUpload')) : { data:null, name:null };
-    const poster = await file2Data($('posterUpload'));
+    const receipt = await window.file2Data($('receiptUpload'));
+    const letter = $('orgCategory').value.includes('State Affiliate') ? await window.file2Data($('affiliateLetterUpload')) : { data:null, name:null };
+    const poster = await window.file2Data($('posterUpload'));
     const yn = id => $(id).checked ? 'Yes' : 'No';
 
     const j = await api('submitDossier', {
