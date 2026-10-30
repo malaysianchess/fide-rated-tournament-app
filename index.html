@@ -826,12 +826,11 @@
 </div>
 
 <!-- DRAWER (ADMIN MODAL) -->
-<!-- HYBRID FIX: Explicit inline onclick="closeDrawer()" guarantees it ALWAYS triggers -->
-<div class="drawer-back" id="drawerBack" onclick="if(event.target.id === 'drawerBack') closeDrawer();">
+<div class="drawer-back" id="drawerBack">
   <div class="drawer">
     <div class="drawer-head">
       <div><h3 id="dTitle">Event Title</h3><p id="dSubtitle">ID: </p></div>
-      <button class="drawer-close" id="drawerClose" onclick="closeDrawer()">×</button>
+      <button class="drawer-close" id="drawerClose">×</button>
     </div>
     <div class="drawer-body" id="drawerContent"></div>
     <div class="drawer-footer" id="drawerFooter"></div>
@@ -860,7 +859,6 @@
 <script>
 // ============================================================================
 // CRITICAL: REPLACE THE URL BELOW WITH YOUR ACTUAL APPS SCRIPT WEB APP URL
-// IF RUNNING IN APPS SCRIPT NATIVELY, IT WILL AUTOMATICALLY USE GOOGLE.SCRIPT.RUN
 // ============================================================================
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec";
 // ============================================================================
@@ -936,11 +934,6 @@ function formatLocalDate(dateStr) {
         return dateStr;
     }
 }
-
-// HYBRID GLOBAL FUNCTION - Allows inline onclick logic from HTML
-window.closeDrawer = function() { 
-    document.getElementById('drawerBack').classList.remove('open'); 
-};
 
 function toggleSidebar(btn) {
     const activeView = document.querySelector('.view.active');
@@ -1103,27 +1096,21 @@ function getBadgeStyle(status) {
     return 'background: #FEE2E2; color: #991B1B;';
 }
 
-// HYBRID FETCH: Works natively in GAS or via API on GitHub
-window.fetchDossiers = async function() {
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.withSuccessHandler(function(data) {
-            applications = (data || []).reverse(); 
-            updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
-        }).withFailureHandler(function(err){
-            showToast("Error loading data from Sheets.");
-        }).getDossiers();
-    } else {
-        if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return;
-        try {
-            const res = await fetch(`${SCRIPT_URL}?action=getDossiers`);
-            const data = await res.json();
-            applications = (data || []).reverse();
-            updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
-        } catch (err) {
-            showToast("Error loading data via API.");
-        }
+async function fetchDossiers() {
+    if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) {
+        console.warn("SCRIPT_URL is not set. Data fetch skipped.");
+        return;
     }
-};
+    try {
+        const res = await fetch(`${SCRIPT_URL}?action=getDossiers`);
+        const data = await res.json();
+        applications = (data || []).reverse();
+        updateAdminCounts(); renderAdminTable();
+        updateOrgCounts(); renderOrgTable();
+    } catch (err) {
+        showToast("Error loading data from Sheets.");
+    }
+}
 
 document.getElementById('btnRefreshData')?.addEventListener('click', fetchDossiers);
 document.getElementById('btnRefreshOrg')?.addEventListener('click', fetchDossiers);
@@ -1572,9 +1559,9 @@ function openDrawer(id){
     document.getElementById('drawerFooter').innerHTML = footerHtml;
     document.getElementById('drawerBack').classList.add('open');
 }
+function closeDrawer(){ document.getElementById('drawerBack').classList.remove('open'); }
 
-// HYBRID FETCH: Works natively in GAS or via API on GitHub for uploadTunFile
-window.uploadTunFile = async function(id) {
+async function uploadTunFile(id) {
     const fileInput = document.getElementById('tunUploadInput');
     if (!fileInput || fileInput.files.length === 0) {
         showToast("Please select a file first.");
@@ -1589,117 +1576,131 @@ window.uploadTunFile = async function(id) {
         reader.readAsDataURL(file);
     });
 
-    const onSuccess = function(res) {
-        if (res && res.status === 'success') {
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'submitTunFile', id: id, fileData: fileData, fileName: file.name })
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
             showToast("✓ Tournament report uploaded successfully!");
             const item = applications.find(x => x.id === id);
-            if (item) { item.tunUrl = res.tunUrl; item.tunStatus = 'PENDING'; item.tunRejectReason = ''; }
-            openDrawer(id); fetchDossiers();
-        } else { showToast("Error uploading file: " + (res.message || "Unknown error")); }
-    };
-    const onError = function(err) { showToast("Connection Error: " + err.message); };
-
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onError).submitTunFile(id, fileData, file.name);
-    } else {
-        if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return onError({message: "SCRIPT_URL missing."});
-        try {
-            const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'submitTunFile', id: id, fileData: fileData, fileName: file.name }) });
-            onSuccess(await response.json());
-        } catch (err) { onError(err); }
+            if (item) {
+                item.tunUrl = result.tunUrl;
+                item.tunStatus = 'PENDING';
+                item.tunRejectReason = '';
+            }
+            openDrawer(id);
+            fetchDossiers();
+        } else {
+            showToast("Error uploading file: " + result.message);
+        }
+    } catch (err) {
+        showToast("Connection Error: " + err.message);
     }
-};
+}
 
-// HYBRID FETCH: Works natively in GAS or via API on GitHub for setTunStatus
-window.setTunStatus = async function(id, status) {
+async function setTunStatus(id, status) {
     showToast("Updating .tun status...");
-    const onSuccess = function(res) {
-        if (res && res.status === 'success') {
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'updateTunStatus', id: id, status: status, reason: "" })
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
             showToast("✓ Tournament report marked as Received!");
             const item = applications.find(x => x.id === id);
             if (item) item.tunStatus = status;
-            openDrawer(id); fetchDossiers();
-        } else { showToast("Error: " + (res.message || "Unknown error")); }
-    };
-    const onError = function(err) { showToast("Connection Error: " + err.message); };
-
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onError).updateTunStatus(id, status, "");
-    } else {
-        if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return onError({message: "SCRIPT_URL missing."});
-        try {
-            const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateTunStatus', id: id, status: status, reason: "" }) });
-            onSuccess(await response.json());
-        } catch (err) { onError(err); }
+            openDrawer(id);
+            fetchDossiers();
+        } else {
+            showToast("Error: " + result.message);
+        }
+    } catch (err) {
+        showToast("Connection Error: " + err.message);
     }
-};
+}
 
-// HYBRID FETCH: Works natively in GAS or via API on GitHub for promptRejectTun
-window.promptRejectTun = async function(id) {
+async function promptRejectTun(id) {
     const reason = prompt("Please provide a reason why this .tun report is being rejected:");
     if (reason === null) return;
-    if (!reason.trim()) { alert("Rejection reason cannot be empty."); return; }
+    if (!reason.trim()) {
+        alert("Rejection reason cannot be empty.");
+        return;
+    }
 
     showToast("Submitting rejection comment...");
-    const onSuccess = function(res) {
-        if (res && res.status === 'success') {
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'updateTunStatus', id: id, status: 'REJECTED', reason: reason })
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
             showToast("✓ .tun report rejected with comments.");
             const item = applications.find(x => x.id === id);
-            if (item) { item.tunStatus = 'REJECTED'; item.tunRejectReason = reason; }
-            openDrawer(id); fetchDossiers();
-        } else { showToast("Error: " + (res.message || "Unknown error")); }
-    };
-    const onError = function(err) { showToast("Connection Error: " + err.message); };
-
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onError).updateTunStatus(id, 'REJECTED', reason);
-    } else {
-        if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return onError({message: "SCRIPT_URL missing."});
-        try {
-            const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateTunStatus', id: id, status: 'REJECTED', reason: reason }) });
-            onSuccess(await response.json());
-        } catch (err) { onError(err); }
+            if (item) {
+                item.tunStatus = 'REJECTED';
+                item.tunRejectReason = reason;
+            }
+            openDrawer(id);
+            fetchDossiers();
+        } else {
+            showToast("Error: " + result.message);
+        }
+    } catch (err) {
+        showToast("Connection Error: " + err.message);
     }
-};
+}
 
-// HYBRID FETCH: Works natively in GAS or via API on GitHub for changeStatus
-window.changeStatus = async function(newStatus){
+async function changeStatus(newStatus){
     if (!selectedId) {
         showToast("Error: No application selected.");
         return;
     }
+    if (!SCRIPT_URL || SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL")) {
+        alert('Backend script disconnected.');
+        return;
+    }
+
     const footerBtns = document.querySelectorAll('#drawerFooter button');
     footerBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
-    showToast("Saving status...");
+    showToast("Saving status to Google Sheets...");
 
-    const onSuccess = function(res) {
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'updateDossierStatus', id: selectedId, status: newStatus })
+        });
+        const result = await response.json();
         footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
-        if (res && res.status === 'success') { 
+        
+        if (result.status === 'success') { 
             const item = applications.find(x => x.id === selectedId);
             if (item) item.status = newStatus;
-            updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
-            closeDrawer(); showToast("✓ Status updated to " + newStatus); 
-            fetchDossiers();
+            
+            updateAdminCounts(); 
+            renderAdminTable();
+            updateOrgCounts(); 
+            renderOrgTable();
+            
+            closeDrawer(); 
+            showToast("✓ Status updated to " + newStatus); 
+            fetchDossiers(); 
         } else {
-            showToast("Error: " + (res.message || "Unknown error"));
+            showToast("Error: " + result.message);
         }
-    };
-    
-    const onError = function(err) {
+    } catch (err) {
         footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
-        showToast("Connection Error: " + err.message);
-    };
-
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onError).updateDossierStatus(selectedId, newStatus);
-    } else {
-        if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return onError({message: "SCRIPT_URL missing."});
-        try {
-            const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateDossierStatus', id: selectedId, status: newStatus }) });
-            onSuccess(await response.json());
-        } catch (err) { onError(err); }
+        console.error("Fetch API Error:", err);
+        showToast("Script Error: " + err.message);
     }
-};
+}
 
 window.generateDossierPDF = function(id) {
     const app = applications.find(x => x.id === id); if (!app) return;
