@@ -1334,10 +1334,13 @@ function renderUsersTable() {
         if (u.role === 'core_admin') { roleBadge = 'CORE ADMIN'; badgeStyle = 'background:#FEE2E2; color:#991B1B;'; }
 
         let actionHtml = '-';
-        if (currentUserProfile.role === 'core_admin') {
+        // Allow both Core Admin and MCF Admin to manage/delete users
+        const canManage = currentUserProfile.role === 'core_admin' || currentUserProfile.role === 'admin';
+
+        if (canManage) {
             if (u.email !== currentUserProfile.email) {
-                actionHtml = `
-                <div style="display:flex; gap:6px; align-items:center;">
+                // Only Core Admins can change user roles, but both MCF Admin and Core Admin can delete/blacklist
+                const roleSelectHtml = currentUserProfile.role === 'core_admin' ? `
                     <select class="role-select" id="role_${u.id}" style="padding:4px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
                         <option value="organizer" ${u.role === 'organizer' ? 'selected' : ''}>Organizer</option>
                         <option value="state_admin" ${u.role === 'state_admin' ? 'selected' : ''}>State Admin</option>
@@ -1345,18 +1348,50 @@ function renderUsersTable() {
                         <option value="core_admin" ${u.role === 'core_admin' ? 'selected' : ''}>Core Admin</option>
                     </select>
                     <button class="btn btn-gold btnChangeRole" data-id="${u.id}" style="padding: 3px 8px; font-size: 10px;">Save</button>
+                ` : `<span style="font-size:11px; color:var(--text-muted);">${roleBadge}</span>`;
+
+                actionHtml = `
+                <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                    ${roleSelectHtml}
+                    <button class="btn btn-ghost btnDeleteUser" data-id="${u.id}" data-email="${u.email}" style="padding: 3px 8px; font-size: 10px; color:#DC2626; border-color:#DC2626;">Delete / Blacklist</button>
                 </div>`;
             } else { actionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic;">(Your Account)</span>`; }
         } else { actionHtml = `<span style="font-size:12px; color:var(--text-muted);">Restricted</span>`; }
 
-        tr.innerHTML = `<td><b style="font-size:14px;">${u.name || 'N/A'}</b></td><td>${u.email}</td><td>${u.state || '-'}</td><td><span class="status-pill" style="${badgeStyle}">${roleBadge}</span></td><td>${actionHtml}</td>`;
+        tr.innerHTML = `<td><b style="font-size:14px;">${u.name || 'N/A'}</b><br><span style="font-size:11px; color:var(--text-muted);">MCF ID: ${u.mcfId || '-'}</span></td><td>${u.email}</td><td>${u.state || '-'}</td><td><span class="status-pill" style="${badgeStyle}">${roleBadge}</span></td><td>${actionHtml}</td>`;
         tbody.appendChild(tr);
     });
 
+    // Save role change handler (Core Admin only)
     document.querySelectorAll('.btnChangeRole').forEach(b => b.addEventListener('click', (e) => {
         if (currentUserProfile.role !== 'core_admin') { showToast("Unauthorized action."); return; }
         db.collection('users').doc(e.target.dataset.id).update({ role: document.getElementById(`role_${e.target.dataset.id}`).value }); 
         showToast("Role updated successfully.");
+    }));
+
+    // Double-confirmation Delete / Blacklist handler (MCF Admin & Core Admin)
+    document.querySelectorAll('.btnDeleteUser').forEach(b => b.addEventListener('click', async (e) => {
+        const userId = e.target.dataset.id;
+        const userEmail = e.target.dataset.email;
+
+        // First Confirmation Prompt
+        const firstConfirm = confirm(`⚠️ WARNING:\nAre you sure you want to delete/blacklist the account for ${userEmail}?\n\nThis action is permanent.`);
+        if (!firstConfirm) return;
+
+        // Second Confirmation Prompt (Double Confirmation)
+        const secondConfirm = prompt(`DOUBLE CONFIRMATION:\nPlease type the exact email ("${userEmail}") to confirm deletion and blacklisting:`);
+        if (secondConfirm !== userEmail) {
+            alert("Email did not match. Deletion cancelled.");
+            return;
+        }
+
+        try {
+            showToast("Deleting user profile...");
+            await db.collection('users').doc(userId).delete();
+            showToast("✓ User account successfully blacklisted and removed.");
+        } catch (err) {
+            alert("Error deleting user: " + err.message);
+        }
     }));
 }
 
