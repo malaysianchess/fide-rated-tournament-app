@@ -551,13 +551,17 @@ $('profileForm').onsubmit = async e => {
 window.fetchDossiers = async function(){
   if (!auth.currentUser) return;
   try {
-    const idToken = await auth.currentUser.getIdToken();
-    const res = await fetch(`${SCRIPT_URL}?action=getDossiers&idToken=${encodeURIComponent(idToken)}`);
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error(data.message || 'Bad response from server');
+    const data = await api('getDossiers', {});
+    if (!Array.isArray(data)) {
+      throw new Error(data.message || 'The server did not return an application list.');
+    }
     applications = data.reverse();   // newest first
-    renderAdminTable(); renderOrgTable();
-  } catch (e) { showToast('Failed to fetch data: ' + e.message); }
+    renderAdminTable();
+    renderOrgTable();
+  } catch (e) {
+    showToast('Failed to fetch data: ' + e.message);
+    console.error('fetchDossiers failed:', e);
+  }
 };
 document.querySelectorAll('.btnRefresh').forEach(b => b.onclick = fetchDossiers);
 
