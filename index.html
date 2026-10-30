@@ -1040,6 +1040,14 @@ document.querySelectorAll('.btnLogOut').forEach(btn => btn.addEventListener('cli
 document.getElementById('btnGoOrgView')?.addEventListener('click', () => showView('organizer-dash'));
 document.getElementById('btnGoAdminView')?.addEventListener('click', () => showView('admin'));
 
+// Wizard New App and Cancel Buttons
+document.getElementById('btnNewAppDash')?.addEventListener('click', () => {
+    showView('organizer-wizard');
+});
+document.getElementById('btnCancelWizard')?.addEventListener('click', () => {
+    showView('organizer-dash');
+});
+
 document.getElementById('forgotPassLink').addEventListener('click', () => {
     const loginEmail = document.getElementById('loginEmail').value;
     if (loginEmail) {
@@ -1103,7 +1111,7 @@ function getBadgeStyle(status) {
 
 // 100% PURE FETCH (No google.script.run dependency)
 window.fetchDossiers = async function() {
-    if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return;
+    if (!SCRIPT_URL) return; // FIXED SAFETY CHECK
     try {
         const res = await fetch(`${SCRIPT_URL}?action=getDossiers`);
         const data = await res.json();
@@ -1578,7 +1586,7 @@ window.uploadTunFile = async function(id) {
         reader.readAsDataURL(file);
     });
 
-    if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return showToast("SCRIPT_URL missing.");
+    if (!SCRIPT_URL) return showToast("SCRIPT_URL missing."); // FIXED SAFETY CHECK
     try {
         const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'submitTunFile', id: id, fileData: fileData, fileName: file.name }) });
         const res = await response.json();
@@ -1593,7 +1601,7 @@ window.uploadTunFile = async function(id) {
 
 window.setTunStatus = async function(id, status) {
     showToast("Updating .tun status...");
-    if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return showToast("SCRIPT_URL missing.");
+    if (!SCRIPT_URL) return showToast("SCRIPT_URL missing."); // FIXED SAFETY CHECK
     try {
         const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateTunStatus', id: id, status: status, reason: "" }) });
         const res = await response.json();
@@ -1612,7 +1620,7 @@ window.promptRejectTun = async function(id) {
     if (!reason.trim()) { alert("Rejection reason cannot be empty."); return; }
 
     showToast("Submitting rejection comment...");
-    if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return showToast("SCRIPT_URL missing.");
+    if (!SCRIPT_URL) return showToast("SCRIPT_URL missing."); // FIXED SAFETY CHECK
     try {
         const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateTunStatus', id: id, status: 'REJECTED', reason: reason }) });
         const res = await response.json();
@@ -1634,7 +1642,7 @@ window.changeStatus = async function(newStatus){
     footerBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
     showToast("Saving status...");
 
-    if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return showToast("SCRIPT_URL missing.");
+    if (!SCRIPT_URL) return showToast("SCRIPT_URL missing."); // FIXED SAFETY CHECK
     try {
         const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateDossierStatus', id: selectedId, status: newStatus }) });
         const res = await response.json();
