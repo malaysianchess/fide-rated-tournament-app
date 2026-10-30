@@ -1572,39 +1572,79 @@ function openDrawer(id){
 
 // 100% PURE FETCH for file uploads & status changes
 window.uploadTunFile = async function(id) {
+    console.log("Upload button clicked for ID:", id);
+    
     const fileInput = document.getElementById('tunUploadInput');
     if (!fileInput || fileInput.files.length === 0) {
-        showToast("Please select a file first.");
+        alert("Please select a file first."); // Fallback if showToast fails
+        if (typeof showToast === "function") showToast("Please select a file first.");
         return;
     }
+    
     const file = fileInput.files[0];
-    showToast("Uploading tournament report...");
+    console.log("File selected:", file.name);
+    
+    if (typeof showToast === "function") {
+        showToast("Uploading tournament report...");
+    } else {
+        console.warn("showToast function is missing from your HTML!");
+    }
 
-    const fileData = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-    });
-
-    if (!SCRIPT_URL) return showToast("SCRIPT_URL missing."); 
     try {
+        const fileData = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+
+        if (!SCRIPT_URL) {
+            alert("SCRIPT_URL is missing.");
+            return;
+        }
+
+        console.log("Sending payload to Google Apps Script...");
         const response = await fetch(SCRIPT_URL, { 
             method: 'POST', 
             headers: {
                 "Content-Type": "text/plain;charset=utf-8"
             },
-            body: JSON.stringify({ action: 'submitTunFile', id: id, fileData: fileData, fileName: file.name }) 
+            body: JSON.stringify({ 
+                action: 'submitTunFile', 
+                id: id, 
+                fileData: fileData, 
+                fileName: file.name 
+            }) 
         });
-        const res = await response.json();
-        if (res && res.status === 'success') {
-            showToast("✓ Tournament report uploaded successfully!");
-            const item = applications.find(x => x.id === id);
-            if (item) { item.tunUrl = res.tunUrl; item.tunStatus = 'PENDING'; item.tunRejectReason = ''; }
-            openDrawer(id); fetchDossiers();
-        } else { showToast("Error uploading file: " + (res.message || "Unknown error")); }
-    } catch (err) { showToast("Connection Error: " + err.message); }
-};
 
+        console.log("Received response from Apps Script");
+        const res = await response.json();
+        console.log("Response data:", res);
+
+        if (res && res.status === 'success') {
+            if (typeof showToast === "function") showToast("✓ Tournament report uploaded successfully!");
+            else alert("✓ Tournament report uploaded successfully!");
+            
+            const item = applications.find(x => x.id === id);
+            if (item) { 
+                item.tunUrl = res.tunUrl; 
+                item.tunStatus = 'PENDING'; 
+                item.tunRejectReason = ''; 
+            }
+            openDrawer(id); 
+            fetchDossiers();
+        } else { 
+            const errorMsg = "Error uploading file: " + (res.message || "Unknown error");
+            console.error(errorMsg);
+            if (typeof showToast === "function") showToast(errorMsg);
+            else alert(errorMsg);
+        }
+    } catch (err) { 
+        console.error("Fetch/Upload Error:", err);
+        if (typeof showToast === "function") showToast("Connection Error: " + err.message);
+        else alert("Connection Error: " + err.message);
+    }
+};
 window.setTunStatus = async function(id, status) {
     showToast("Updating .tun status...");
     if (!SCRIPT_URL) return showToast("SCRIPT_URL missing."); // FIXED SAFETY CHECK
