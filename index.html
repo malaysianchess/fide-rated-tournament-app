@@ -628,6 +628,7 @@
         <section class="step" data-step="4">
           <div class="step-head"><p class="step-eyebrow">Section D</p><h2>Time Control & Settings</h2></div>
           <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
+            
             <div class="field full combo">
               <label>Time Control Specification * (Select from list or type custom)</label>
               <input type="text" id="tcInput" class="combo-input" placeholder="e.g. 90 mins + 30 sec increment or choose below..." oninput="updateDossier()">
@@ -825,11 +826,12 @@
 </div>
 
 <!-- DRAWER (ADMIN MODAL) -->
-<div class="drawer-back" id="drawerBack">
+<!-- Fix: explicit inline onclick for pure JS environment -->
+<div class="drawer-back" id="drawerBack" onclick="if(event.target.id === 'drawerBack') closeDrawer();">
   <div class="drawer">
     <div class="drawer-head">
       <div><h3 id="dTitle">Event Title</h3><p id="dSubtitle">ID: </p></div>
-      <button class="drawer-close" id="drawerClose">×</button>
+      <button class="drawer-close" id="drawerClose" onclick="closeDrawer()">×</button>
     </div>
     <div class="drawer-body" id="drawerContent"></div>
     <div class="drawer-footer" id="drawerFooter"></div>
@@ -857,7 +859,7 @@
 <!-- ================= SCRIPTS ================= -->
 <script>
 // ============================================================================
-// PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL (the one ending in /exec)
+// CRITICAL: REPLACE THE URL BELOW WITH YOUR ACTUAL APPS SCRIPT WEB APP URL
 // ============================================================================
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec";
 // ============================================================================
@@ -897,7 +899,6 @@ let selectedId = null;
 let currentUserProfile = { uid: "", email: "", role: "", name: "", phone: "", state: "" };
 let stepIdx = 0;
 const steps = ["1","2","3","4","5","6","7","8","review"];
-const state = { timeControl:"" };
 
 const TC = {
     "FIDE Blitz": [
@@ -923,14 +924,6 @@ const TC = {
     ]
 };
 
-// API WRAPPER
-async function api(action, data) {
-    if (!auth.currentUser) throw new Error('Please sign in again.');
-    const idToken = await auth.currentUser.getIdToken();
-    const res = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({ action, idToken, ...data }) });
-    return res.json();
-}
-
 // Clean Helper for Malaysia Local Time (GMT+8) formatting
 function formatLocalDate(dateStr) {
     if (!dateStr) return '—';
@@ -942,6 +935,10 @@ function formatLocalDate(dateStr) {
         return dateStr;
     }
 }
+
+window.closeDrawer = function() { 
+    document.getElementById('drawerBack').classList.remove('open'); 
+};
 
 function toggleSidebar(btn) {
     const activeView = document.querySelector('.view.active');
@@ -1043,7 +1040,6 @@ document.querySelectorAll('.btnLogOut').forEach(btn => btn.addEventListener('cli
 document.getElementById('btnGoOrgView')?.addEventListener('click', () => showView('organizer-dash'));
 document.getElementById('btnGoAdminView')?.addEventListener('click', () => showView('admin'));
 
-// Forgot Password Modal Triggers
 document.getElementById('forgotPassLink').addEventListener('click', () => {
     const loginEmail = document.getElementById('loginEmail').value;
     if (loginEmail) {
@@ -1062,11 +1058,9 @@ document.getElementById('btnSendReset').addEventListener('click', async () => {
         showToast("Please enter your email address.");
         return;
     }
-
     const btn = document.getElementById('btnSendReset');
     btn.textContent = "Sending...";
     btn.disabled = true;
-
     try {
         await auth.sendPasswordResetEmail(email);
         showToast("✓ Password reset email sent! Check your inbox.");
@@ -1107,18 +1101,18 @@ function getBadgeStyle(status) {
     return 'background: #FEE2E2; color: #991B1B;';
 }
 
-async function fetchDossiers() {
-    if (!auth.currentUser) return;
+// 100% PURE FETCH (No google.script.run dependency)
+window.fetchDossiers = async function() {
+    if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return;
     try {
-        const data = await api('getDossiers', {});
-        if (!Array.isArray(data)) throw new Error(data.message || 'Server did not return a list.');
-        applications = (data || []).reverse(); 
-        updateAdminCounts(); renderAdminTable();
-        updateOrgCounts(); renderOrgTable();
-    } catch(err) {
-        showToast("Error loading data from Sheets.");
+        const res = await fetch(`${SCRIPT_URL}?action=getDossiers`);
+        const data = await res.json();
+        applications = (data || []).reverse();
+        updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
+    } catch (err) {
+        showToast("Error loading data via API.");
     }
-}
+};
 
 document.getElementById('btnRefreshData')?.addEventListener('click', fetchDossiers);
 document.getElementById('btnRefreshOrg')?.addEventListener('click', fetchDossiers);
@@ -1567,8 +1561,8 @@ function openDrawer(id){
     document.getElementById('drawerFooter').innerHTML = footerHtml;
     document.getElementById('drawerBack').classList.add('open');
 }
-function closeDrawer(){ document.getElementById('drawerBack').classList.remove('open'); }
 
+// 100% PURE FETCH for file uploads & status changes
 window.uploadTunFile = async function(id) {
     const fileInput = document.getElementById('tunUploadInput');
     if (!fileInput || fileInput.files.length === 0) {
@@ -1584,70 +1578,51 @@ window.uploadTunFile = async function(id) {
         reader.readAsDataURL(file);
     });
 
+    if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return showToast("SCRIPT_URL missing.");
     try {
-        const res = await api('submitTunFile', { id: id, fileData: fileData, fileName: file.name });
+        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'submitTunFile', id: id, fileData: fileData, fileName: file.name }) });
+        const res = await response.json();
         if (res && res.status === 'success') {
             showToast("✓ Tournament report uploaded successfully!");
             const item = applications.find(x => x.id === id);
-            if (item) {
-                item.tunUrl = res.tunUrl;
-                item.tunStatus = 'PENDING';
-                item.tunRejectReason = '';
-            }
-            openDrawer(id);
-            fetchDossiers();
-        } else {
-            showToast("Error uploading file: " + (res ? res.message : "Unknown error"));
-        }
-    } catch(err) {
-        showToast("Connection Error: " + err.message);
-    }
+            if (item) { item.tunUrl = res.tunUrl; item.tunStatus = 'PENDING'; item.tunRejectReason = ''; }
+            openDrawer(id); fetchDossiers();
+        } else { showToast("Error uploading file: " + (res.message || "Unknown error")); }
+    } catch (err) { showToast("Connection Error: " + err.message); }
 };
 
 window.setTunStatus = async function(id, status) {
     showToast("Updating .tun status...");
+    if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return showToast("SCRIPT_URL missing.");
     try {
-        const res = await api('updateTunStatus', { id: id, status: status, reason: "" });
+        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateTunStatus', id: id, status: status, reason: "" }) });
+        const res = await response.json();
         if (res && res.status === 'success') {
             showToast("✓ Tournament report marked as Received!");
             const item = applications.find(x => x.id === id);
             if (item) item.tunStatus = status;
-            openDrawer(id);
-            fetchDossiers();
-        } else {
-            showToast("Error: " + (res ? res.message : "Unknown error"));
-        }
-    } catch(err) {
-        showToast("Connection Error: " + err.message);
-    }
+            openDrawer(id); fetchDossiers();
+        } else { showToast("Error: " + (res.message || "Unknown error")); }
+    } catch (err) { showToast("Connection Error: " + err.message); }
 };
 
 window.promptRejectTun = async function(id) {
     const reason = prompt("Please provide a reason why this .tun report is being rejected:");
     if (reason === null) return;
-    if (!reason.trim()) {
-        alert("Rejection reason cannot be empty.");
-        return;
-    }
+    if (!reason.trim()) { alert("Rejection reason cannot be empty."); return; }
 
     showToast("Submitting rejection comment...");
+    if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return showToast("SCRIPT_URL missing.");
     try {
-        const res = await api('updateTunStatus', { id: id, status: 'REJECTED', reason: reason });
+        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateTunStatus', id: id, status: 'REJECTED', reason: reason }) });
+        const res = await response.json();
         if (res && res.status === 'success') {
             showToast("✓ .tun report rejected with comments.");
             const item = applications.find(x => x.id === id);
-            if (item) {
-                item.tunStatus = 'REJECTED';
-                item.tunRejectReason = reason;
-            }
-            openDrawer(id);
-            fetchDossiers();
-        } else {
-            showToast("Error: " + (res ? res.message : "Unknown error"));
-        }
-    } catch(err) {
-        showToast("Connection Error: " + err.message);
-    }
+            if (item) { item.tunStatus = 'REJECTED'; item.tunRejectReason = reason; }
+            openDrawer(id); fetchDossiers();
+        } else { showToast("Error: " + (res.message || "Unknown error")); }
+    } catch (err) { showToast("Connection Error: " + err.message); }
 };
 
 window.changeStatus = async function(newStatus){
@@ -1655,294 +1630,29 @@ window.changeStatus = async function(newStatus){
         showToast("Error: No application selected.");
         return;
     }
-
     const footerBtns = document.querySelectorAll('#drawerFooter button');
     footerBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
-    showToast("Saving status to Google Sheets...");
+    showToast("Saving status...");
 
+    if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return showToast("SCRIPT_URL missing.");
     try {
-        const res = await api('updateDossierStatus', { id: selectedId, status: newStatus });
+        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateDossierStatus', id: selectedId, status: newStatus }) });
+        const res = await response.json();
         footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
-        
         if (res && res.status === 'success') { 
             const item = applications.find(x => x.id === selectedId);
             if (item) item.status = newStatus;
-            
-            updateAdminCounts(); 
-            renderAdminTable();
-            updateOrgCounts(); 
-            renderOrgTable();
-            
-            closeDrawer(); 
-            showToast("✓ Status updated to " + newStatus); 
-            fetchDossiers(); 
+            updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
+            closeDrawer(); showToast("✓ Status updated to " + newStatus); 
+            fetchDossiers();
         } else {
-            showToast("Error: " + (res ? res.message : "Unknown response from server"));
+            showToast("Error: " + (res.message || "Unknown error"));
         }
-    } catch(err) {
+    } catch (err) {
         footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
-        console.error("Apps Script Error:", err);
-        showToast("Script Error: " + (err.message || err));
+        showToast("Connection Error: " + err.message);
     }
 };
-document.getElementById('drawerClose').addEventListener('click', closeDrawer);
-document.getElementById('drawerBack').addEventListener('click', e => { if(e.target.id === 'drawerBack') closeDrawer(); });
-
-function computeFee(){
-    const pax = Math.max(parseInt(document.getElementById('pax').value, 10) || 0, 32); 
-    const orgCat = document.getElementById('orgCategory')?.value || "";
-    
-    let base = 300; 
-    // ONLY verified state admins get the RM200 fee, even if others select the option.
-    if (orgCat.includes("State Affiliate") && currentUserProfile.role === 'state_admin') {
-        base = 200;
-    }
-
-    let perPlayer = 10; 
-
-    const tcText = (document.getElementById('tcInput')?.value || "").toLowerCase();
-    if (tcText.includes("rapid") || tcText.includes("blitz")) {
-        perPlayer = 3; 
-    }
-
-    return { base, perPlayer, total: base + (perPlayer * pax) };
-}
-
-function renderRail(){
-    const rank = document.getElementById('rank'); 
-    rank.innerHTML=""; 
-    for(let i=0; i<8; i++){
-        const b = document.createElement('button');
-        b.type="button"; b.className="sq" + (i<stepIdx ? " done":"") + (i===stepIdx ? " current":"");
-        b.addEventListener('click', () => { if(i<=stepIdx){ stepIdx=i; renderWizard(); } });
-        rank.appendChild(b);
-    }
-    document.getElementById('stepNumLabel').textContent = Math.min(stepIdx+1, 8);
-}
-
-function updateDossier() {
-    document.getElementById('dEventName').textContent = document.getElementById('eventName')?.value || "Untitled event";
-    document.getElementById('dVenue').textContent = document.getElementById('venue')?.value || "—";
-    document.getElementById('dSystem').textContent = document.getElementById('system')?.value || "—";
-    document.getElementById('dTC').textContent = document.getElementById('tcInput')?.value || "—";
-    document.getElementById('dArbiter').textContent = document.getElementById('chiefArbiter')?.value || "—";
-    
-    const fee = computeFee();
-    const pax = parseInt(document.getElementById('pax')?.value) || 0;
-    document.getElementById('dFee').textContent = fee.total ? ("RM " + fee.total) : "—";
-    if (document.getElementById('feeBase')) document.getElementById('feeBase').textContent = "RM " + fee.base;
-    if (document.getElementById('feePerPlayer')) document.getElementById('feePerPlayer').textContent = "RM " + (fee.perPlayer * Math.max(pax, 32));
-    if (document.getElementById('feeTotal')) document.getElementById('feeTotal').textContent = "RM " + fee.total;
-    
-    const start = document.getElementById('dateStart')?.value; const end = document.getElementById('dateEnd')?.value;
-    if (document.getElementById('dDates')) document.getElementById('dDates').innerText = (start && end) ? `${formatLocalDate(start)} to ${formatLocalDate(end)}` : (formatLocalDate(start) || '—');
-}
-
-function renderWizard(){
-    document.querySelectorAll('#wizard .step').forEach(s => s.classList.remove('active'));
-    document.querySelector('#wizard .step[data-step="' + steps[stepIdx] + '"]').classList.add('active');
-    renderRail(); updateDossier();
-    
-    const isRev = steps[stepIdx] === "review";
-    document.getElementById('backBtn').style.visibility = stepIdx===0 ? "hidden" : "visible";
-    document.getElementById('nextBtn').style.display = isRev ? "none" : "inline-flex";
-    document.getElementById('submitAppBtn').style.display = isRev ? "inline-flex" : "none";
-    
-    if(isRev){
-        document.getElementById('reviewOut').innerHTML = `
-        <div style="background:var(--bg-body); padding:24px; border:1px solid var(--border); border-radius:var(--radius-lg);">
-            <h3 style="margin:0 0 12px; font-size:18px;">${document.getElementById('eventName').value || 'Untitled event'}</h3>
-            <p style="margin:0; font-size:14px; color:var(--text-muted);"><b>Venue:</b> ${document.getElementById('venue').value || '-'} | <b>State:</b> ${document.getElementById('orgState').value || '-'} | <b>Pax:</b> ${document.getElementById('pax').value || 0}</p>
-            <p style="margin:8px 0 0; font-size:14px; color:var(--text-muted);"><b>Dates:</b> ${formatLocalDate(document.getElementById('dateStart').value)} to ${formatLocalDate(document.getElementById('dateEnd').value)}</p>
-            <p style="margin:8px 0 0; font-size:14px; color:var(--text-muted);"><b>Format:</b> ${document.getElementById('system').value || '-'} (${document.getElementById('rounds').value || '-'} Rounds) | <b>Software:</b> ${document.getElementById('software').value || '-'}</p>
-            <p style="margin:8px 0 0; font-size:14px; color:var(--text-muted);"><b>Time Control:</b> ${document.getElementById('tcInput').value || '-'}</p>
-            <p style="margin:8px 0 0; font-size:14px; color:var(--text-muted);"><b>Chief Organizer:</b> ${document.getElementById('chiefOrg').value || '-'} | <b>Chief Arbiter:</b> ${document.getElementById('chiefArbiter').value || '-'}</p>
-            <p style="margin:16px 0 0; font-size:16px; color:var(--text-main);"><b>Total Fee Due (Deposit):</b> RM ${computeFee().total}</p>
-        </div>`;
-    }
-}
-
-function renderTC(filter){
-    const tcList = document.getElementById('tcList'); tcList.innerHTML = "";
-    Object.keys(TC).forEach(group => {
-        const matches = TC[group].filter(o => o.toLowerCase().includes((filter||"").toLowerCase()));
-        if(!matches.length) return;
-        const lbl = document.createElement('div'); lbl.className="combo-group-label"; lbl.textContent=group; tcList.appendChild(lbl);
-        matches.forEach(o => {
-            const d = document.createElement('div'); d.className="combo-opt"; d.textContent=o;
-            d.addEventListener('click', () => {
-                document.getElementById('tcInput').value = o + " (" + group + ")";
-                document.getElementById('tcPanel').classList.remove('open'); updateDossier();
-            });
-            tcList.appendChild(d);
-        });
-    });
-}
-
-function showToast(msg){
-    const toast = document.getElementById('toast'); document.getElementById('toastMsg').textContent = msg; toast.classList.add('show');
-    clearTimeout(window._toastTimer); window._toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-document.getElementById('btnNewAppDash').addEventListener('click', () => {
-    stepIdx = 0; 
-    document.getElementById('signName').value = currentUserProfile.name || ""; 
-    document.getElementById('orgState').value = currentUserProfile.state || "W.P. Kuala Lumpur";
-    document.getElementById('signDate').value = new Date().toISOString().split('T')[0];
-    renderWizard(); showView('organizer-wizard');
-});
-document.getElementById('btnCancelWizard').addEventListener('click', () => showView('organizer-dash'));
-
-// Time Control custom input & panel controls
-const tcInput = document.getElementById('tcInput');
-const tcPanel = document.getElementById('tcPanel');
-const tcSearch = document.getElementById('tcSearch');
-
-tcInput.addEventListener('focus', () => { tcPanel.classList.add('open'); renderTC(tcSearch.value); });
-tcInput.addEventListener('input', () => { updateDossier(); });
-tcSearch.addEventListener('input', (e) => { renderTC(e.target.value); });
-
-document.addEventListener('click', e => { if(!e.target.closest('.combo')) tcPanel.classList.remove('open'); });
-
-document.getElementById('nextBtn').addEventListener('click', () => { if(stepIdx < steps.length-1){ stepIdx++; renderWizard(); } });
-document.getElementById('backBtn').addEventListener('click', () => { if(stepIdx > 0){ stepIdx--; renderWizard(); } });
-
-document.getElementById('submitAppBtn').addEventListener('click', async function() {
-    // ----------------------------------------------------
-    // DEADLINE VALIDATION (Clauses 3.5 & 3.6)
-    // ----------------------------------------------------
-    const startDateVal = document.getElementById('dateStart')?.value;
-    if (startDateVal) {
-        const startDate = new Date(startDateVal);
-        const today = new Date();
-        const diffTime = startDate - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        const isTitleNorm = document.getElementById('chkTitleNorms')?.checked;
-        const tcText = (document.getElementById('tcInput')?.value || "").toLowerCase();
-        const isRapidOrBlitz = tcText.includes("rapid") || tcText.includes("blitz");
-
-        let minDays = 14; // Standard default (Clause 3.5)
-        let ruleDesc = "Standard tournaments must be submitted at least 14 days before the start date (Clause 3.5).";
-
-        if (isRapidOrBlitz) {
-            minDays = 7;
-            ruleDesc = "Rapid and Blitz tournaments must be submitted at least 7 days before the start date (Clause 3.6).";
-        }
-        if (isTitleNorm) {
-            minDays = 30;
-            ruleDesc = "Title-norm tournaments must be submitted at least 30 days before the start date (Clause 3.5.1).";
-        }
-
-        if (diffDays < minDays) {
-            showToast(`Submission Error: ${ruleDesc} (Selected date is only ${diffDays} days away).`);
-            return;
-        }
-    }
-
-    this.textContent = "Uploading files to Drive..."; 
-    this.disabled = true;
-
-    const fileInput = document.getElementById('receiptUpload');
-    let fileData = null; let fileName = null;
-
-    if (fileInput.files.length > 0) {
-        const file = fileInput.files[0]; fileName = file.name;
-        fileData = await new Promise((resolve) => { const reader = new FileReader(); reader.onloadend = () => resolve(reader.result); reader.readAsDataURL(file); });
-    }
-
-    const orgCat = document.getElementById('orgCategory')?.value || '';
-    const letterInput = document.getElementById('affiliateLetterUpload');
-    let letterData = null; let letterName = null;
-
-    if (orgCat.includes('State Affiliate') && letterInput && letterInput.files.length > 0) {
-        const letterFile = letterInput.files[0]; letterName = letterFile.name;
-        letterData = await new Promise((resolve) => { const reader = new FileReader(); reader.onloadend = () => resolve(reader.result); reader.readAsDataURL(letterFile); });
-    }
-
-    const posterInput = document.getElementById('posterUpload');
-    let posterData = null; let posterName = null;
-    if (posterInput && posterInput.files.length > 0) {
-        const posterFile = posterInput.files[0]; posterName = posterFile.name;
-        posterData = await new Promise((resolve) => { const reader = new FileReader(); reader.onloadend = () => resolve(reader.result); reader.readAsDataURL(posterFile); });
-    }
-
-    const payload = {
-        eventName: document.getElementById('eventName')?.value || 'Untitled',
-        venue: document.getElementById('venue')?.value || 'Not specified',
-        state: document.getElementById('orgState')?.value || 'W.P. Kuala Lumpur',
-        orgCategory: orgCat || 'Independent Organizer',
-        pax: parseInt(document.getElementById('pax')?.value) || 0,
-        startDate: document.getElementById('dateStart')?.value || '',
-        endDate: document.getElementById('dateEnd')?.value || '',
-        fideLaws: document.getElementById('chkFideLaws')?.checked ? 'Yes' : 'No',
-        natChampionship: document.getElementById('chkNatChampionship')?.checked ? 'Yes' : 'No',
-        titleNorms: document.getElementById('chkTitleNorms')?.checked ? 'Yes' : 'No',
-        normAvailable: document.getElementById('normAvailable')?.value || 'No',
-        directTitle: document.getElementById('chkDirectTitle')?.checked ? 'Yes' : 'No',
-        tourneyType: document.getElementById('tourneyType')?.value || 'Over the Board',
-        system: document.getElementById('system')?.value || 'Not specified',
-        rounds: document.getElementById('rounds')?.value || '7',
-        multiRoundDays: document.getElementById('multiRoundDays')?.value || '1',
-        maxRating: document.getElementById('maxRating')?.value || 'No limit',
-        software: document.getElementById('software')?.value || 'ChessManager',
-        tb1: document.getElementById('tb1')?.value || 'Direct encounter',
-        tb2: document.getElementById('tb2')?.value || 'Buchholz',
-        tb3: document.getElementById('tb3')?.value || '',
-        timeControl: document.getElementById('tcInput')?.value || '',
-        totalFee: computeFee().total,
-        paymentRef: document.getElementById('paymentRef')?.value || 'Pending Validation',
-        chiefArbiter: document.getElementById('chiefArbiter')?.value || '',
-        chiefArbiterFide: document.getElementById('chiefArbiterFide')?.value || '',
-        deputyArbiter: document.getElementById('deputyChiefArbiter')?.value || '',
-        deputyArbiterFide: document.getElementById('deputyChiefArbiterFide')?.value || '',
-        chiefOrg: document.getElementById('chiefOrg')?.value || '',
-        chiefOrgFide: document.getElementById('chiefOrgFide')?.value || '',
-        orgBody: document.getElementById('orgBody')?.value || '',
-        orgBodyFide: document.getElementById('orgBodyFide')?.value || '',
-        fairPlay: document.getElementById('fairPlayOfficer')?.value || '',
-        fairPlayFide: document.getElementById('fairPlayOfficerFide')?.value || '',
-        femaleOnly: document.getElementById('chkFemaleOnly')?.checked ? 'Yes' : 'No',
-        ageLimit: document.getElementById('ageLimit')?.value || 'None',
-        digitalClock: document.getElementById('chkDigitalClock')?.checked ? 'Yes' : 'No',
-        pgnProvided: document.getElementById('chkPgnProvided')?.checked ? 'Yes' : 'No',
-        internetLive: document.getElementById('chkInternetLive')?.checked ? 'Yes' : 'No',
-        contactEmail: document.getElementById('contactEmail')?.value || '',
-        homepage: document.getElementById('internetHomepage')?.value || '',
-        prizeFund: document.getElementById('prizeFund')?.value || '',
-        remarks: document.getElementById('remarks')?.value || '',
-        obj1: document.getElementById('obj1')?.value || '',
-        signName: document.getElementById('signName')?.value || '',
-        signDate: document.getElementById('signDate')?.value || '',
-        organizerEmail: currentUserProfile.email,
-        fileData: fileData, 
-        fileName: fileName,
-        letterData: letterData,
-        letterName: letterName,
-        posterData: posterData,
-        posterName: posterName
-    };
-
-    try {
-        const result = await api('submitDossier', payload);
-        if (result.status === 'success') {
-            document.getElementById('wizard').reset();
-            document.getElementById('submitAppBtn').textContent = "Submit Application"; 
-            document.getElementById('submitAppBtn').disabled = false;
-            showToast("Application securely submitted!"); 
-            showView('organizer-dash'); 
-            fetchDossiers(); 
-        } else { 
-            showToast("Server Error: " + result.message); 
-            document.getElementById('submitAppBtn').textContent = "Submit Application"; 
-            document.getElementById('submitAppBtn').disabled = false;
-        }
-    } catch(error) {
-        showToast("Connection Error. Check console."); 
-        document.getElementById('submitAppBtn').textContent = "Submit Application"; 
-        document.getElementById('submitAppBtn').disabled = false;
-    }
-});
 
 window.generateDossierPDF = function(id) {
     const app = applications.find(x => x.id === id); if (!app) return;
