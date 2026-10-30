@@ -10,8 +10,252 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- Load Stylesheet Component -->
-<?!= include('Stylesheet'); ?>
+<style>
+  :root {
+    --surface: #ffffff;
+    --bg-body: #F8FAFC;
+    --sidebar: #0F172A;
+    --sidebar-hover: #1E293B;
+    --text-main: #0F172A;
+    --text-muted: #64748B;
+    --text-light: #F8FAFC;
+    
+    --primary: #DC2626; /* Crimson Red */
+    --primary-hover: #B91C1C;
+    --primary-light: #FEE2E2;
+    
+    --accent: #EAB308; /* Bold Yellow */
+    --accent-hover: #CA8A04;
+    --accent-light: #FEF9C3;
+    
+    --danger: #DC2626;
+    --warning: #F59E0B;
+    
+    --border: #E2E8F0;
+    --border-soft: #F1F5F9;
+    
+    --radius: 8px;
+    --radius-lg: 12px;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    
+    --font: 'Inter', sans-serif;
+  }
+  
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; min-height: 100vh; font-family: var(--font); background: var(--bg-body); color: var(--text-main); -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--primary-light); color: var(--primary-hover); }
+
+  .view { display: none; min-height: 100vh; animation: fadeIn 0.3s ease-in-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .auth-view.active { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: var(--sidebar); }
+  .dash-view.active { display: grid; grid-template-columns: 280px 1fr; }
+  .wizard-view.active { display: grid; grid-template-columns: 320px 1fr; }
+
+  /* Mobile Responsive Breakpoint & Sidebar Toggle */
+  .mobile-nav-bar { display: none; }
+
+  @media (max-width: 900px) {
+    .dash-view.active, .wizard-view.active { display: flex; flex-direction: column; }
+    .mobile-nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--sidebar);
+      color: white;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .mobile-nav-bar h2 { font-size: 15px; margin: 0; font-weight: 600; }
+    .mobile-menu-btn {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .rail {
+      position: relative !important;
+      height: auto !important;
+      width: 100% !important;
+      box-shadow: none !important;
+      display: none !important;
+    }
+    .rail.mobile-open {
+      display: flex !important;
+    }
+    .stage { padding: 20px !important; }
+    .stage-header { flex-direction: column; align-items: flex-start !important; gap: 12px; }
+    .stage-header > div:last-child { width: 100%; display: flex; flex-wrap: wrap; gap: 8px !important; }
+    .field-grid { grid-template-columns: 1fr !important; }
+  }
+
+  .rail {
+    background: var(--sidebar);
+    color: var(--text-light);
+    padding: 32px 24px 24px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(255,255,255,0.05);
+  }
+  .crest { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
+  .crest-mark { width: 44px; height: auto; flex: none; background: transparent; border-radius: 8px; display: grid; place-items: center; overflow: hidden; }
+  .crest-text .eyebrow { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 2px; font-weight: 600; }
+  .crest-text h1 { font-size: 16px; font-weight: 600; margin: 0; color: white; letter-spacing: -0.02em; }
+
+  .gateway { width: 100%; max-width: 420px; }
+  .brand-head { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 32px; }
+  .brand-head h1 { font-size: 24px; font-weight: 600; color: white; margin: 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 32px; position: relative; }
+  
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+  .field label { font-size: 12px; font-weight: 500; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
+  .field label .link-opt { text-transform: none; font-size: 12px; color: var(--primary); text-decoration: none; cursor: pointer; font-weight: 500; }
+  .field label .link-opt:hover { text-decoration: underline; }
+  
+  input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], input[type=tel], select, textarea, input[type=file] {
+    font-family: var(--font); font-size: 14px; color: var(--text-main); background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; width: 100%;
+    transition: all 0.2s ease;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15); }
+  input:disabled { background: var(--bg-body); color: var(--text-muted); cursor: not-allowed; }
+  
+  .form-error { background: #FEE2E2; color: #991B1B; font-size: 13px; font-weight: 500; padding: 10px 14px; border-radius: var(--radius); margin-bottom: 16px; text-align: center; display: none; }
+
+  .btn { font-family: var(--font); font-weight: 500; font-size: 14px; padding: 10px 20px; border-radius: var(--radius); border: 1px solid transparent; cursor: pointer; transition: all 0.2s ease; display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+  
+  .btn-submit, .btn-primary { background: var(--primary); color: white; width: 100%; }
+  .btn-submit:hover, .btn-primary:hover { background: var(--primary-hover); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25); }
+  
+  .btn-ghost { background: transparent; color: var(--text-muted); border-color: var(--border); width: auto; }
+  .btn-ghost:hover { background: var(--bg-body); color: var(--text-main); }
+  
+  .btn-gold { background: var(--surface); color: var(--text-main); border-color: var(--border); box-shadow: var(--shadow-sm); }
+  .btn-gold:hover { border-color: var(--accent); color: var(--accent-hover); }
+
+  .gateway-foot { margin-top: 24px; text-align: center; font-size: 13px; color: var(--text-muted); }
+  .gateway-foot a { color: var(--primary); text-decoration: none; font-weight: 500; cursor: pointer; }
+  .gateway-foot a:hover { text-decoration: underline; }
+
+  .rail-lede { font-size: 13px; line-height: 1.6; color: var(--text-muted); margin: 0 0 24px; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .board-progress { margin-bottom: 32px; }
+  .board-progress .label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin: 0 0 12px; letter-spacing: 0.05em; }
+  
+  .rank { display: flex; gap: 8px; }
+  .sq { flex: 1; height: 6px; border-radius: 99px; background: rgba(255,255,255,0.1); border: none; cursor: pointer; transition: all 0.3s ease; padding: 0; font-size: 0; }
+  .sq.done { background: var(--primary); }
+  .sq.current { background: var(--accent); box-shadow: 0 0 8px rgba(234, 179, 8, 0.5); }
+  
+  .dossier { margin-top: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: white; padding: 20px; border-radius: var(--radius-lg); }
+  .dossier .tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin: 0 0 8px; }
+  .dossier h2 { font-size: 16px; font-weight: 600; margin: 0 0 16px; }
+  .dossier dl { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .dossier .row { display: flex; justify-content: space-between; font-size: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .dossier .row:last-child { border: none; padding-bottom: 0; }
+  .dossier dt { color: var(--text-muted); }
+  .dossier dd { margin: 0; font-weight: 500; text-align: right; }
+  
+  .stage { padding: 48px; overflow-y: auto; }
+  .stage-inner { max-width: 680px; margin: 0 auto; background: var(--surface); padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+  .step-head { margin-bottom: 32px; }
+  .step-eyebrow { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--primary); margin: 0 0 8px; letter-spacing: 0.05em; }
+  .step-head h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px; color: var(--text-main); letter-spacing: -0.02em; }
+  .step-head p { font-size: 14px; line-height: 1.6; color: var(--text-muted); margin: 0; }
+  
+  .step { display: none; animation: slideUp 0.3s ease; }
+  .step.active { display: block; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+  .field.full { grid-column: 1 / -1; }
+  
+  .combo { position: relative; }
+  .combo-input { cursor: pointer; }
+  .combo-panel { position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); max-height: 280px; overflow-y: auto; display: none; }
+  .combo-panel.open { display: block; animation: fadeIn 0.15s ease; }
+  .combo-search { padding: 8px; border-bottom: 1px solid var(--border-soft); position: sticky; top: 0; background: var(--surface); z-index: 2; }
+  .combo-group-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); background: var(--bg-body); padding: 8px 14px; position: sticky; top: 51px; }
+  .combo-opt { padding: 10px 14px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border-soft); transition: background 0.15s; }
+  .combo-opt:hover { background: var(--primary-light); color: var(--primary-hover); }
+  
+  .fee-box { background: var(--bg-body); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .fee-box-label { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin: 0 0 16px; letter-spacing: 0.05em; }
+  .fee-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 12px; color: var(--text-main); }
+  .fee-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); font-size: 20px; font-weight: 700; color: var(--primary); }
+  
+  .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border); }
+
+  .nav-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin: 16px 0 8px; letter-spacing: 0.05em; }
+  .nav-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 32px; }
+  .nav-item { display: flex; justify-content: space-between; align-items: center; background: transparent; border: none; color: var(--text-muted); padding: 10px 12px; border-radius: var(--radius); font-family: var(--font); font-size: 13px; font-weight: 500; cursor: pointer; text-align: left; transition: all 0.2s; }
+  .nav-item:hover { background: var(--sidebar-hover); color: white; }
+  .nav-item.active { background: rgba(220, 38, 38, 0.15); color: var(--accent); font-weight: 600; }
+  .badge { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .nav-item.active .badge { background: var(--primary); color: white; }
+  
+  .admin-stats { margin-top: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: var(--radius); margin-bottom: 24px; }
+  .stat-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+  .stat-row:last-child { margin: 0; }
+  .stat-row strong { color: white; font-weight: 600; }
+  
+  .btn-logout { background: transparent; border: none; font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; padding: 0; transition: color 0.2s; }
+  .btn-logout:hover { color: var(--danger); }
+
+  .stage-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
+  .stage-header h2 { font-size: 24px; font-weight: 700; margin: 0; letter-spacing: -0.02em; }
+  .stage-header p { font-size: 14px; color: var(--text-muted); margin: 6px 0 0; }
+  
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
+  th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); background: var(--bg-body); padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  td { padding: 16px 20px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-soft); vertical-align: middle; transition: background 0.2s; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg-body); cursor: pointer; }
+  
+  .status-pill { display: inline-flex; align-items: center; justify-content: center; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; }
+  
+  .drawer-back { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); display: flex; justify-content: flex-end; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+  .drawer-back.open { opacity: 1; pointer-events: auto; }
+  .drawer { background: var(--surface); width: 640px; max-width: 90vw; height: 100vh; overflow-y: auto; box-shadow: -10px 0 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .drawer-back.open .drawer { transform: translateX(0); }
+  
+  .drawer-head { padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; background: var(--surface); position: sticky; top: 0; z-index: 10; }
+  .drawer-head h3 { font-size: 20px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .drawer-head p { margin: 0; font-size: 13px; color: var(--text-muted); }
+  .drawer-close { background: var(--bg-body); border: 1px solid var(--border); border-radius: 50%; width: 32px; height: 32px; display: grid; place-items: center; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
+  .drawer-close:hover { background: var(--border); color: var(--text-main); }
+  
+  .drawer-body { padding: 32px; flex: 1; }
+  .section-title { font-size: 14px; font-weight: 600; color: var(--text-main); margin: 32px 0 16px; display: flex; align-items: center; gap: 12px; }
+  .section-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  .section-title:first-child { margin-top: 0; }
+  
+  .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+  .data-item .label { display: block; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px; }
+  .data-item span:not(.label) { font-size: 14px; color: var(--text-main); font-weight: 500; }
+  
+  .drawer-footer { padding: 20px 32px; border-top: 1px solid var(--border); background: var(--bg-body); display: flex; justify-content: space-between; position: sticky; bottom: 0; }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--sidebar); color: white; padding: 12px 24px; border-radius: 99px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 10px; z-index: 300; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+</style>
 </head>
 <body>
 
@@ -611,13 +855,1165 @@
 
 <div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
 
-<!-- External Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js"></script>
 
-<!-- Load JavaScript Component -->
-<?!= include('JavaScript'); ?>
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyD1TGam7x7DaVq-ZhC5Drx3dNfR9Cmzquo",
+    authDomain: "mcf-fide-portal.firebaseapp.com",
+    projectId: "mcf-fide-portal",
+    storageBucket: "mcf-fide-portal.firebasestorage.app",
+    messagingSenderId: "207429811337",
+    appId: "1:207429811337:web:0ae95296abc1c7856d9a58"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const CORE_ADMIN_EMAIL = "mrsyaifulzamani02@gmail.com"; 
+
+let applications = [];
+let usersList = [];
+let currentFilterAdmin = "all";
+let currentFilterOrg = "all";
+let searchQ = "";
+let selectedStateFilter = "all";
+let searchUsersQ = "";
+let selectedUserRoleFilter = "all";
+let selectedUserStateFilter = "all";
+let selectedId = null;
+
+let currentUserProfile = { uid: "", email: "", role: "", name: "", phone: "", state: "" };
+let stepIdx = 0;
+const steps = ["1","2","3","4","5","6","7","8","review"];
+const state = { timeControl:"" };
+
+const TC = {
+    "FIDE Blitz": [
+        "3 minutes for game with 2 seconds increment from move 1",
+        "5 minutes for game",
+        "4 minutes for game with 2 seconds increment from move 1",
+        "3 minutes for game with 1 second increment from move 1",
+        "5 minutes for game with 3 seconds increment from move 1"
+    ],
+    "FIDE Rapid": [
+        "15 minutes for game with 10 seconds increment from move 1",
+        "10 minutes for game with 5 seconds increment from move 1",
+        "25 minutes for game with 10 seconds increment from move 1",
+        "15 minutes for game",
+        "20 minutes for game",
+        "30 minutes for game"
+    ],
+    "FIDE Standard": [
+        "90 minutes for first 40 moves and 30 minutes for the rest of the game with 30sec increment from move 1",
+        "90 minutes for game with 30 seconds increment from move 1",
+        "60 minutes for game with 30 seconds increment from move 1",
+        "45 minutes for game with 15 seconds increment from move 1"
+    ]
+};
+
+// Clean Helper for Malaysia Local Time (GMT+8) formatting
+function formatLocalDate(dateStr) {
+    if (!dateStr) return '—';
+    try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString('en-GB', { timeZone: 'Asia/Kuala_Lumpur', day: '2-digit', month: 'short', year: 'numeric' });
+    } catch(e) {
+        return dateStr;
+    }
+}
+
+function toggleSidebar(btn) {
+    const activeView = document.querySelector('.view.active');
+    const rail = activeView ? activeView.querySelector('.rail') : null;
+    if (rail) {
+        rail.classList.toggle('mobile-open');
+        btn.textContent = rail.classList.contains('mobile-open') ? '✕ Close' : '☰ Menu';
+    }
+}
+
+function toggleNormFields() {
+    const chk = document.getElementById('chkTitleNorms');
+    const wrap = document.getElementById('normAvailableWrap');
+    if (chk && wrap) {
+        wrap.style.display = chk.checked ? 'block' : 'none';
+    }
+}
+
+function toggleAffiliateLetter() {
+    const orgCat = document.getElementById('orgCategory')?.value || '';
+    const field = document.getElementById('affiliateLetterField');
+    if (field) {
+        field.style.display = orgCat.includes('State Affiliate') ? 'block' : 'none';
+    }
+}
+
+function toggleArbiterInput(type) {
+    const chk = document.getElementById(type === 'Sector' ? 'addSectorArbiters' : type === 'Arbiter' ? 'addArbiters' : type === 'Assistant' ? 'addAssistantArbiters' : 'addPairingsArbiters');
+    const container = document.getElementById(type === 'Sector' ? 'sectorArbiterFields' : type === 'Arbiter' ? 'arbiterFields' : type === 'Assistant' ? 'assistantArbiterFields' : 'pairingsArbiterFields');
+    if (chk && container) {
+        container.style.display = chk.checked ? 'block' : 'none';
+    }
+}
+
+function showView(viewId){
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + viewId).classList.add('active');
+    window.scrollTo({top:0, behavior:'instant'});
+}
+
+auth.onAuthStateChanged(user => {
+    if (user) {
+        db.collection('users').doc(user.uid).get().then(doc => {
+            if(doc.exists) {
+                currentUserProfile = { uid: user.uid, email: user.email, ...doc.data() };
+                
+                if (user.email.toLowerCase() === CORE_ADMIN_EMAIL.toLowerCase() && currentUserProfile.role !== 'core_admin') {
+                    db.collection('users').doc(user.uid).update({ role: 'core_admin' });
+                    currentUserProfile.role = 'core_admin';
+                }
+                
+                if(currentUserProfile.role === 'admin' || currentUserProfile.role === 'core_admin' || currentUserProfile.role === 'state_admin') {
+                    document.getElementById('btnGoAdminView').style.display = 'inline-flex'; 
+                    document.getElementById('adminRoleEyebrow').innerText = currentUserProfile.role === 'state_admin' ? (currentUserProfile.state + ' Association') : 'MCF Administration';
+                    
+                    if (currentUserProfile.role === 'state_admin') {
+                        const stateSel = document.getElementById('stateFilter');
+                        if (stateSel) {
+                            stateSel.value = currentUserProfile.state;
+                            stateSel.disabled = true;
+                            selectedStateFilter = currentUserProfile.state;
+                        }
+                    }
+
+                    if (currentUserProfile.role === 'core_admin') {
+                        document.getElementById('systemAdminMenu').style.display = 'block';
+                        listenForUsers();
+                    }
+                    showView('admin');
+                } else {
+                    document.getElementById('btnGoAdminView').style.display = 'none'; 
+                    showView('organizer-dash');
+                }
+                fetchDossiers(); 
+            } else { auth.signOut(); }
+        });
+    } else {
+        showView('login');
+        currentUserProfile = {}; 
+    }
+});
+
+document.getElementById('goToRegister').addEventListener('click', () => showView('register'));
+document.getElementById('goToLogin').addEventListener('click', () => showView('login'));
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+        const cred = await auth.createUserWithEmailAndPassword(document.getElementById('regEmail').value, document.getElementById('regPass').value);
+        await db.collection('users').doc(cred.user.uid).set({ name: document.getElementById('regName').value, email: document.getElementById('regEmail').value.toLowerCase(), role: "organizer", phone: "", state: document.getElementById('regState').value });
+        showToast("Account created successfully!");
+    } catch (error) { document.getElementById('regError').textContent = error.message; document.getElementById('regError').style.display = 'block'; }
+});
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try { await auth.signInWithEmailAndPassword(document.getElementById('loginEmail').value, document.getElementById('loginPass').value); showToast("Welcome back!"); } 
+    catch (error) { document.getElementById('loginError').textContent = "Invalid credentials."; document.getElementById('loginError').style.display = 'block'; }
+});
+document.querySelectorAll('.btnLogOut').forEach(btn => btn.addEventListener('click', () => auth.signOut()));
+document.getElementById('btnGoOrgView')?.addEventListener('click', () => showView('organizer-dash'));
+document.getElementById('btnGoAdminView')?.addEventListener('click', () => showView('admin'));
+
+// Forgot Password Modal Triggers
+document.getElementById('forgotPassLink').addEventListener('click', () => {
+    const loginEmail = document.getElementById('loginEmail').value;
+    if (loginEmail) {
+        document.getElementById('resetEmail').value = loginEmail;
+    }
+    document.getElementById('forgotModal').style.display = 'flex';
+});
+
+document.getElementById('btnCloseReset').addEventListener('click', () => {
+    document.getElementById('forgotModal').style.display = 'none';
+});
+
+document.getElementById('btnSendReset').addEventListener('click', async () => {
+    const email = document.getElementById('resetEmail').value.trim();
+    if (!email) {
+        showToast("Please enter your email address.");
+        return;
+    }
+
+    const btn = document.getElementById('btnSendReset');
+    btn.textContent = "Sending...";
+    btn.disabled = true;
+
+    try {
+        await auth.sendPasswordResetEmail(email);
+        showToast("✓ Password reset email sent! Check your inbox.");
+        document.getElementById('forgotModal').style.display = 'none';
+    } catch (error) {
+        showToast("Error: " + error.message);
+    } finally {
+        btn.textContent = "Send Link";
+        btn.disabled = false;
+    }
+});
+
+document.querySelectorAll('.btnGoProfile').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.getElementById('profEmail').value = currentUserProfile.email;
+        document.getElementById('profName').value = currentUserProfile.name || "";
+        document.getElementById('profPhone').value = currentUserProfile.phone || "";
+        document.getElementById('profState').value = currentUserProfile.state || "";
+        showView('profile');
+    });
+});
+document.getElementById('btnBackFromProfile').addEventListener('click', () => {
+    if(currentUserProfile.role === 'admin' || currentUserProfile.role === 'core_admin' || currentUserProfile.role === 'state_admin') showView('admin');
+    else showView('organizer-dash');
+});
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnSaveProfile'); btn.textContent = "Saving...";
+    const updates = { name: document.getElementById('profName').value, phone: document.getElementById('profPhone').value, state: document.getElementById('profState').value };
+    try { await db.collection('users').doc(currentUserProfile.uid).update(updates); currentUserProfile = { ...currentUserProfile, ...updates }; showToast("Profile updated!"); btn.textContent = "Save Changes"; } 
+    catch (error) { document.getElementById('profError').textContent = "Update failed."; document.getElementById('profError').style.display = 'block'; btn.textContent = "Save Changes"; }
+});
+
+function getBadgeStyle(status) {
+    if (status === 'PENDING STATE') return 'background: #FEF3C7; color: #92400E;';
+    if (status === 'PENDING ADMIN') return 'background: #DBEAFE; color: #1E40AF;';
+    if (status === 'APPROVED') return 'background: #D1FAE5; color: #065F46;';
+    return 'background: #FEE2E2; color: #991B1B;';
+}
+
+function fetchDossiers() {
+    if (typeof google === 'undefined' || !google.script) {
+        console.warn("Local env: Skipping Apps Script fetch."); return;
+    }
+    google.script.run.withSuccessHandler(function(data) {
+        applications = (data || []).reverse(); 
+        updateAdminCounts(); renderAdminTable();
+        updateOrgCounts(); renderOrgTable();
+    }).withFailureHandler(function(err){
+        showToast("Error loading data from Sheets.");
+    }).getDossiers();
+}
+
+document.getElementById('btnRefreshData')?.addEventListener('click', fetchDossiers);
+document.getElementById('btnRefreshOrg')?.addEventListener('click', fetchDossiers);
+
+function updateAdminCounts() {
+    let viewableApps = applications;
+    if (currentUserProfile.role === 'state_admin') viewableApps = applications.filter(a => a.state === currentUserProfile.state);
+    document.getElementById('cntAll').innerText = viewableApps.length;
+    document.getElementById('cntPendingState').innerText = viewableApps.filter(a => a.status === 'PENDING STATE').length;
+    document.getElementById('cntPendingAdmin').innerText = viewableApps.filter(a => a.status === 'PENDING ADMIN').length;
+    document.getElementById('cntApproved').innerText = viewableApps.filter(a => a.status === 'APPROVED').length;
+    document.getElementById('cntRevision').innerText = viewableApps.filter(a => a.status === 'REVISION REQ.').length;
+    document.getElementById('statFees').innerText = 'RM ' + viewableApps.filter(a => a.status === 'APPROVED').reduce((sum, app) => sum + (Number(app.fee) || 0), 0);
+    
+    const pendingCount = viewableApps.filter(a => a.status === 'PENDING STATE' || a.status === 'PENDING ADMIN').length;
+    document.getElementById('statAction').innerText = pendingCount + ' Events';
+}
+
+function renderAdminTable() {
+    const tbody = document.getElementById('tableBody');
+    if (!tbody) return; tbody.innerHTML = '';
+    
+    let filtered = applications; 
+    
+    if (currentUserProfile.role === 'state_admin') {
+        filtered = filtered.filter(a => a.state === currentUserProfile.state);
+    } else if (selectedStateFilter !== 'all') {
+        filtered = filtered.filter(a => a.state === selectedStateFilter);
+    }
+
+    if (currentFilterAdmin !== 'all') {
+        let target = currentFilterAdmin === 'pending_state' ? 'PENDING STATE' : currentFilterAdmin === 'pending_admin' ? 'PENDING ADMIN' : currentFilterAdmin === 'approved' ? 'APPROVED' : 'REVISION REQ.';
+        filtered = filtered.filter(a => a.status === target);
+    }
+
+    if (searchQ.trim() !== '') {
+        const q = searchQ.toLowerCase();
+        filtered = filtered.filter(a => 
+            (a.eventName || '').toLowerCase().includes(q) || 
+            (a.organizerEmail || '').toLowerCase().includes(q) ||
+            (a.id || '').toLowerCase().includes(q)
+        );
+    }
+    
+    filtered.forEach(app => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <b style="font-size:14px; color:var(--text-main);">${app.eventName}</b><br>
+                <span style="font-size:11px; color:var(--text-muted);">${app.id} &bull; ${app.organizerEmail}</span>
+            </td>
+            <td>${app.state}<br><span style="font-size:11px; color:var(--text-muted);">${formatLocalDate(app.startDate)}</span></td>
+            <td>${app.system} (${app.rounds || '-'} Rds)<br><span style="font-size:11px; color:var(--text-muted);">${app.timeControl || '-'}</span></td>
+            <td>${app.pax} pax</td>
+            <td>
+                <b style="color:var(--text-main);">RM ${app.fee || 0}</b><br>
+                <span style="font-size:11px; color:var(--text-muted);">Ref: ${app.paymentRef || '-'}</span>
+            </td>
+            <td>
+                <div style="display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                    <span class="status-pill" style="${getBadgeStyle(app.status)}">${app.status}</span>
+                    <button type="button" class="btn btn-ghost" style="padding:4px 10px; font-size:11px;">Review</button>
+                </div>
+            </td>
+        `;
+        tr.addEventListener('click', () => openDrawer(app.id));
+        tbody.appendChild(tr);
+    });
+}
+
+document.getElementById('searchInput').addEventListener('input', e => { searchQ = e.target.value; renderAdminTable(); });
+document.getElementById('stateFilter').addEventListener('change', e => { selectedStateFilter = e.target.value; renderAdminTable(); });
+
+function updateOrgCounts() {
+    const myApps = applications.filter(a => a.organizerEmail === currentUserProfile.email);
+    document.getElementById('cntOrgAll').innerText = myApps.length;
+    document.getElementById('cntOrgPendingState').innerText = myApps.filter(a => a.status === 'PENDING STATE').length;
+    document.getElementById('cntOrgPendingAdmin').innerText = myApps.filter(a => a.status === 'PENDING ADMIN').length;
+    document.getElementById('cntOrgApproved').innerText = myApps.filter(a => a.status === 'APPROVED').length;
+    document.getElementById('cntOrgRevision').innerText = myApps.filter(a => a.status === 'REVISION REQ.').length;
+}
+
+function renderOrgTable() {
+    const tbody = document.getElementById('tableBodyOrg');
+    if (!tbody) return; tbody.innerHTML = '';
+    let myApps = applications.filter(a => a.organizerEmail === currentUserProfile.email);
+    if (currentFilterOrg !== 'all') {
+        let target = currentFilterOrg === 'pending_state' ? 'PENDING STATE' : currentFilterOrg === 'pending_admin' ? 'PENDING ADMIN' : currentFilterOrg === 'approved' ? 'APPROVED' : 'REVISION REQ.';
+        myApps = myApps.filter(a => a.status === target);
+    }
+    myApps.forEach(app => {
+        const tr = document.createElement('tr');
+        
+        let reportBadgeHtml = '';
+        if (app.status === 'APPROVED') {
+            const tunStatus = app.tunStatus || 'PENDING';
+            if (tunStatus === 'RECEIVED') {
+                reportBadgeHtml = `<br><span class="status-pill" style="background:#D1FAE5; color:#065F46; font-size:10px; margin-top:4px;">✓ .tun Received by MCF</span>`;
+            } else if (tunStatus === 'REJECTED') {
+                reportBadgeHtml = `<br><span class="status-pill" style="background:#FEE2E2; color:#991B1B; font-size:10px; margin-top:4px;">✗ .tun Rejected - Re-upload Req.</span>`;
+            } else {
+                const hasTun = app.tunUrl && app.tunUrl.startsWith('http');
+                reportBadgeHtml = hasTun 
+                    ? `<br><span class="status-pill" style="background:#DBEAFE; color:#1E40AF; font-size:10px; margin-top:4px;">⏳ .tun Pending Review</span>` 
+                    : `<br><span class="status-pill" style="background:#FEF3C7; color:#92400E; font-size:10px; margin-top:4px;">⚠ .tun Report Missing</span>`;
+            }
+        }
+
+        tr.innerHTML = `
+            <td>
+                <b style="font-size:14px; color:var(--text-main);">${app.eventName}</b><br>
+                <span style="font-size:11px; color:var(--text-muted);">${app.id}</span>
+            </td>
+            <td>${app.state}<br><span style="font-size:11px; color:var(--text-muted);">${formatLocalDate(app.startDate)}</span></td>
+            <td>${app.system} (${app.rounds || '-'} Rds)<br><span style="font-size:11px; color:var(--text-muted);">${app.timeControl || '-'}</span></td>
+            <td>${app.pax} pax</td>
+            <td>
+                <b style="color:var(--text-main);">RM ${app.fee || 0}</b><br>
+                <span style="font-size:11px; color:var(--text-muted);">Ref: ${app.paymentRef || '-'}</span>
+            </td>
+            <td>
+                <div style="display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                    <span class="status-pill" style="${getBadgeStyle(app.status)}">${app.status}</span>
+                    <button type="button" class="btn btn-ghost" style="padding:4px 10px; font-size:11px;">View</button>
+                </div>
+                ${reportBadgeHtml}
+            </td>
+        `;
+        tr.addEventListener('click', () => openDrawer(app.id));
+        tbody.appendChild(tr);
+    });
+}
+document.querySelectorAll('#navFilterOrg .nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('#navFilterOrg .nav-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active'); currentFilterOrg = btn.getAttribute('data-filter'); renderOrgTable();
+    });
+});
+document.querySelectorAll('#navFilter .nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active'); currentFilterAdmin = btn.getAttribute('data-filter'); renderAdminTable();
+        document.getElementById('adminAppsWrap').style.display = 'block'; document.getElementById('adminUsersWrap').style.display = 'none';
+    });
+});
+
+function listenForUsers() {
+    db.collection("users").onSnapshot((snapshot) => {
+        usersList = []; snapshot.forEach(doc => usersList.push({ id: doc.id, ...doc.data() }));
+        usersList.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+        renderUsersTable();
+    });
+}
+
+function renderUsersTable() {
+    const tbody = document.getElementById('tableBodyUsers'); 
+    if (!tbody) return; 
+    tbody.innerHTML = '';
+    
+    let filteredUsers = usersList;
+
+    if (selectedUserRoleFilter !== 'all') {
+        filteredUsers = filteredUsers.filter(u => (u.role || 'organizer') === selectedUserRoleFilter);
+    }
+
+    if (selectedUserStateFilter !== 'all') {
+        filteredUsers = filteredUsers.filter(u => (u.state || '') === selectedUserStateFilter);
+    }
+
+    if (searchUsersQ.trim() !== '') {
+        const q = searchUsersQ.toLowerCase();
+        filteredUsers = filteredUsers.filter(u => 
+            (u.name || '').toLowerCase().includes(q) || 
+            (u.email || '').toLowerCase().includes(q)
+        );
+    }
+
+    filteredUsers.forEach(u => {
+        const tr = document.createElement('tr');
+        let roleBadge = 'ORGANIZER', badgeStyle = 'background:#F1F5F9; color:#64748B;';
+        if (u.role === 'state_admin') { roleBadge = 'STATE ADMIN'; badgeStyle = 'background:#FEF3C7; color:#92400E;'; }
+        if (u.role === 'admin') { roleBadge = 'MCF ADMIN'; badgeStyle = 'background:#DBEAFE; color:#1E40AF;'; }
+        if (u.role === 'core_admin') { roleBadge = 'CORE ADMIN'; badgeStyle = 'background:#FEE2E2; color:#991B1B;'; }
+
+        let actionHtml = '-';
+        
+        if (currentUserProfile.role === 'core_admin') {
+            if (u.email !== currentUserProfile.email) {
+                actionHtml = `
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <select class="role-select" id="role_${u.id}" style="padding:4px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                        <option value="organizer" ${u.role === 'organizer' ? 'selected' : ''}>Organizer</option>
+                        <option value="state_admin" ${u.role === 'state_admin' ? 'selected' : ''}>State Admin</option>
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>MCF Admin</option>
+                        <option value="core_admin" ${u.role === 'core_admin' ? 'selected' : ''}>Core Admin</option>
+                    </select>
+                    <button class="btn btn-gold btnChangeRole" data-id="${u.id}" style="padding: 3px 8px; font-size: 10px;">Save</button>
+                </div>`;
+            } else {
+                actionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic;">(Your Account)</span>`;
+            }
+        } else {
+            actionHtml = `<span style="font-size:12px; color:var(--text-muted);">Restricted</span>`;
+        }
+
+        tr.innerHTML = `<td><b style="font-size:14px;">${u.name || 'N/A'}</b></td><td>${u.email}</td><td>${u.state || '-'}</td><td><span class="status-pill" style="${badgeStyle}">${roleBadge}</span></td><td>${actionHtml}</td>`;
+        tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.btnChangeRole').forEach(b => b.addEventListener('click', (e) => {
+        if (currentUserProfile.role !== 'core_admin') {
+            showToast("Unauthorized action.");
+            return;
+        }
+        db.collection('users').doc(e.target.dataset.id).update({ role: document.getElementById(`role_${e.target.dataset.id}`).value }); 
+        showToast("Role updated successfully.");
+    }));
+}
+
+document.getElementById('searchUsers').addEventListener('input', (e) => {
+    searchUsersQ = e.target.value;
+    renderUsersTable();
+});
+
+document.getElementById('userRoleFilter').addEventListener('change', (e) => {
+    selectedUserRoleFilter = e.target.value;
+    renderUsersTable();
+});
+
+document.getElementById('userStateFilter').addEventListener('change', (e) => {
+    selectedUserStateFilter = e.target.value;
+    renderUsersTable();
+});
+
+document.getElementById('btnNavUsers')?.addEventListener('click', (e) => {
+    document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active')); e.target.classList.add('active');
+    document.getElementById('adminAppsWrap').style.display = 'none'; document.getElementById('adminUsersWrap').style.display = 'block';
+});
+
+function openDrawer(id){
+    selectedId = id; const t = applications.find(x => x.id === id); if(!t) return;
+    document.getElementById('dTitle').textContent = t.eventName;
+    document.getElementById('dSubtitle').textContent = "Application ID: " + t.id;
+    
+    let tunSectionHtml = '';
+    const isApproved = t.status === 'APPROVED';
+    const isOrganizer = currentUserProfile.email === t.organizerEmail;
+    const isMCFAdmin = ['admin', 'core_admin'].includes(currentUserProfile.role);
+
+    if (isApproved) {
+        const tunStatus = t.tunStatus || 'PENDING';
+        let statusBadge = '';
+        if (tunStatus === 'RECEIVED') {
+            statusBadge = `<span style="font-size:12px; color:#065F46; font-weight:600; background:#D1FAE5; padding:4px 10px; border-radius:99px;">✓ .tun Received & Accepted</span>`;
+        } else if (tunStatus === 'REJECTED') {
+            statusBadge = `<span style="font-size:12px; color:#991B1B; font-weight:600; background:#FEE2E2; padding:4px 10px; border-radius:99px;">✗ .tun Rejected: ${t.tunRejectReason || 'No reason provided'}</span>`;
+        } else {
+            statusBadge = `<span style="font-size:12px; color:#1E40AF; font-weight:600; background:#DBEAFE; padding:4px 10px; border-radius:99px;">⏳ Pending MCF Review</span>`;
+        }
+
+        let tunActionHtml = '';
+        if (t.tunUrl && t.tunUrl.startsWith('http')) {
+            tunActionHtml = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                <a href="${t.tunUrl}" target="_blank" class="btn btn-ghost" style="padding:6px 12px; font-size:12px; text-decoration:none; background:white;">Download Submitted .tun Report</a>
+                ${isMCFAdmin && tunStatus !== 'RECEIVED' ? `
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-primary" style="padding:6px 12px; font-size:12px; background:#059669;" onclick="setTunStatus('${t.id}', 'RECEIVED')">Receive .tun</button>
+                        <button class="btn btn-ghost" style="padding:6px 12px; font-size:12px; color:#DC2626; border-color:#DC2626;" onclick="promptRejectTun('${t.id}')">Reject .tun</button>
+                    </div>
+                ` : ''}
+            </div>`;
+        } else {
+            tunActionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic; display:block; margin-top:8px;">No report uploaded yet by organizer.</span>`;
+        }
+
+        let organizerUploadHtml = '';
+        if (isOrganizer && (tunStatus === 'REJECTED' || !t.tunUrl || !t.tunUrl.startsWith('http'))) {
+            organizerUploadHtml = `
+            <div style="margin-top: 16px; border-top: 1px dashed var(--border); padding-top: 14px;">
+                <p style="font-size:12px; font-weight:600; color:var(--text-main); margin:0 0 8px;">${tunStatus === 'REJECTED' ? 'Please re-upload corrected .tun file:' : 'Upload tournament report file:'}</p>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="file" id="tunUploadInput" style="padding:6px; font-size:12px; background:white;">
+                    <button class="btn btn-primary" style="padding:8px 16px; font-size:12px; white-space:nowrap;" onclick="uploadTunFile('${t.id}')">Upload .tun File</button>
+                </div>
+            </div>`;
+        }
+
+        tunSectionHtml = `
+        <div style="background: var(--bg-body); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-top: 24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Tournament Report File (.tun / Results)</div>
+                ${statusBadge}
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px;">Submit or review the official pairing and results report.</p>
+            ${tunActionHtml}
+            ${organizerUploadHtml}
+        </div>`;
+    }
+
+    let previewUrl = t.previewReceiptUrl || t.receiptUrl || '';
+    let letterPreviewUrl = t.previewLetterUrl || t.letterUrl || '';
+    let posterPreviewUrl = t.previewPosterUrl || t.posterUrl || '';
+
+    document.getElementById('drawerContent').innerHTML = `
+    <div style="background: var(--bg-body); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 24px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 12px;">
+            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 600;">Payment & Status Audit</span>
+            <span class="status-pill" style="${getBadgeStyle(t.status)}">${t.status}</span>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items:center;">
+            <div>
+                <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block; margin-bottom:4px;">Calculated Fee</span>
+                <b style="font-size: 18px; color: var(--text-main);">RM ${t.fee || 0}</b>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Ref: ${t.paymentRef || '-'}</div>
+            </div>
+            <div style="text-align:right;">
+                ${t.receiptUrl && t.receiptUrl.startsWith('http') ? `<a href="${t.receiptUrl}" target="_blank" class="btn btn-ghost" style="padding:6px 12px; font-size:11px; text-decoration:none; background:white;">🔗 Open Receipt</a>` : `<span style="font-size:12px; color:var(--text-muted);">No Receipt Attached</span>`}
+            </div>
+        </div>
+        ${t.receiptUrl && t.receiptUrl.startsWith('http') ? `
+        <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+            <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block; margin-bottom:8px;">Payment Receipt Preview</span>
+            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 300px; display: flex; align-items: center; justify-content: center;">
+                ${t.receiptUrl.toLowerCase().includes('.pdf') || t.receiptUrl.includes('application/pdf') 
+                    ? `<iframe src="${previewUrl}" style="width:100%; height:100%; border:none;"></iframe>`
+                    : `<img src="${previewUrl}" alt="Payment Receipt" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.onerror=null; this.src='${t.receiptUrl}';">`
+                }
+            </div>
+        </div>` : ''}
+
+        ${t.letterUrl && t.letterUrl.startsWith('http') ? `
+        <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block;">State Affiliate Letter</span>
+                <a href="${t.letterUrl}" target="_blank" class="btn btn-ghost" style="padding:4px 10px; font-size:11px; text-decoration:none; background:white;">🔗 Open Letter</a>
+            </div>
+            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 250px; display: flex; align-items: center; justify-content: center;">
+                ${t.letterUrl.toLowerCase().includes('.pdf') || t.letterUrl.includes('application/pdf') 
+                    ? `<iframe src="${letterPreviewUrl}" style="width:100%; height:100%; border:none;"></iframe>`
+                    : `<img src="${letterPreviewUrl}" alt="Affiliate Letter" style="max-width:100%; max-height:100%; object-fit:contain;">`
+                }
+            </div>
+        </div>` : ''}
+
+        ${t.posterUrl && t.posterUrl.startsWith('http') ? `
+        <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block;">Event Poster / Regulations</span>
+                <a href="${t.posterUrl}" target="_blank" class="btn btn-ghost" style="padding:4px 10px; font-size:11px; text-decoration:none; background:white;">🔗 Open Poster</a>
+            </div>
+            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 250px; display: flex; align-items: center; justify-content: center;">
+                ${t.posterUrl.toLowerCase().includes('.pdf') || t.posterUrl.includes('application/pdf') 
+                    ? `<iframe src="${posterPreviewUrl}" style="width:100%; height:100%; border:none;"></iframe>`
+                    : `<img src="${posterPreviewUrl}" alt="Event Poster" style="max-width:100%; max-height:100%; object-fit:contain;">`
+                }
+            </div>
+        </div>` : ''}
+    </div>
+    
+    <div class="section-title">FIDE Tournament Registration Fields (Copy & Paste Ready)</div>
+    <div class="data-grid">
+        <div class="data-item"><span class="label">Event Name</span><span>${t.eventName || '-'}</span></div>
+        <div class="data-item"><span class="label">Venue & State</span><span>${t.venue || '-'}, ${t.state || '-'}</span></div>
+        <div class="data-item"><span class="label">Organizer Category</span><span>${t.orgCategory || '-'}</span></div>
+        <div class="data-item"><span class="label">FIDE Laws Followed</span><span>${t.fideLaws || 'Yes'}</span></div>
+        <div class="data-item"><span class="label">National Championship (1.43a)</span><span>${t.natChampionship || 'No'}</span></div>
+        <div class="data-item"><span class="label">Title Norms Available</span><span>${t.titleNorms || 'No'} (${t.normAvailable || 'No'})</span></div>
+        <div class="data-item"><span class="label">Direct Title Events</span><span>${t.directTitle || 'No'}</span></div>
+        <div class="data-item"><span class="label">Tournament Type</span><span>${t.tourneyType || 'Over the Board'}</span></div>
+        <div class="data-item"><span class="label">Start Date</span><span>${formatLocalDate(t.startDate)}</span></div>
+        <div class="data-item"><span class="label">End Date</span><span>${formatLocalDate(t.endDate)}</span></div>
+        <div class="data-item"><span class="label">Expected Players</span><span>${t.pax || 0}</span></div>
+        <div class="data-item"><span class="label">Tournament System</span><span>${t.system || '-'}</span></div>
+        <div class="data-item"><span class="label">Number of Rounds Reported</span><span>${t.rounds || '-'}</span></div>
+        <div class="data-item"><span class="label">Number of Multiple Round Days</span><span>${t.multiRoundDays || '1'}</span></div>
+        <div class="data-item"><span class="label">Chief Arbiter</span><span>${t.chiefArbiter || '-'} (FIDE ID: ${t.chiefArbiterFide || '-'})</span></div>
+        <div class="data-item"><span class="label">Deputy Chief Arbiter</span><span>${t.deputyArbiter || 'None'} (FIDE ID: ${t.deputyArbiterFide || '-'})</span></div>
+        <div class="data-item"><span class="label">Chief Organizer</span><span>${t.chiefOrg || '-'} (FIDE ID: ${t.chiefOrgFide || '-'})</span></div>
+        <div class="data-item"><span class="label">Organizing Body</span><span>${t.orgBody || '-'} (FIDE ID: ${t.orgBodyFide || '-'})</span></div>
+        <div class="data-item"><span class="label">Fair Play Officer</span><span>${t.fairPlay || 'None'} (FIDE ID: ${t.fairPlayFide || '-'})</span></div>
+        <div class="data-item" style="grid-column: 1 / -1;"><span class="label">Time Control & Specification</span><span>${t.timeControl || '-'}</span></div>
+        <div class="data-item"><span class="label">Pairing Software</span><span>${t.software || '-'}</span></div>
+        <div class="data-item"><span class="label">1st Tiebreak Method</span><span>${t.tb1 || '-'}</span></div>
+        <div class="data-item"><span class="label">2nd Tiebreak Method</span><span>${t.tb2 || '-'}</span></div>
+        <div class="data-item"><span class="label">3rd Tiebreak Method</span><span>${t.tb3 || '-'}</span></div>
+        <div class="data-item"><span class="label">Female Only?</span><span>${t.femaleOnly || 'No'}</span></div>
+        <div class="data-item"><span class="label">Max Rating Limit</span><span>${t.maxRating || 'No limit'}</span></div>
+        <div class="data-item"><span class="label">Age Limit</span><span>${t.ageLimit || 'None'}</span></div>
+        <div class="data-item"><span class="label">All Digital Clocks?</span><span>${t.digitalClock || 'Yes'}</span></div>
+        <div class="data-item"><span class="label">Will PGN be Provided?</span><span>${t.pgnProvided || 'No'}</span></div>
+        <div class="data-item"><span class="label">Internet Transmission?</span><span>${t.internetLive || 'No'}</span></div>
+        <div class="data-item"><span class="label">Contact Email</span><span>${t.contactEmail || t.organizerEmail || '-'}</span></div>
+        <div class="data-item"><span class="label">Internet Homepage</span><span>${t.homepage || '-'}</span></div>
+        <div class="data-item"><span class="label">Prize Fund</span><span>${t.prizeFund || '-'}</span></div>
+        <div class="data-item" style="grid-column: 1 / -1;"><span class="label">Remarks</span><span>${t.remarks || '-'}</span></div>
+    </div>
+
+    ${tunSectionHtml}
+    
+    <div style="margin-top: 32px;">
+        <button class="btn btn-ghost" onclick="generateDossierPDF('${t.id}')" style="width: 100%; border-style: dashed; justify-content:center;">↓ Download Official Summary PDF</button>
+    </div>
+    `;
+
+    let footerHtml = '';
+    const isAdmin = ['admin', 'core_admin', 'state_admin'].includes(currentUserProfile.role);
+    if (isAdmin) {
+        const isStateAdmin = currentUserProfile.role === 'state_admin';
+        const isPendingState = t.status === 'PENDING STATE';
+        const isAlreadyApproved = t.status === 'APPROVED';
+
+        footerHtml = `
+            <button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger); border-color:var(--danger);">Reject Application</button>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end;">
+                <button class="btn btn-gold" onclick="changeStatus('REVISION REQ.')">Request Revision</button>
+        `;
+
+        if (isStateAdmin) {
+            footerHtml += `<button class="btn btn-primary" style="width:auto;" onclick="changeStatus('PENDING ADMIN')">✓ 1. Endorse (State)</button>`;
+        } else {
+            if (isPendingState) {
+                footerHtml += `
+                    <span style="font-size:12px; color:var(--warning); font-weight:500;">⚠️ Waiting for State Endorsement</span>
+                    <button class="btn btn-primary" style="width:auto; opacity:0.5; cursor:not-allowed;" disabled title="State must endorse first">✓ 2. Approve (MCF Final)</button>
+                `;
+            } else {
+                if (isAlreadyApproved) {
+                    footerHtml += `
+                        <button class="btn btn-gold" style="width:auto;" onclick="changeStatus('PENDING STATE')">Revert to State</button>
+                        <button class="btn btn-primary" style="width:auto; background:#9CA3AF; color:#FFFFFF; opacity:0.7; cursor:not-allowed;" disabled>✓ Approved & Finalized</button>
+                    `;
+                } else {
+                    footerHtml += `
+                        <button class="btn btn-gold" style="width:auto;" onclick="changeStatus('PENDING STATE')">Revert to State</button>
+                        <button class="btn btn-primary" style="width:auto;" onclick="changeStatus('APPROVED')">✓ 2. Approve (MCF Final)</button>
+                    `;
+                }
+            }
+        }
+        footerHtml += `</div>`;
+    } else {
+        footerHtml = `<div style="width:100%; text-align:right;"><button class="btn btn-ghost" onclick="closeDrawer()">Close Window</button></div>`;
+    }
+    
+    document.getElementById('drawerFooter').innerHTML = footerHtml;
+    document.getElementById('drawerBack').classList.add('open');
+}
+function closeDrawer(){ document.getElementById('drawerBack').classList.remove('open'); }
+
+window.uploadTunFile = async function(id) {
+    const fileInput = document.getElementById('tunUploadInput');
+    if (!fileInput || fileInput.files.length === 0) {
+        showToast("Please select a file first.");
+        return;
+    }
+    const file = fileInput.files[0];
+    showToast("Uploading tournament report...");
+
+    const fileData = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+    });
+
+    google.script.run
+        .withSuccessHandler(function(res) {
+            if (res && res.status === 'success') {
+                showToast("✓ Tournament report uploaded successfully!");
+                const item = applications.find(x => x.id === id);
+                if (item) {
+                    item.tunUrl = res.tunUrl;
+                    item.tunStatus = 'PENDING';
+                    item.tunRejectReason = '';
+                }
+                openDrawer(id);
+                fetchDossiers();
+            } else {
+                showToast("Error uploading file: " + (res ? res.message : "Unknown error"));
+            }
+        })
+        .withFailureHandler(function(err) {
+            showToast("Connection Error: " + err.message);
+        })
+        .submitTunFile(id, fileData, file.name);
+};
+
+window.setTunStatus = function(id, status) {
+    showToast("Updating .tun status...");
+    google.script.run
+        .withSuccessHandler(function(res) {
+            if (res && res.status === 'success') {
+                showToast("✓ Tournament report marked as Received!");
+                const item = applications.find(x => x.id === id);
+                if (item) item.tunStatus = status;
+                openDrawer(id);
+                fetchDossiers();
+            } else {
+                showToast("Error: " + (res ? res.message : "Unknown error"));
+            }
+        })
+        .withFailureHandler(function(err) {
+            showToast("Connection Error: " + err.message);
+        })
+        .updateTunStatus(id, status, "");
+};
+
+window.promptRejectTun = function(id) {
+    const reason = prompt("Please provide a reason why this .tun report is being rejected:");
+    if (reason === null) return;
+    if (!reason.trim()) {
+        alert("Rejection reason cannot be empty.");
+        return;
+    }
+
+    showToast("Submitting rejection comment...");
+    google.script.run
+        .withSuccessHandler(function(res) {
+            if (res && res.status === 'success') {
+                showToast("✓ .tun report rejected with comments.");
+                const item = applications.find(x => x.id === id);
+                if (item) {
+                    item.tunStatus = 'REJECTED';
+                    item.tunRejectReason = reason;
+                }
+                openDrawer(id);
+                fetchDossiers();
+            } else {
+                showToast("Error: " + (res ? res.message : "Unknown error"));
+            }
+        })
+        .withFailureHandler(function(err) {
+            showToast("Connection Error: " + err.message);
+        })
+        .updateTunStatus(id, 'REJECTED', reason);
+};
+
+window.changeStatus = function(newStatus){
+    if (!selectedId) {
+        showToast("Error: No application selected.");
+        return;
+    }
+    if (typeof google === 'undefined' || !google.script) {
+        alert('Backend script disconnected.');
+        return;
+    }
+
+    const footerBtns = document.querySelectorAll('#drawerFooter button');
+    footerBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
+    showToast("Saving status to Google Sheets...");
+
+    google.script.run
+        .withSuccessHandler(function(res) {
+            footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+            
+            if (res && res.status === 'success') { 
+                const item = applications.find(x => x.id === selectedId);
+                if (item) item.status = newStatus;
+                
+                updateAdminCounts(); 
+                renderAdminTable();
+                updateOrgCounts(); 
+                renderOrgTable();
+                
+                closeDrawer(); 
+                showToast("✓ Status updated to " + newStatus); 
+                fetchDossiers(); 
+            } else {
+                showToast("Error: " + (res ? res.message : "Unknown response from server"));
+            }
+        })
+        .withFailureHandler(function(err) {
+            footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+            console.error("Apps Script Error:", err);
+            showToast("Script Error: " + (err.message || err));
+        })
+        .updateDossierStatus(selectedId, newStatus);
+};
+document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+document.getElementById('drawerBack').addEventListener('click', e => { if(e.target.id === 'drawerBack') closeDrawer(); });
+
+function computeFee(){
+    const pax = Math.max(parseInt(document.getElementById('pax').value, 10) || 0, 32); 
+    const orgCat = document.getElementById('orgCategory')?.value || "";
+    
+    let base = 300; 
+    // ONLY verified state admins get the RM200 fee, even if others select the option.
+    if (orgCat.includes("State Affiliate") && currentUserProfile.role === 'state_admin') {
+        base = 200;
+    }
+
+    let perPlayer = 10; 
+
+    const tcText = (document.getElementById('tcInput')?.value || "").toLowerCase();
+    if (tcText.includes("rapid") || tcText.includes("blitz")) {
+        perPlayer = 3; 
+    }
+
+    return { base, perPlayer, total: base + (perPlayer * pax) };
+}
+
+function renderRail(){
+    const rank = document.getElementById('rank'); 
+    rank.innerHTML=""; 
+    for(let i=0; i<8; i++){
+        const b = document.createElement('button');
+        b.type="button"; b.className="sq" + (i<stepIdx ? " done":"") + (i===stepIdx ? " current":"");
+        b.addEventListener('click', () => { if(i<=stepIdx){ stepIdx=i; renderWizard(); } });
+        rank.appendChild(b);
+    }
+    document.getElementById('stepNumLabel').textContent = Math.min(stepIdx+1, 8);
+}
+
+function updateDossier() {
+    document.getElementById('dEventName').textContent = document.getElementById('eventName')?.value || "Untitled event";
+    document.getElementById('dVenue').textContent = document.getElementById('venue')?.value || "—";
+    document.getElementById('dSystem').textContent = document.getElementById('system')?.value || "—";
+    document.getElementById('dTC').textContent = document.getElementById('tcInput')?.value || "—";
+    document.getElementById('dArbiter').textContent = document.getElementById('chiefArbiter')?.value || "—";
+    
+    const fee = computeFee();
+    const pax = parseInt(document.getElementById('pax')?.value) || 0;
+    document.getElementById('dFee').textContent = fee.total ? ("RM " + fee.total) : "—";
+    if (document.getElementById('feeBase')) document.getElementById('feeBase').textContent = "RM " + fee.base;
+    if (document.getElementById('feePerPlayer')) document.getElementById('feePerPlayer').textContent = "RM " + (fee.perPlayer * Math.max(pax, 32));
+    if (document.getElementById('feeTotal')) document.getElementById('feeTotal').textContent = "RM " + fee.total;
+    
+    const start = document.getElementById('dateStart')?.value; const end = document.getElementById('dateEnd')?.value;
+    if (document.getElementById('dDates')) document.getElementById('dDates').innerText = (start && end) ? `${formatLocalDate(start)} to ${formatLocalDate(end)}` : (formatLocalDate(start) || '—');
+}
+
+function renderWizard(){
+    document.querySelectorAll('#wizard .step').forEach(s => s.classList.remove('active'));
+    document.querySelector('#wizard .step[data-step="' + steps[stepIdx] + '"]').classList.add('active');
+    renderRail(); updateDossier();
+    
+    const isRev = steps[stepIdx] === "review";
+    document.getElementById('backBtn').style.visibility = stepIdx===0 ? "hidden" : "visible";
+    document.getElementById('nextBtn').style.display = isRev ? "none" : "inline-flex";
+    document.getElementById('submitAppBtn').style.display = isRev ? "inline-flex" : "none";
+    
+    if(isRev){
+        document.getElementById('reviewOut').innerHTML = `
+        <div style="background:var(--bg-body); padding:24px; border:1px solid var(--border); border-radius:var(--radius-lg);">
+            <h3 style="margin:0 0 12px; font-size:18px;">${document.getElementById('eventName').value || 'Untitled event'}</h3>
+            <p style="margin:0; font-size:14px; color:var(--text-muted);"><b>Venue:</b> ${document.getElementById('venue').value || '-'} | <b>State:</b> ${document.getElementById('orgState').value || '-'} | <b>Pax:</b> ${document.getElementById('pax').value || 0}</p>
+            <p style="margin:8px 0 0; font-size:14px; color:var(--text-muted);"><b>Dates:</b> ${formatLocalDate(document.getElementById('dateStart').value)} to ${formatLocalDate(document.getElementById('dateEnd').value)}</p>
+            <p style="margin:8px 0 0; font-size:14px; color:var(--text-muted);"><b>Format:</b> ${document.getElementById('system').value || '-'} (${document.getElementById('rounds').value || '-'} Rounds) | <b>Software:</b> ${document.getElementById('software').value || '-'}</p>
+            <p style="margin:8px 0 0; font-size:14px; color:var(--text-muted);"><b>Time Control:</b> ${document.getElementById('tcInput').value || '-'}</p>
+            <p style="margin:8px 0 0; font-size:14px; color:var(--text-muted);"><b>Chief Organizer:</b> ${document.getElementById('chiefOrg').value || '-'} | <b>Chief Arbiter:</b> ${document.getElementById('chiefArbiter').value || '-'}</p>
+            <p style="margin:16px 0 0; font-size:16px; color:var(--text-main);"><b>Total Fee Due (Deposit):</b> RM ${computeFee().total}</p>
+        </div>`;
+    }
+}
+
+function renderTC(filter){
+    const tcList = document.getElementById('tcList'); tcList.innerHTML = "";
+    Object.keys(TC).forEach(group => {
+        const matches = TC[group].filter(o => o.toLowerCase().includes((filter||"").toLowerCase()));
+        if(!matches.length) return;
+        const lbl = document.createElement('div'); lbl.className="combo-group-label"; lbl.textContent=group; tcList.appendChild(lbl);
+        matches.forEach(o => {
+            const d = document.createElement('div'); d.className="combo-opt"; d.textContent=o;
+            d.addEventListener('click', () => {
+                document.getElementById('tcInput').value = o + " (" + group + ")";
+                document.getElementById('tcPanel').classList.remove('open'); updateDossier();
+            });
+            tcList.appendChild(d);
+        });
+    });
+}
+
+function showToast(msg){
+    const toast = document.getElementById('toast'); document.getElementById('toastMsg').textContent = msg; toast.classList.add('show');
+    clearTimeout(window._toastTimer); window._toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+document.getElementById('btnNewAppDash').addEventListener('click', () => {
+    stepIdx = 0; 
+    document.getElementById('signName').value = currentUserProfile.name || ""; 
+    document.getElementById('orgState').value = currentUserProfile.state || "W.P. Kuala Lumpur";
+    document.getElementById('signDate').value = new Date().toISOString().split('T')[0];
+    renderWizard(); showView('organizer-wizard');
+});
+document.getElementById('btnCancelWizard').addEventListener('click', () => showView('organizer-dash'));
+
+// Time Control custom input & panel controls
+const tcInput = document.getElementById('tcInput');
+const tcPanel = document.getElementById('tcPanel');
+const tcSearch = document.getElementById('tcSearch');
+
+tcInput.addEventListener('focus', () => { tcPanel.classList.add('open'); renderTC(tcSearch.value); });
+tcInput.addEventListener('input', () => { updateDossier(); });
+tcSearch.addEventListener('input', (e) => { renderTC(e.target.value); });
+
+document.addEventListener('click', e => { if(!e.target.closest('.combo')) tcPanel.classList.remove('open'); });
+
+document.getElementById('nextBtn').addEventListener('click', () => { if(stepIdx < steps.length-1){ stepIdx++; renderWizard(); } });
+document.getElementById('backBtn').addEventListener('click', () => { if(stepIdx > 0){ stepIdx--; renderWizard(); } });
+
+document.getElementById('submitAppBtn').addEventListener('click', async function() {
+    // ----------------------------------------------------
+    // DEADLINE VALIDATION (Clauses 3.5 & 3.6)
+    // ----------------------------------------------------
+    const startDateVal = document.getElementById('dateStart')?.value;
+    if (startDateVal) {
+        const startDate = new Date(startDateVal);
+        const today = new Date();
+        const diffTime = startDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        const isTitleNorm = document.getElementById('chkTitleNorms')?.checked;
+        const tcText = (document.getElementById('tcInput')?.value || "").toLowerCase();
+        const isRapidOrBlitz = tcText.includes("rapid") || tcText.includes("blitz");
+
+        let minDays = 14; // Standard default (Clause 3.5)
+        let ruleDesc = "Standard tournaments must be submitted at least 14 days before the start date (Clause 3.5).";
+
+        if (isRapidOrBlitz) {
+            minDays = 7;
+            ruleDesc = "Rapid and Blitz tournaments must be submitted at least 7 days before the start date (Clause 3.6).";
+        }
+        if (isTitleNorm) {
+            minDays = 30;
+            ruleDesc = "Title-norm tournaments must be submitted at least 30 days before the start date (Clause 3.5.1).";
+        }
+
+        if (diffDays < minDays) {
+            showToast(`Submission Error: ${ruleDesc} (Selected date is only ${diffDays} days away).`);
+            return;
+        }
+    }
+
+    this.textContent = "Uploading files to Drive..."; 
+    this.disabled = true;
+
+    const fileInput = document.getElementById('receiptUpload');
+    let fileData = null; let fileName = null;
+
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0]; fileName = file.name;
+        fileData = await new Promise((resolve) => { const reader = new FileReader(); reader.onloadend = () => resolve(reader.result); reader.readAsDataURL(file); });
+    }
+
+    const orgCat = document.getElementById('orgCategory')?.value || '';
+    const letterInput = document.getElementById('affiliateLetterUpload');
+    let letterData = null; let letterName = null;
+
+    if (orgCat.includes('State Affiliate') && letterInput && letterInput.files.length > 0) {
+        const letterFile = letterInput.files[0]; letterName = letterFile.name;
+        letterData = await new Promise((resolve) => { const reader = new FileReader(); reader.onloadend = () => resolve(reader.result); reader.readAsDataURL(letterFile); });
+    }
+
+    const posterInput = document.getElementById('posterUpload');
+    let posterData = null; let posterName = null;
+    if (posterInput && posterInput.files.length > 0) {
+        const posterFile = posterInput.files[0]; posterName = posterFile.name;
+        posterData = await new Promise((resolve) => { const reader = new FileReader(); reader.onloadend = () => resolve(reader.result); reader.readAsDataURL(posterFile); });
+    }
+
+    const payload = {
+        eventName: document.getElementById('eventName')?.value || 'Untitled',
+        venue: document.getElementById('venue')?.value || 'Not specified',
+        state: document.getElementById('orgState')?.value || 'W.P. Kuala Lumpur',
+        orgCategory: orgCat || 'Independent Organizer',
+        pax: parseInt(document.getElementById('pax')?.value) || 0,
+        startDate: document.getElementById('dateStart')?.value || '',
+        endDate: document.getElementById('dateEnd')?.value || '',
+        fideLaws: document.getElementById('chkFideLaws')?.checked ? 'Yes' : 'No',
+        natChampionship: document.getElementById('chkNatChampionship')?.checked ? 'Yes' : 'No',
+        titleNorms: document.getElementById('chkTitleNorms')?.checked ? 'Yes' : 'No',
+        normAvailable: document.getElementById('normAvailable')?.value || 'No',
+        directTitle: document.getElementById('chkDirectTitle')?.checked ? 'Yes' : 'No',
+        tourneyType: document.getElementById('tourneyType')?.value || 'Over the Board',
+        system: document.getElementById('system')?.value || 'Not specified',
+        rounds: document.getElementById('rounds')?.value || '7',
+        multiRoundDays: document.getElementById('multiRoundDays')?.value || '1',
+        maxRating: document.getElementById('maxRating')?.value || 'No limit',
+        software: document.getElementById('software')?.value || 'ChessManager',
+        tb1: document.getElementById('tb1')?.value || 'Direct encounter',
+        tb2: document.getElementById('tb2')?.value || 'Buchholz',
+        tb3: document.getElementById('tb3')?.value || '',
+        timeControl: document.getElementById('tcInput')?.value || '',
+        totalFee: computeFee().total,
+        paymentRef: document.getElementById('paymentRef')?.value || 'Pending Validation',
+        chiefArbiter: document.getElementById('chiefArbiter')?.value || '',
+        chiefArbiterFide: document.getElementById('chiefArbiterFide')?.value || '',
+        deputyArbiter: document.getElementById('deputyChiefArbiter')?.value || '',
+        deputyArbiterFide: document.getElementById('deputyChiefArbiterFide')?.value || '',
+        chiefOrg: document.getElementById('chiefOrg')?.value || '',
+        chiefOrgFide: document.getElementById('chiefOrgFide')?.value || '',
+        orgBody: document.getElementById('orgBody')?.value || '',
+        orgBodyFide: document.getElementById('orgBodyFide')?.value || '',
+        fairPlay: document.getElementById('fairPlayOfficer')?.value || '',
+        fairPlayFide: document.getElementById('fairPlayOfficerFide')?.value || '',
+        femaleOnly: document.getElementById('chkFemaleOnly')?.checked ? 'Yes' : 'No',
+        ageLimit: document.getElementById('ageLimit')?.value || 'None',
+        digitalClock: document.getElementById('chkDigitalClock')?.checked ? 'Yes' : 'No',
+        pgnProvided: document.getElementById('chkPgnProvided')?.checked ? 'Yes' : 'No',
+        internetLive: document.getElementById('chkInternetLive')?.checked ? 'Yes' : 'No',
+        contactEmail: document.getElementById('contactEmail')?.value || '',
+        homepage: document.getElementById('internetHomepage')?.value || '',
+        prizeFund: document.getElementById('prizeFund')?.value || '',
+        remarks: document.getElementById('remarks')?.value || '',
+        obj1: document.getElementById('obj1')?.value || '',
+        signName: document.getElementById('signName')?.value || '',
+        signDate: document.getElementById('signDate')?.value || '',
+        organizerEmail: currentUserProfile.email,
+        fileData: fileData, 
+        fileName: fileName,
+        letterData: letterData,
+        letterName: letterName,
+        posterData: posterData,
+        posterName: posterName
+    };
+
+    if(google.script) {
+        google.script.run.withSuccessHandler(function(result) {
+            if (result.status === 'success') {
+                document.getElementById('wizard').reset();
+                document.getElementById('submitAppBtn').textContent = "Submit Application"; 
+                document.getElementById('submitAppBtn').disabled = false;
+                showToast("Application securely submitted!"); 
+                showView('organizer-dash'); 
+                fetchDossiers(); 
+            } else { 
+                showToast("Server Error: " + result.message); 
+                document.getElementById('submitAppBtn').textContent = "Submit Application"; 
+                document.getElementById('submitAppBtn').disabled = false;
+            }
+        }).withFailureHandler(function(error) {
+            showToast("Connection Error. Check console."); 
+            document.getElementById('submitAppBtn').textContent = "Submit Application"; 
+            document.getElementById('submitAppBtn').disabled = false;
+        }).submitDossier(payload);
+    }
+});
+
+window.generateDossierPDF = function(id) {
+    const app = applications.find(x => x.id === id); if (!app) return;
+    const { jsPDF } = window.jspdf; const doc = new jsPDF();
+
+    doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 45, 'F'); 
+    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(22); doc.text("MALAYSIAN CHESS FEDERATION", 105, 22, { align: "center" });
+    doc.setTextColor(220, 38, 38); doc.setFont("helvetica", "normal"); doc.setFontSize(14); doc.text("FIDE-Rated Event Application Summary", 105, 32, { align: "center" });
+
+    let currentY = 55; const labelX = 20, valueX = 85;
+
+    const drawSection = (title) => {
+        if (currentY > 250) { doc.addPage(); currentY = 20; } 
+        currentY += 4;
+        doc.setTextColor(15, 23, 42); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text(title, 20, currentY);
+        currentY += 3; doc.setDrawColor(226, 232, 240); doc.setLineWidth(0.5); doc.line(20, currentY, 190, currentY); currentY += 7;
+    };
+
+    const printRow = (label, value) => {
+        if (currentY > 270) { doc.addPage(); currentY = 20; }
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text(label + ":", labelX, currentY);
+        doc.setFont("helvetica", "normal"); const splitValue = doc.splitTextToSize(String(value || '-'), 105); doc.text(splitValue, valueX, currentY); currentY += (splitValue.length * 5) + 2; 
+    };
+
+    drawSection("1. Compliance & General Details");
+    printRow("Application ID", app.id);
+    printRow("Approval Status", app.status);
+    printRow("Event Name", app.eventName);
+    printRow("Venue & State", `${app.venue || '-'}, ${app.state || '-'}`);
+    printRow("Organizer Category", app.orgCategory);
+    printRow("FIDE Laws Followed", app.fideLaws);
+    printRow("National Championship (1.43a)", app.natChampionship);
+    printRow("Title Norms Available", `${app.titleNorms} (${app.normAvailable || 'No'})`);
+    printRow("Direct Title Events", app.directTitle);
+    printRow("Tournament Type", app.tourneyType);
+    printRow("Start Date", formatLocalDate(app.startDate));
+    printRow("End Date", formatLocalDate(app.endDate));
+
+    drawSection("2. Format & Technical Specifications");
+    printRow("Expected Players", app.pax);
+    printRow("Tournament System", app.system);
+    printRow("Number of Rounds Reported", app.rounds);
+    printRow("Multiple Round Days", app.multiRoundDays);
+    printRow("Time Control Category", app.timeControl);
+    printRow("Pairing Software", app.software);
+    printRow("1st Tiebreak Method", app.tb1);
+    printRow("2nd Tiebreak Method", app.tb2);
+    printRow("3rd Tiebreak Method", app.tb3 || '-');
+
+    drawSection("3. Officials & Arbiters");
+    printRow("Chief Arbiter", `${app.chiefArbiter || '-'} (FIDE ID: ${app.chiefArbiterFide || '-'})`);
+    printRow("Deputy Chief Arbiter", `${app.deputyArbiter || 'None'} (FIDE ID: ${app.deputyArbiterFide || '-'})`);
+    printRow("Chief Organizer", `${app.chiefOrg || '-'} (FIDE ID: ${app.chiefOrgFide || '-'})`);
+    printRow("Organizing Body", `${app.orgBody || '-'} (FIDE ID: ${app.orgBodyFide || '-'})`);
+    printRow("Fair Play Officer", `${app.fairPlay || 'None'} (FIDE ID: ${app.fairPlayFide || '-'})`);
+
+    drawSection("4. Additional Info, Payment & Declaration");
+    printRow("Female Only?", app.femaleOnly);
+    printRow("Max Rating Limit", app.maxRating);
+    printRow("Age Limit", app.ageLimit);
+    printRow("All Digital Clocks?", app.digitalClock);
+    printRow("Will PGN be Provided?", app.pgnProvided);
+    printRow("Internet Transmission?", app.internetLive);
+    printRow("Contact Email", app.contactEmail || app.organizerEmail);
+    printRow("Internet Homepage", app.homepage);
+    printRow("Prize Fund", app.prizeFund);
+    printRow("Remarks", app.remarks);
+    printRow("Total Fee Due (Deposit)", 'RM ' + (app.fee || 0));
+    printRow("Payment Reference", app.paymentRef);
+    printRow("Objectives", app.obj1);
+    printRow("Signed By", `${app.signName || '-'} on ${formatLocalDate(app.signDate)}`);
+
+    doc.save(`MCF_FIDE_Dossier_${(app.eventName || 'Event').replace(/\s+/g, '_')}.pdf`);
+};
+</script>
 </body>
 </html>
