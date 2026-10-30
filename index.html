@@ -3,396 +3,385 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MCF — Integrated FIDE Rating Portal</title>
+<title>MCF — Integrated FIDE Portal</title>
+<!-- Browser Tab Favicon -->
+<link rel="icon" type="image/png" href="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --ink:#15120d;
-    --ink-soft:#3a352c;
-    --cream:#f4efe2;
-    --cream-2:#ece4d1;
-    --paper:#fbf8f1;
-    --felt:#1e4b39;
-    --felt-2:#153729;
-    --brass:#b9873f;
-    --brass-light:#e3b872;
-    --claret:#8c2f39;
-    --line: rgba(21,18,13,0.14);
-    --line-soft: rgba(21,18,13,0.08);
-    --shadow: 0 20px 45px -20px rgba(21,18,13,0.35);
-    --radius: 3px;
-    --serif: 'Fraunces', serif;
-    --sans: 'Inter', sans-serif;
-    --mono: 'IBM Plex Mono', monospace;
+  :root {
+    --surface: #ffffff;
+    --bg-body: #F8FAFC;
+    --sidebar: #0F172A;
+    --sidebar-hover: #1E293B;
+    --text-main: #0F172A;
+    --text-muted: #64748B;
+    --text-light: #F8FAFC;
+    
+    --primary: #DC2626; /* Crimson Red */
+    --primary-hover: #B91C1C;
+    --primary-light: #FEE2E2;
+    
+    --accent: #EAB308; /* Bold Yellow */
+    --accent-hover: #CA8A04;
+    --accent-light: #FEF9C3;
+    
+    --danger: #DC2626;
+    --warning: #F59E0B;
+    
+    --border: #E2E8F0;
+    --border-soft: #F1F5F9;
+    
+    --radius: 8px;
+    --radius-lg: 12px;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    
+    --font: 'Inter', sans-serif;
   }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;min-height:100vh;}
-  body{
-    background: var(--ink);
-    color: var(--ink);
-    font-family: var(--sans);
-    -webkit-font-smoothing: antialiased;
+  
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; min-height: 100vh; font-family: var(--font); background: var(--bg-body); color: var(--text-main); -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--primary-light); color: var(--primary-hover); }
+
+  .view { display: none; min-height: 100vh; animation: fadeIn 0.3s ease-in-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .auth-view.active { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: var(--sidebar); }
+  .dash-view.active { display: grid; grid-template-columns: 280px 1fr; }
+  .wizard-view.active { display: grid; grid-template-columns: 320px 1fr; }
+
+  /* Mobile Responsive Breakpoint & Sidebar Toggle */
+  .mobile-nav-bar { display: none; }
+
+  @media (max-width: 900px) {
+    .dash-view.active, .wizard-view.active { display: flex; flex-direction: column; }
+    .mobile-nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--sidebar);
+      color: white;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .mobile-nav-bar h2 { font-size: 15px; margin: 0; font-weight: 600; }
+    .mobile-menu-btn {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .rail {
+      position: relative !important;
+      height: auto !important;
+      width: 100% !important;
+      box-shadow: none !important;
+      display: none !important;
+    }
+    .rail.mobile-open {
+      display: flex !important;
+    }
+    .stage { padding: 20px !important; }
+    .stage-header { flex-direction: column; align-items: flex-start !important; gap: 12px; }
+    .stage-header > div:last-child { width: 100%; display: flex; flex-wrap: wrap; gap: 8px !important; }
+    .field-grid { grid-template-columns: 1fr !important; }
   }
-  ::selection{ background: var(--brass-light); color: var(--ink); }
 
-  /* Views */
-  .view{ display:none; min-height:100vh; }
-  .view.active{ display:grid; }
-  .dash-view.active{ grid-template-columns: 280px 1fr; }
-  .wizard-view.active{ grid-template-columns: 340px 1fr; }
-
-  /* Navigation Rail */
-  .rail{
-    background: radial-gradient(120% 100% at 0% 0%, #1c1812 0%, var(--ink) 55%);
-    color: var(--cream);
-    padding: 34px 28px 24px;
+  .rail {
+    background: var(--sidebar);
+    color: var(--text-light);
+    padding: 32px 24px 24px;
     position: sticky;
-    top:0;
-    height:100vh;
-    overflow-y:auto;
-    display:flex;
-    flex-direction:column;
-    border-right: 1px solid rgba(244,239,226,0.08);
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(255,255,255,0.05);
   }
-  .crest{ display:flex; align-items:center; gap:12px; margin-bottom: 26px; }
-  .crest-mark{
-    width:38px;height:38px;flex:none;
-    border:1.5px solid var(--brass-light);
-    display:grid;place-items:center;
-    font-family:var(--serif);
-    font-weight:600; font-size:15px;
-    color:var(--brass-light);
-    transform: rotate(45deg);
+  .crest { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
+  .crest-mark { width: 44px; height: auto; flex: none; background: transparent; border-radius: 8px; display: grid; place-items: center; overflow: hidden; }
+  .crest-text .eyebrow { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 2px; font-weight: 600; }
+  .crest-text h1 { font-size: 16px; font-weight: 600; margin: 0; color: white; letter-spacing: -0.02em; }
+
+  .gateway { width: 100%; max-width: 420px; }
+  .brand-head { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 32px; }
+  .brand-head h1 { font-size: 24px; font-weight: 600; color: white; margin: 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 32px; position: relative; }
+  
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+  .field label { font-size: 12px; font-weight: 500; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
+  .field label .link-opt { text-transform: none; font-size: 12px; color: var(--primary); text-decoration: none; cursor: pointer; font-weight: 500; }
+  .field label .link-opt:hover { text-decoration: underline; }
+  
+  input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], input[type=tel], select, textarea, input[type=file] {
+    font-family: var(--font); font-size: 14px; color: var(--text-main); background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; width: 100%;
+    transition: all 0.2s ease;
   }
-  .crest-mark span{ transform: rotate(-45deg); }
-  .crest-text .eyebrow{
-    font-family: var(--mono); font-size:10px; letter-spacing:.14em;
-    text-transform:uppercase; color: var(--brass-light); margin:0 0 3px;
-  }
-  .crest-text h1{
-    font-family: var(--serif); font-size: 17px; font-weight:600;
-    margin:0; letter-spacing:.01em; line-height:1.2; color:var(--cream);
-  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15); }
+  input:disabled { background: var(--bg-body); color: var(--text-muted); cursor: not-allowed; }
+  
+  .form-error { background: #FEE2E2; color: #991B1B; font-size: 13px; font-weight: 500; padding: 10px 14px; border-radius: var(--radius); margin-bottom: 16px; text-align: center; display: none; }
 
-  /* Chessboard Progress Indicator */
-  .rail-lede{ font-size:13px; line-height:1.5; color:rgba(244,239,226,0.65); margin:0 0 20px; padding-bottom:16px; border-bottom:1px solid rgba(244,239,226,0.1); }
-  .board-progress{ margin-bottom:20px; }
-  .board-progress .label{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:rgba(244,239,226,0.45); margin:0 0 10px; }
-  .rank{ display:grid; grid-template-columns:repeat(8,1fr); border:1px solid rgba(244,239,226,0.18); }
-  .sq{
-    aspect-ratio:1; display:grid; place-items:center; font-family:var(--mono); font-size:12px;
-    color:rgba(244,239,226,0.35); background:transparent; border:none; border-right:1px solid rgba(244,239,226,0.14); cursor:pointer;
-  }
-  .sq.done{ background:var(--felt); color:var(--cream); }
-  .sq.current{ background:var(--brass); color:var(--ink); font-weight:600; }
-  .files{ display:grid; grid-template-columns:repeat(8,1fr); margin-top:6px; }
-  .files span{ text-align:center; font-family:var(--mono); font-size:9.5px; color:rgba(244,239,226,0.3); }
+  .btn { font-family: var(--font); font-weight: 500; font-size: 14px; padding: 10px 20px; border-radius: var(--radius); border: 1px solid transparent; cursor: pointer; transition: all 0.2s ease; display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+  
+  .btn-submit, .btn-primary { background: var(--primary); color: white; width: 100%; }
+  .btn-submit:hover, .btn-primary:hover { background: var(--primary-hover); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25); }
+  
+  .btn-ghost { background: transparent; color: var(--text-muted); border-color: var(--border); width: auto; }
+  .btn-ghost:hover { background: var(--bg-body); color: var(--text-main); }
+  
+  .btn-gold { background: var(--surface); color: var(--text-main); border-color: var(--border); box-shadow: var(--shadow-sm); }
+  .btn-gold:hover { border-color: var(--accent); color: var(--accent-hover); }
 
-  /* Live Dossier Card */
-  .dossier{ margin-top:auto; background:var(--paper); color:var(--ink); padding:16px; border-radius:var(--radius); box-shadow:var(--shadow); }
-  .dossier .tag{ font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--claret); margin:0 0 8px; }
-  .dossier h2{ font-family:var(--serif); font-size:16px; margin:0 0 10px; color:var(--ink); }
-  .dossier dl{ margin:0; display:grid; gap:6px; }
-  .dossier .row{ display:flex; justify-content:space-between; font-size:11.5px; border-top:1px dashed rgba(21,18,13,0.18); padding-top:6px; }
-  .dossier dt{ color:var(--ink-soft); font-weight:500; }
-  .dossier dd{ margin:0; font-family:var(--mono); font-size:11px; text-align:right; color:var(--ink); }
+  .gateway-foot { margin-top: 24px; text-align: center; font-size: 13px; color: var(--text-muted); }
+  .gateway-foot a { color: var(--primary); text-decoration: none; font-weight: 500; cursor: pointer; }
+  .gateway-foot a:hover { text-decoration: underline; }
 
-  /* Form & Stage Area */
-  .stage{ background:var(--cream); padding:44px 52px; overflow-y:auto; }
-  .stage-inner{ max-width:640px; margin:0 auto; }
-  .step-head{ margin-bottom:24px; }
-  .step-eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--claret); margin:0 0 8px; display:flex; align-items:center; gap:10px; }
-  .step-eyebrow::after{ content:""; height:1px; flex:1; background:var(--line); }
-  .step-head h2{ font-family:var(--serif); font-size:27px; font-weight:600; margin:0 0 6px; color:var(--ink); }
-  .step-head p{ font-size:13.5px; line-height:1.55; color:var(--ink-soft); margin:0; }
-  .step{ display:none; animation:rise .3s ease; }
-  .step.active{ display:block; }
-  @keyframes rise{ from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform:none; } }
+  .rail-lede { font-size: 13px; line-height: 1.6; color: var(--text-muted); margin: 0 0 24px; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .board-progress { margin-bottom: 32px; }
+  .board-progress .label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin: 0 0 12px; letter-spacing: 0.05em; }
+  
+  .rank { display: flex; gap: 8px; }
+  .sq { flex: 1; height: 6px; border-radius: 99px; background: rgba(255,255,255,0.1); border: none; cursor: pointer; transition: all 0.3s ease; padding: 0; font-size: 0; }
+  .sq.done { background: var(--primary); }
+  .sq.current { background: var(--accent); box-shadow: 0 0 8px rgba(234, 179, 8, 0.5); }
+  
+  .dossier { margin-top: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: white; padding: 20px; border-radius: var(--radius-lg); }
+  .dossier .tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin: 0 0 8px; }
+  .dossier h2 { font-size: 16px; font-weight: 600; margin: 0 0 16px; }
+  .dossier dl { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .dossier .row { display: flex; justify-content: space-between; font-size: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .dossier .row:last-child { border: none; padding-bottom: 0; }
+  .dossier dt { color: var(--text-muted); }
+  .dossier dd { margin: 0; font-weight: 500; text-align: right; }
+  
+  .stage { padding: 48px; overflow-y: auto; }
+  .stage-inner { max-width: 680px; margin: 0 auto; background: var(--surface); padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+  .step-head { margin-bottom: 32px; }
+  .step-eyebrow { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--primary); margin: 0 0 8px; letter-spacing: 0.05em; }
+  .step-head h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px; color: var(--text-main); letter-spacing: -0.02em; }
+  .step-head p { font-size: 14px; line-height: 1.6; color: var(--text-muted); margin: 0; }
+  
+  .step { display: none; animation: slideUp 0.3s ease; }
+  .step.active { display: block; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+  .field.full { grid-column: 1 / -1; }
+  
+  .combo { position: relative; }
+  .combo-input { cursor: pointer; }
+  .combo-panel { position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); max-height: 280px; overflow-y: auto; display: none; }
+  .combo-panel.open { display: block; animation: fadeIn 0.15s ease; }
+  .combo-search { padding: 8px; border-bottom: 1px solid var(--border-soft); position: sticky; top: 0; background: var(--surface); z-index: 2; }
+  .combo-group-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); background: var(--bg-body); padding: 8px 14px; position: sticky; top: 51px; }
+  .combo-opt { padding: 10px 14px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border-soft); transition: background 0.15s; }
+  .combo-opt:hover { background: var(--primary-light); color: var(--primary-hover); }
+  
+  .fee-box { background: var(--bg-body); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .fee-box-label { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin: 0 0 16px; letter-spacing: 0.05em; }
+  .fee-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 12px; color: var(--text-main); }
+  .fee-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); font-size: 20px; font-weight: 700; color: var(--primary); }
+  
+  .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border); }
 
-  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px 20px; }
-  .field{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
-  .field.full{ grid-column:1 / -1; }
-  label{ font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); }
-  input[type=text], input[type=number], input[type=date], input[type=email], select, textarea{
-    font-family: var(--sans); font-size: 14px; color: var(--ink); background: var(--paper);
-    border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; width:100%;
-    transition: border-color .18s ease, box-shadow .18s ease;
-  }
-  input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--felt); box-shadow: 0 0 0 3px rgba(30,75,57,0.14); }
+  .nav-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin: 16px 0 8px; letter-spacing: 0.05em; }
+  .nav-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 32px; }
+  .nav-item { display: flex; justify-content: space-between; align-items: center; background: transparent; border: none; color: var(--text-muted); padding: 10px 12px; border-radius: var(--radius); font-family: var(--font); font-size: 13px; font-weight: 500; cursor: pointer; text-align: left; transition: all 0.2s; }
+  .nav-item:hover { background: var(--sidebar-hover); color: white; }
+  .nav-item.active { background: rgba(220, 38, 38, 0.15); color: var(--accent); font-weight: 600; }
+  .badge { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .nav-item.active .badge { background: var(--primary); color: white; }
+  
+  .admin-stats { margin-top: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: var(--radius); margin-bottom: 24px; }
+  .stat-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+  .stat-row:last-child { margin: 0; }
+  .stat-row strong { color: white; font-weight: 600; }
+  
+  .btn-logout { background: transparent; border: none; font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; padding: 0; transition: color 0.2s; }
+  .btn-logout:hover { color: var(--danger); }
 
-  /* Combo Picker for Time Control */
-  .combo{ position:relative; }
-  .combo-input{ cursor:pointer; }
-  .combo-panel{ position:absolute; z-index:20; top:calc(100% + 4px); left:0; right:0; background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); max-height:260px; overflow-y:auto; display:none; }
-  .combo-panel.open{ display:block; }
-  .combo-search{ padding:8px; border-bottom:1px solid var(--line-soft); position:sticky; top:0; background:var(--paper); }
-  .combo-group-label{ font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--brass); background:rgba(185,135,63,0.08); padding:6px 12px; position:sticky; top:38px; }
-  .combo-opt{ padding:8px 12px; font-size:13px; cursor:pointer; border-bottom:1px solid var(--line-soft); }
-  .combo-opt:hover{ background:rgba(30,75,57,0.08); color:var(--ink); }
+  .stage-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
+  .stage-header h2 { font-size: 24px; font-weight: 700; margin: 0; letter-spacing: -0.02em; }
+  .stage-header p { font-size: 14px; color: var(--text-muted); margin: 6px 0 0; }
+  
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
+  th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); background: var(--bg-body); padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  td { padding: 16px 20px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-soft); vertical-align: middle; transition: background 0.2s; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg-body); cursor: pointer; }
+  
+  .status-pill { display: inline-flex; align-items: center; justify-content: center; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; }
+  
+  .drawer-back { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); display: flex; justify-content: flex-end; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+  .drawer-back.open { opacity: 1; pointer-events: auto; }
+  .drawer { background: var(--surface); width: 640px; max-width: 90vw; height: 100vh; overflow-y: auto; box-shadow: -10px 0 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .drawer-back.open .drawer { transform: translateX(0); }
+  
+  .drawer-head { padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; background: var(--surface); position: sticky; top: 0; z-index: 10; }
+  .drawer-head h3 { font-size: 20px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .drawer-head p { margin: 0; font-size: 13px; color: var(--text-muted); }
+  .drawer-close { background: var(--bg-body); border: 1px solid var(--border); border-radius: 50%; width: 32px; height: 32px; display: grid; place-items: center; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
+  .drawer-close:hover { background: var(--border); color: var(--text-main); }
+  
+  .drawer-body { padding: 32px; flex: 1; }
+  .section-title { font-size: 14px; font-weight: 600; color: var(--text-main); margin: 32px 0 16px; display: flex; align-items: center; gap: 12px; }
+  .section-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  .section-title:first-child { margin-top: 0; }
+  
+  .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+  .data-item .label { display: block; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px; }
+  .data-item span:not(.label) { font-size: 14px; color: var(--text-main); font-weight: 500; }
+  
+  .drawer-footer { padding: 20px 32px; border-top: 1px solid var(--border); background: var(--bg-body); display: flex; justify-content: space-between; position: sticky; bottom: 0; }
 
-  /* Fee Box */
-  .fee-box{ background:linear-gradient(155deg, rgba(185,135,63,0.1), rgba(185,135,63,0.03)); border:1px solid rgba(185,135,63,0.4); border-radius:var(--radius); padding:16px 18px; }
-  .fee-box-label{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--brass); margin:0 0 10px; }
-  .fee-row{ display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
-  .fee-total{ display:flex; justify-content:space-between; align-items:baseline; margin-top:10px; padding-top:10px; border-top:1px dashed rgba(185,135,63,0.45); font-family:var(--serif); font-size:20px; font-weight:600; color:var(--ink); }
-
-  /* Buttons */
-  .actions{ display:flex; justify-content:space-between; align-items:center; margin-top:32px; padding-top:18px; border-top:1px solid var(--line); }
-  .btn{ font-family:var(--sans); font-weight:600; font-size:13.5px; padding:10px 18px; border-radius:var(--radius); border:1px solid transparent; cursor:pointer; }
-  .btn-primary{ background:var(--felt); color:var(--cream); }
-  .btn-primary:hover{ background:var(--felt-2); }
-  .btn-ghost{ background:transparent; color:var(--ink-soft); border-color:var(--line); }
-  .btn-gold{ background:var(--brass); color:var(--ink); }
-  .btn-logout{ background:transparent; border:none; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:rgba(244,239,226,0.55); cursor:pointer; padding:0; text-decoration:underline; }
-
-  /* Dashboard Nav & Tables */
-  .nav-label{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:rgba(244,239,226,0.45); margin:12px 0 8px; }
-  .nav-list{ display:flex; flex-direction:column; gap:4px; margin-bottom:20px; }
-  .nav-item{ display:flex; justify-content:space-between; align-items:center; background:transparent; border:none; color:rgba(244,239,226,0.7); padding:9px 12px; border-radius:var(--radius); font-family:var(--sans); font-size:13px; cursor:pointer; text-align:left; }
-  .nav-item:hover{ background:rgba(244,239,226,0.06); color:var(--cream); }
-  .nav-item.active{ background:var(--felt); color:var(--cream); font-weight:500; }
-  .badge{ font-family:var(--mono); font-size:10.5px; background:rgba(244,239,226,0.12); padding:2px 7px; border-radius:10px; }
-
-  .table-wrap{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
-  table{ width:100%; border-collapse:collapse; text-align:left; font-size:13px; }
-  th{ font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); background:rgba(21,18,13,0.035); padding:12px 16px; border-bottom:1px solid var(--line); }
-  td{ padding:14px 16px; color:var(--ink); border-bottom:1px solid var(--line-soft); vertical-align:middle; }
-  tr:hover td{ background:rgba(30,75,57,0.04); cursor:pointer; }
-
-  /* Drawer Details Modal */
-  .drawer-back{ position:fixed; inset:0; background:rgba(21,18,13,0.55); display:none; justify-content:flex-end; z-index:200; }
-  .drawer-back.open{ display:flex; }
-  .drawer{ background:var(--paper); width:640px; max-width:92vw; height:100vh; overflow-y:auto; border-left:1px solid var(--line); box-shadow:-10px 0 30px rgba(0,0,0,0.2); display:flex; flex-direction:column; }
-  .drawer-head{ padding:20px 24px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:flex-start; background:var(--cream); position:sticky; top:0; z-index:10; }
-  .drawer-head h3{ font-family:var(--serif); font-size:20px; margin:0 0 4px; }
-  .drawer-close{ background:none; border:none; font-size:24px; cursor:pointer; color:var(--ink-soft); line-height:1; }
-  .drawer-body{ padding:24px; flex:1; }
-  .section-title{ font-family:var(--serif); font-size:14px; font-weight:600; color:var(--felt); margin:20px 0 10px; padding-bottom:5px; border-bottom:1px solid var(--line); }
-  .data-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px 16px; }
-  .data-item .label{ display:block; font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:0.04em; color:rgba(58,53,44,0.6); margin-bottom:2px; }
-  .data-item span:not(.label){ font-size:13px; color:var(--ink); font-weight:500; }
-  .drawer-footer{ padding:16px 24px; border-top:1px solid var(--line); background:var(--cream); display:flex; justify-content:space-between; position:sticky; bottom:0; }
-
-  /* Toast Notification */
-  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--cream); padding:12px 20px; border-radius:var(--radius); font-size:13px; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:all .3s ease; z-index:300; display:flex; align-items:center; gap:8px; }
-  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
-  .toast .dot{ width:6px; height:6px; border-radius:50%; background:var(--brass-light); }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--sidebar); color: white; padding: 12px 24px; border-radius: 99px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 10px; z-index: 300; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
 </style>
 </head>
 <body>
 
-<!-- ================= VIEW 1: ORGANIZER APPLICATION WIZARD ================= -->
-<div id="view-wizard" class="view wizard-view active">
-  <aside class="rail">
-    <div class="crest">
-      <div class="crest-mark"><span>MCF</span></div>
-      <div class="crest-text"><p class="eyebrow">Application Wizard</p><h1>FIDE-Rated Event</h1></div>
-    </div>
-    <p class="rail-lede">Submit this dossier for MCF endorsement. Eight sections, one rank of the board.</p>
-    <div class="board-progress">
-      <p class="label">Application rank — step <span id="stepNumLabel">1</span> of 8</p>
-      <div class="rank" id="rank"></div>
-      <div class="files" id="files"></div>
-    </div>
-    <div class="dossier" id="dossier">
-      <p class="tag">Tournament dossier · draft</p>
-      <h2 id="dEventName">Untitled event</h2>
-      <dl>
-        <div class="row"><dt>Venue</dt><dd id="dVenue">—</dd></div>
-        <div class="row"><dt>Dates</dt><dd id="dDates">—</dd></div>
-        <div class="row"><dt>System</dt><dd id="dSystem">—</dd></div>
-        <div class="row"><dt>Time control</dt><dd id="dTC">—</dd></div>
-        <div class="row"><dt>Fee due</dt><dd id="dFee">RM 0</dd></div>
-        <div class="row"><dt>Chief Arbiter</dt><dd id="dArbiter">—</dd></div>
-      </dl>
-    </div>
-    <div class="rail-foot" style="margin-top:auto; padding-top:16px;">
-      <button type="button" class="btn-logout" onclick="showDashboard()">Go to Endorsement Dashboard →</button>
-    </div>
-  </aside>
+<!-- ================= 1. LOGIN VIEW ================= -->
+<div id="view-login" class="view auth-view active">
+  <div class="gateway">
+    <header class="brand-head">
+      <div class="crest-mark" style="width: 90px; height: auto; background: transparent; margin-bottom: 12px;">
+        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
+      </div>
+      <h1>Portal Access</h1>
+    </header>
+    <main class="card">
+      <div id="loginError" class="form-error"></div>
+      <form id="loginForm" novalidate>
+        <div class="field"><label>Email Address</label><input type="email" id="loginEmail" placeholder="organizer@klchess.my" required></div>
+        <div class="field"><label><span>Password</span><a class="link-opt" id="forgotPassLink">Forgot password?</a></label><input type="password" id="loginPass" placeholder="••••••••••••" required></div>
+        <button type="submit" class="btn-submit" id="loginBtn">Sign In</button>
+      </form>
+    </main>
+    <footer class="gateway-foot"><span>Don't have an account? <a id="goToRegister">Sign Up Here</a></span></footer>
+  </div>
+</div>
 
+<!-- ================= 2. REGISTER VIEW ================= -->
+<div id="view-register" class="view auth-view">
+  <div class="gateway">
+    <header class="brand-head">
+      <div class="crest-mark" style="width: 90px; height: auto; background: transparent; margin-bottom: 12px;">
+        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
+      </div>
+      <h1>Create Account</h1>
+    </header>
+    <main class="card">
+      <div id="regError" class="form-error"></div>
+      <form id="registerForm" novalidate>
+        <div class="field"><label>Full Name</label><input type="text" id="regName" placeholder="e.g. Ahmad bin Abdullah" required></div>
+        <div class="field"><label>Email Address</label><input type="email" id="regEmail" placeholder="you@domain.com" required></div>
+        <div class="field">
+          <label>State / Region</label>
+          <select id="regState" required>
+            <option value="" disabled selected>Select a State / Region...</option>
+            <option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Penang">Penang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option>
+          </select>
+        </div>
+        <div class="field"><label>Password</label><input type="password" id="regPass" placeholder="Minimum 6 characters" required></div>
+        <button type="submit" class="btn-submit" style="margin-top:8px;">Register Account</button>
+      </form>
+    </main>
+    <footer class="gateway-foot"><span>Already have an account? <a id="goToLogin">Sign In Here</a></span></footer>
+  </div>
+</div>
+
+<!-- ================= 3. USER PROFILE VIEW ================= -->
+<div id="view-profile" class="view dash-view">
+  <div class="mobile-nav-bar">
+    <h2>MCF Portal Settings</h2>
+    <button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰ Menu</button>
+  </div>
+  <aside class="rail" id="mainRailProfile">
+    <div class="crest">
+      <div class="crest-mark" style="width: 44px; height: auto; background: transparent;">
+        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
+      </div>
+      <div class="crest-text"><p class="eyebrow">Settings</p><h1>My Profile</h1></div>
+    </div>
+    <div class="rail-foot" style="margin-top:auto;"><button type="button" class="btn-logout" id="btnBackFromProfile">← Back to Dashboard</button></div>
+  </aside>
   <main class="stage">
     <div class="stage-inner">
-      <form id="wizardForm" novalidate>
-        <!-- Step 1: Event Details -->
-        <section class="step active" data-step="1">
-          <div class="step-head"><p class="step-eyebrow">Section A</p><h2>Event details</h2><p>Specify the tournament name, dates, venue, and system.</p></div>
-          <div class="field-grid">
-            <div class="field full"><label>Organizer Contact Email *</label><input type="email" id="organizerEmail" placeholder="organizer@chess.my" required></div>
-            <div class="field full"><label>Event name *</label><input type="text" id="eventName" placeholder="e.g. Kuala Lumpur Open 2026" required></div>
-            <div class="field"><label>Venue *</label><input type="text" id="venue" placeholder="e.g. Hall / Hotel / City" required></div>
-            <div class="field"><label>Expected pax *</label><input type="number" id="pax" min="1" value="60" required></div>
-            <div class="field"><label>Start date *</label><input type="date" id="dateStart" required></div>
-            <div class="field"><label>End date *</label><input type="date" id="dateEnd" required></div>
-            <div class="field full">
-              <label>Tournament system *</label>
-              <select id="system">
-                <option value="Swiss System" selected>Swiss System</option>
-                <option value="Round Robin">Round Robin</option>
-                <option value="Knock Out">Knock Out</option>
-              </select>
-            </div>
-          </div>
-        </section>
-
-        <!-- Step 2: Format & Eligibility -->
-        <section class="step" data-step="2">
-          <div class="step-head"><p class="step-eyebrow">Section B</p><h2>Format & eligibility</h2><p>Define number of rounds and rating parameters.</p></div>
-          <div class="field-grid">
-            <div class="field"><label>Number of rounds *</label><input type="number" id="rounds" min="1" value="7" required></div>
-            <div class="field"><label>Rating cap (optional)</label><input type="text" id="maxRating" placeholder="e.g. Under 1800 or Open"></div>
-          </div>
-        </section>
-
-        <!-- Step 3: Technical Setup -->
-        <section class="step" data-step="3">
-          <div class="step-head"><p class="step-eyebrow">Section C</p><h2>Technical setup</h2><p>Pairing software and official tiebreak priorities.</p></div>
-          <div class="field-grid">
-            <div class="field full">
-              <label>Pairing software *</label>
-              <select id="software">
-                <option>Swiss Manager</option>
-                <option>Vega</option>
-                <option>Tornelo</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div class="field full"><label>1st tiebreak priority *</label><input type="text" id="tb1" value="Buchholz Cut 1" required></div>
-            <div class="field full"><label>2nd tiebreak priority</label><input type="text" id="tb2" value="Buchholz"></div>
-          </div>
-        </section>
-
-        <!-- Step 4: Time Control Selection -->
-        <section class="step" data-step="4">
-          <div class="step-head"><p class="step-eyebrow">Section D</p><h2>Time control</h2><p>Select the standard FIDE-compliant time control.</p></div>
-          <div class="field full combo">
-            <label>Time control specification *</label>
-            <input type="text" id="tcInput" class="combo-input" placeholder="Click to choose time control..." readonly required>
-            <div class="combo-panel" id="tcPanel">
-              <div class="combo-search"><input type="text" id="tcSearch" placeholder="Filter time controls..."></div>
-              <div id="tcList"></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Step 5: MCF Fee & Payment -->
-        <section class="step" data-step="5">
-          <div class="step-head"><p class="step-eyebrow">Section E</p><h2>Budget & payment</h2><p>Review the calculated fee and attach proof of transfer.</p></div>
-          <div class="fee-box">
-            <p class="fee-box-label">MCF Endorsement Fee Calculation</p>
-            <div class="fee-row"><span>Base registration fee</span><span id="feeBase">RM 250</span></div>
-            <div class="fee-row"><span>Per-player fee</span><span id="feePerPlayer">RM 180</span></div>
-            <div class="fee-total"><span>Total due to MCF</span><span id="feeTotal">RM 430</span></div>
-          </div>
-          <div style="margin-top:16px; padding:16px; background:rgba(30,75,57,0.06); border:1px solid rgba(30,75,57,0.18); border-radius:var(--radius);">
-            <div style="font-size:12.5px; color:var(--ink-soft); line-height:1.5;">
-              Bank: <b>CIMB Bank Berhad (Account: 8000-1234-5678)</b><br>
-              Account Name: <b>Persekutuan Catur Malaysia (MCF)</b>
-            </div>
-            <div class="field full" style="margin-top:14px;">
-              <label>Bank Transaction Reference Number *</label>
-              <input type="text" id="paymentRef" placeholder="e.g. CIMB-20261015-8849" required>
-            </div>
-            <div class="field full" style="margin-bottom:0;">
-              <label>Upload Payment Slip / Receipt (PDF or Image) *</label>
-              <input type="file" id="receiptFile" accept="image/*,application/pdf" required>
-            </div>
-          </div>
-        </section>
-
-        <!-- Step 6: Officials & State Selection -->
-        <section class="step" data-step="6">
-          <div class="step-head"><p class="step-eyebrow">Section F</p><h2>Officials & State</h2><p>Tournament administration details.</p></div>
-          <div class="field-grid">
-            <div class="field full">
-              <label>Host State Association *</label>
-              <select id="stateSelect" required>
-                <option value="Johor">Johor</option>
-                <option value="Kedah">Kedah</option>
-                <option value="Kelantan">Kelantan</option>
-                <option value="Melaka">Melaka</option>
-                <option value="Negeri Sembilan">Negeri Sembilan</option>
-                <option value="Pahang">Pahang</option>
-                <option value="Penang">Penang</option>
-                <option value="Perak">Perak</option>
-                <option value="Perlis">Perlis</option>
-                <option value="Sabah">Sabah</option>
-                <option value="Sarawak">Sarawak</option>
-                <option value="Selangor" selected>Selangor</option>
-                <option value="Terengganu">Terengganu</option>
-                <option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option>
-                <option value="W.P. Labuan">W.P. Labuan</option>
-                <option value="W.P. Putrajaya">W.P. Putrajaya</option>
-              </select>
-            </div>
-            <div class="field full"><label>Organizing Body *</label><input type="text" id="orgBody" placeholder="e.g. KL Chess Academy" required></div>
-            <div class="field full"><label>Chief Organizer *</label><input type="text" id="chiefOrg" placeholder="Organizer Full Name" required></div>
-            <div class="field"><label>Chief Arbiter Name *</label><input type="text" id="chiefArbiter" placeholder="Arbiter Full Name" required></div>
-            <div class="field"><label>Chief Arbiter FIDE ID *</label><input type="text" id="chiefArbiterFide" placeholder="e.g. 5701234" required></div>
-          </div>
-        </section>
-
-        <!-- Step 7: Objectives -->
-        <section class="step" data-step="7">
-          <div class="step-head"><p class="step-eyebrow">Section G</p><h2>Objectives</h2><p>Purpose and community impact of the tournament.</p></div>
+      <div class="step-head"><p class="step-eyebrow">Account</p><h2>Personal Information</h2><p>Update your details. These will be used as defaults for your applications.</p></div>
+      <form id="profileForm">
+        <div id="profError" class="form-error"></div>
+        <div class="field-grid">
+          <div class="field full"><label>Account Email</label><input type="email" id="profEmail" disabled></div>
+          <div class="field"><label>Full Name</label><input type="text" id="profName" required></div>
+          <div class="field"><label>Phone Number</label><input type="tel" id="profPhone" placeholder="e.g. 0123456789"></div>
           <div class="field full">
-            <label>Tournament Objective *</label>
-            <textarea id="obj1" rows="3" required>Provide FIDE-rated competition for state rating progression and national selection eligibility.</textarea>
-          </div>
-        </section>
-
-        <!-- Step 8: Declaration -->
-        <section class="step" data-step="8">
-          <div class="step-head"><p class="step-eyebrow">Section H</p><h2>Declaration</h2><p>Formal submission agreement.</p></div>
-          <div class="field-grid">
-            <div class="field"><label>Signatory Full Name *</label><input type="text" id="signName" placeholder="Full name as per IC" required></div>
-            <div class="field"><label>Date *</label><input type="date" id="signDate" required></div>
-          </div>
-          <p style="font-size:12px; color:var(--ink-soft); margin-top:14px; line-height:1.5;">
-            By submitting, I confirm all details are authentic and agree to adhere strictly to MCF & FIDE Rating Regulations.
-          </p>
-        </section>
-
-        <div class="actions">
-          <button type="button" class="btn btn-ghost" id="btnBack">← Back</button>
-          <div style="display:flex; gap:10px;">
-            <button type="button" class="btn btn-primary" id="btnNext">Continue →</button>
-            <button type="button" class="btn btn-primary" id="btnSubmit" style="display:none;">Submit Dossier</button>
+            <label>Default State / Region</label>
+            <select id="profState" required>
+              <option value="" disabled selected>Select a State / Region...</option>
+              <option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Penang">Penang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option>
+            </select>
           </div>
         </div>
+        <div class="actions"><button type="submit" class="btn btn-primary" style="width:auto;" id="btnSaveProfile">Save Changes</button></div>
       </form>
     </div>
   </main>
 </div>
 
-<!-- ================= VIEW 2: STATE & MCF DASHBOARD ================= -->
-<div id="view-dashboard" class="view dash-view">
-  <aside class="rail">
+<!-- ================= 4. ORGANIZER DASHBOARD ================= -->
+<div id="view-organizer-dash" class="view dash-view">
+  <div class="mobile-nav-bar">
+    <h2>Organizer Portal</h2>
+    <button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰ Menu</button>
+  </div>
+  <aside class="rail" id="mainRailOrg">
     <div class="crest">
-      <div class="crest-mark"><span>MCF</span></div>
-      <div class="crest-text"><p class="eyebrow">Administration</p><h1>Rating Portal</h1></div>
+      <div class="crest-mark" style="width: 44px; height: auto; background: transparent;">
+        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
+      </div>
+      <div class="crest-text"><p class="eyebrow">Malaysian Chess Federation</p><h1>Organizer Portal</h1></div>
     </div>
-    <div style="margin-bottom: 20px;">
-      <button type="button" class="btn btn-primary" onclick="showWizard()" style="width:100%;">+ New Application</button>
-    </div>
-    <p class="nav-label">Queue Filter</p>
-    <nav class="nav-list" id="navFilter">
-      <button class="nav-item active" data-filter="all">All Dossiers <span class="badge" id="cntAll">0</span></button>
-      <button class="nav-item" data-filter="PENDING STATE">Pending State <span class="badge" id="cntState">0</span></button>
-      <button class="nav-item" data-filter="PENDING ADMIN">Pending MCF <span class="badge" id="cntMcf">0</span></button>
-      <button class="nav-item" data-filter="APPROVED">Approved <span class="badge" id="cntApproved">0</span></button>
+    
+    <div style="margin-top: 8px;"><button type="button" class="btn btn-primary" id="btnNewAppDash">+ New Application</button></div>
+
+    <p class="nav-label" style="margin-top: 36px;">My Events</p>
+    <nav class="nav-list" id="navFilterOrg">
+      <button class="nav-item active" data-filter="all">All Applications <span class="badge" id="cntOrgAll">0</span></button>
+      <button class="nav-item" data-filter="pending_state">Pending State <span class="badge" id="cntOrgPendingState">0</span></button>
+      <button class="nav-item" data-filter="pending_admin">Pending MCF <span class="badge" id="cntOrgPendingAdmin">0</span></button>
+      <button class="nav-item" data-filter="approved">Approved <span class="badge" id="cntOrgApproved">0</span></button>
+      <button class="nav-item" data-filter="revision">Revision Req. <span class="badge" id="cntOrgRevision">0</span></button>
     </nav>
-    <div style="margin-top:auto;">
-      <button type="button" class="btn btn-ghost" onclick="fetchDossiers()" style="width:100%; color:var(--cream); border-color:rgba(244,239,226,0.2);">Refresh Sheet Data</button>
+    <div class="rail-foot" style="margin-top:auto; display:flex; flex-direction:column; gap:16px; width:100%;">
+      <button type="button" class="btn btn-ghost" id="btnGoAdminView" style="display:none; width:100%; justify-content:center;">Switch to Admin View &rarr;</button>
+      <div style="display:flex; justify-content:space-between; width: 100%; border-top:1px solid rgba(255,255,255,0.05); padding-top:16px;">
+        <button type="button" class="btn-logout btnGoProfile">My Profile</button>
+        <button type="button" class="btn-logout btnLogOut">Log Out</button>
+      </div>
     </div>
   </aside>
-
-  <main class="stage" style="padding:40px 48px;">
-    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px; border-bottom:1px solid var(--line); padding-bottom:16px;">
-      <div><h2 style="font-family:var(--serif); margin:0;">Tournament Applications</h2><p style="font-size:13px; color:var(--ink-soft); margin:4px 0 0;">Synchronized directly with Google Sheets API v4.</p></div>
-      <input type="text" id="searchInput" placeholder="Search event or organizer..." style="width:240px;">
+  <main class="stage">
+    <div class="stage-header">
+      <div><h2 id="viewTitleOrg">All Applications</h2><p>Track the approval status of your submitted FIDE rating requests.</p></div>
+      <div><button class="btn btn-ghost" id="btnRefreshOrg">↻ Refresh Data</button></div>
     </div>
     <div class="table-wrap">
       <table>
@@ -402,466 +391,1389 @@
             <th>State</th>
             <th>System / TC</th>
             <th>Expected Pax</th>
-            <th>Fee</th>
+            <th>Fee & Ref</th>
             <th>Status</th>
           </tr>
         </thead>
-        <tbody id="tableBody"></tbody>
+        <tbody id="tableBodyOrg"></tbody>
       </table>
     </div>
   </main>
 </div>
 
-<!-- ================= DRAWER (AUDIT & APPROVAL MODAL) ================= -->
-<div class="drawer-back" id="drawerBack">
+<!-- ================= 5. ORGANIZER WIZARD (FORM) ================= -->
+<div id="view-organizer-wizard" class="view wizard-view">
+  <div class="mobile-nav-bar">
+    <h2>Application Wizard</h2>
+    <button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰ Menu</button>
+  </div>
+  <aside class="rail" id="mainRailWizard">
+    <div class="crest">
+      <div class="crest-mark" style="width: 44px; height: auto; background: transparent;">
+        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
+      </div>
+      <div class="crest-text"><p class="eyebrow">Application Wizard</p><h1>FIDE-Rated Event</h1></div>
+    </div>
+    <p class="rail-lede">Complete this dossier to request MCF endorsement. Navigate via the progress steps below.</p>
+    
+    <div class="board-progress">
+      <p class="label">Step <span id="stepNumLabel">1</span> of 8</p>
+      <div class="rank" id="rank"></div>
+    </div>
+    
+    <div class="dossier" id="dossier">
+      <p class="tag">Live Draft</p><h2 id="dEventName">Untitled event</h2>
+      <dl>
+        <div class="row"><dt>Venue</dt><dd id="dVenue">—</dd></div>
+        <div class="row"><dt>Dates</dt><dd id="dDates">—</dd></div>
+        <div class="row"><dt>System</dt><dd id="dSystem">—</dd></div>
+        <div class="row"><dt>Time Control</dt><dd id="dTC">—</dd></div>
+        <div class="row"><dt>Fee Due</dt><dd id="dFee" style="color:var(--accent); font-weight:600;">—</dd></div>
+        <div class="row"><dt>Arbiter</dt><dd id="dArbiter">—</dd></div>
+      </dl>
+    </div>
+    <div class="rail-foot" style="margin-top:32px;"><button type="button" id="btnCancelWizard" class="btn-logout">← Cancel & Return</button></div>
+  </aside>
+  <main class="stage">
+    <div class="stage-inner">
+      <form id="wizard" novalidate>
+        
+        <!-- STEP 1: Section A (FIDE Compliance & Event Details) -->
+        <section class="step active" data-step="1">
+          <div class="step-head"><p class="step-eyebrow">Section A</p><h2>Compliance & General Details</h2></div>
+          <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+              <input type="checkbox" id="chkFideLaws" style="width: 18px; height: 18px; accent-color: var(--primary);" checked required>
+              <label for="chkFideLaws" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">FIDE Laws to be followed *</label>
+            </div>
+            
+            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+              <input type="checkbox" id="chkNatChampionship" style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <label for="chkNatChampionship" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">National Championship 1.43a (Check if National Championship)</label>
+            </div>
+            
+            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+              <input type="checkbox" id="chkTitleNorms" style="width: 18px; height: 18px; accent-color: var(--primary);" onchange="toggleNormFields()">
+              <label for="chkTitleNorms" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">Title norms available (Intl. Open)</label>
+            </div>
+
+            <div id="normAvailableWrap" class="field full" style="display: none; padding-left: 20px;">
+              <label>Norm type available</label>
+              <select id="normAvailable">
+                <option value="No">No norms</option>
+                <option value="GM/WGM">GM/WGM norm available</option>
+                <option value="IM/WIM">IM/WIM norm available</option>
+              </select>
+            </div>
+
+            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+              <input type="checkbox" id="chkDirectTitle" style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <label for="chkDirectTitle" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">Direct title events</label>
+            </div>
+
+            <div class="field full">
+              <label>Tournament Type *</label>
+              <select id="tourneyType">
+                <option value="Over the Board">Over the Board</option>
+                <option value="Hybrid">Hybrid</option>
+              </select>
+            </div>
+
+            <div class="field full" style="margin-top: 10px;"><label>Event name *</label><input type="text" id="eventName" placeholder="e.g. Kuala Lumpur Open 2026"></div>
+            <div class="field"><label>Venue *</label><input type="text" id="venue" placeholder="e.g. City / building"></div>
+            <div class="field"><label>Expected players (Pax) *</label><input type="number" id="pax" min="1" placeholder="Expected players" oninput="updateDossier()"></div>
+            <div class="field"><label>Start date *</label><input type="date" id="dateStart" onchange="updateDossier()"></div>
+            <div class="field"><label>End date *</label><input type="date" id="dateEnd"></div>
+          </div>
+        </section>
+
+        <!-- STEP 2: Section B (Format & Organizer Category) -->
+        <section class="step" data-step="2">
+          <div class="step-head"><p class="step-eyebrow">Section B</p><h2>Format & Organizer Category</h2></div>
+          <div class="field-grid">
+            <div class="field full">
+              <label>Organizer Category (Fee Schedule - Clause 3.3) *</label>
+              <select id="orgCategory" required onchange="toggleAffiliateLetter(); updateDossier();">
+                <option value="Independent Organizer">Independent Organizer (Reg Fee: RM300)</option>
+                <option value="State Affiliate Organizer">State Affiliate Organizer (RM200 for Verified State Admins, else RM300)</option>
+              </select>
+            </div>
+            
+            <!-- Conditional State Affiliate Letter Upload -->
+            <div class="field full" id="affiliateLetterField" style="display: none; background: var(--bg-body); padding: 16px; border-radius: var(--radius); border: 1px dashed var(--primary);">
+              <label style="font-weight: 600; color: var(--text-main); margin-bottom: 6px;">State Affiliate Endorsement / Authorization Letter *</label>
+              <input type="file" id="affiliateLetterUpload" accept="image/*,.pdf" style="background:transparent; cursor:pointer;">
+              <p style="font-size: 11px; color: var(--text-muted); margin: 6px 0 0;">Please attach the official endorsement letter from the State Chess Association.</p>
+            </div>
+
+            <div class="field full">
+              <label>Tournament System *</label>
+              <select id="system" required onchange="updateDossier()">
+                <option value="">Select system…</option>
+                <option value="Swiss">Swiss</option>
+                <option value="Round Robin">Round Robin</option>
+                <option value="Double RR">Double RR</option>
+                <option value="Team League">Team League</option>
+                <option value="Partial League">Partial League</option>
+                <option value="Knock Out">Knock Out</option>
+                <option value="Match">Match</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label>State / Region *</label>
+              <select id="orgState" required>
+                <option value="" disabled selected>Select a State...</option>
+                <option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Penang">Penang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option>
+              </select>
+            </div>
+            <div class="field"><label>Number of Rounds Reported *</label><input type="number" id="rounds" min="1" value="7"></div>
+            <div class="field"><label>Number of Multiple Round Days *</label><input type="number" id="multiRoundDays" min="0" value="1"></div>
+          </div>
+        </section>
+
+        <!-- STEP 3: Section C (Officials & Arbiters) -->
+        <section class="step" data-step="3">
+          <div class="step-head"><p class="step-eyebrow">Section C</p><h2>Officials & Arbiters (B.06.3 – 8.3)</h2></div>
+          <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
+              <div class="field" style="margin-bottom:0;"><label>Chief Arbiter Name * (1 person, licensed)</label><input type="text" id="chiefArbiter" placeholder="Full Name" required oninput="updateDossier()"></div>
+              <div class="field" style="margin-bottom:0;"><label>FIDE ID *</label><input type="text" id="chiefArbiterFide" placeholder="FIDE ID" required></div>
+            </div>
+
+            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
+              <div class="field" style="margin-bottom:0;"><label>Deputy Chief Arbiter (Up to 2, licensed)</label><input type="text" id="deputyChiefArbiter" placeholder="Full Name"></div>
+              <div class="field" style="margin-bottom:0;"><label>FIDE ID</label><input type="text" id="deputyChiefArbiterFide" placeholder="FIDE ID"></div>
+            </div>
+
+            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
+              <div class="field" style="margin-bottom:0;"><label>Chief Organizer Name *</label><input type="text" id="chiefOrg" placeholder="Full Name" required></div>
+              <div class="field" style="margin-bottom:0;"><label>FIDE ID *</label><input type="text" id="chiefOrgFide" placeholder="FIDE ID" required></div>
+            </div>
+
+            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
+              <div class="field" style="margin-bottom:0;"><label>Organiser (Up to 10 names allowed)</label><input type="text" id="orgBody" placeholder="Organizer Name / Club"></div>
+              <div class="field" style="margin-bottom:0;"><label>FIDE ID</label><input type="text" id="orgBodyFide" placeholder="FIDE ID"></div>
+            </div>
+
+            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
+              <div class="field" style="margin-bottom:0;"><label>Fair Play Officer Name</label><input type="text" id="fairPlayOfficer" placeholder="Full Name"></div>
+              <div class="field" style="margin-bottom:0;"><label>FIDE ID</label><input type="text" id="fairPlayOfficerFide" placeholder="FIDE ID"></div>
+            </div>
+            
+            <div class="field full" style="background: var(--bg-body); padding: 16px; border-radius: var(--radius); border: 1px solid var(--border);">
+              <label style="margin-bottom: 12px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;">Additional Arbiters & Roles</label>
+              
+              <!-- Sector Arbiters -->
+              <div style="margin-bottom: 10px;">
+                <label style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; margin-bottom: 6px;">
+                  <input type="checkbox" id="addSectorArbiters" style="accent-color: var(--primary);" onchange="toggleArbiterInput('Sector')"> Add Sector Arbiters (SA / A, only licensed)
+                </label>
+                <div id="sectorArbiterFields" style="display: none; padding-left: 20px; margin-top: 6px;">
+                  <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom:0;">
+                    <input type="text" id="sectorArbiterName" placeholder="Sector Arbiter Name">
+                    <input type="text" id="sectorArbiterFide" placeholder="FIDE ID">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Arbiters -->
+              <div style="margin-bottom: 10px;">
+                <label style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; margin-bottom: 6px;">
+                  <input type="checkbox" id="addArbiters" style="accent-color: var(--primary);" onchange="toggleArbiterInput('Arbiter')"> Add Arbiters (SA / A, only licensed)
+                </label>
+                <div id="arbiterFields" style="display: none; padding-left: 20px; margin-top: 6px;">
+                  <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom:0;">
+                    <input type="text" id="arbiterName" placeholder="Arbiter Name">
+                    <input type="text" id="arbiterFide" placeholder="FIDE ID">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Assistant Arbiters -->
+              <div style="margin-bottom: 10px;">
+                <label style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; margin-bottom: 6px;">
+                  <input type="checkbox" id="addAssistantArbiters" style="accent-color: var(--primary);" onchange="toggleArbiterInput('Assistant')"> Add Assistant Arbiters (AA: for helpers / NA norm seekers / licensed)
+                </label>
+                <div id="assistantArbiterFields" style="display: none; padding-left: 20px; margin-top: 6px;">
+                  <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom:0;">
+                    <input type="text" id="assistantArbiterName" placeholder="Assistant Arbiter Name">
+                    <input type="text" id="assistantArbiterFide" placeholder="FIDE ID">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pairings Arbiters -->
+              <div>
+                <label style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; margin-bottom: 6px;">
+                  <input type="checkbox" id="addPairingsArbiters" style="accent-color: var(--primary);" onchange="toggleArbiterInput('Pairings')"> Add Pairings Arbiters
+                </label>
+                <div id="pairingsArbiterFields" style="display: none; padding-left: 20px; margin-top: 6px;">
+                  <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom:0;">
+                    <input type="text" id="pairingsArbiterName" placeholder="Pairings Arbiter Name">
+                    <input type="text" id="pairingsArbiterFide" placeholder="FIDE ID">
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="field full"><label>1st Tiebreak Method *</label><input type="text" id="tb1" placeholder="e.g. Direct encounter" value="Direct encounter"></div>
+            <div class="field full"><label>2nd Tiebreak Method</label><input type="text" id="tb2" placeholder="e.g. Buchholz"></div>
+            <div class="field full"><label>3rd Tiebreak Method</label><input type="text" id="tb3" placeholder="e.g. Sonneborn-Berger"></div>
+          </div>
+        </section>
+
+        <!-- STEP 4: Section D (Time Control, Software & Limits) -->
+        <section class="step" data-step="4">
+          <div class="step-head"><p class="step-eyebrow">Section D</p><h2>Time Control & Settings</h2></div>
+          <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
+            
+            <div class="field full combo">
+              <label>Time Control Specification * (Select from list or type custom)</label>
+              <input type="text" id="tcInput" class="combo-input" placeholder="e.g. 90 mins + 30 sec increment or choose below..." oninput="updateDossier()">
+              <div class="combo-panel" id="tcPanel">
+                <div class="combo-search"><input type="text" id="tcSearch" placeholder="Search presets..."></div>
+                <div id="tcList"></div>
+              </div>
+            </div>
+
+            <div class="field full"><label>Pairing Software *</label><select id="software"><option value="ChessManager">ChessManager</option><option value="Swiss Manager">Swiss Manager</option><option value="Vega">Vega</option><option value="Tornelo">Tornelo</option><option value="Other">Other</option></select></div>
+
+            <div class="field full"><label>Max Rating Limit (optional)</label><input type="text" id="maxRatingCond" placeholder="No limit"></div>
+            <div class="field full"><label>Age Limit (optional)</label><input type="text" id="ageLimit" placeholder="None"></div>
+          </div>
+        </section>
+
+        <!-- STEP 5: Section E (Additional Info & Payment) -->
+        <section class="step" data-step="5">
+          <div class="step-head"><p class="step-eyebrow">Section E</p><h2>Additional Info, Prize Fund & Payment</h2></div>
+          <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+              <input type="checkbox" id="chkDigitalClock" style="width: 18px; height: 18px; accent-color: var(--primary);" checked>
+              <label for="chkDigitalClock" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">All digital clocks</label>
+            </div>
+
+            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+              <input type="checkbox" id="chkPgnProvided" style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <label for="chkPgnProvided" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">Will PGN be provided</label>
+            </div>
+
+            <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+              <input type="checkbox" id="chkInternetLive" style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <label for="chkInternetLive" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">Internet transmission</label>
+            </div>
+
+            <div class="field full"><label>Contact Email *</label><input type="email" id="contactEmail" placeholder="organizer@federation.org" required></div>
+            <div class="field full"><label>Internet Homepage / Website URL</label><input type="text" id="internetHomepage" placeholder="https://..."></div>
+            <div class="field full"><label>Prize Fund (RM)</label><input type="text" id="prizeFund" placeholder="Total prize fund"></div>
+            <div class="field full"><label>Remarks / Additional Notes</label><textarea id="remarks" rows="2" placeholder="Remarks..."></textarea></div>
+          </div>
+
+          <div class="fee-box" id="feeCalc" style="margin-top: 20px;">
+            <p class="fee-box-label">MCF Registration Fee Due (Clause 3.3)</p>
+            <div class="fee-row"><span>Base Registration fee</span><span id="feeBase">RM 0</span></div>
+            <div class="fee-row"><span>Per-player Rating fee (Min 32 players deposit)</span><span id="feePerPlayer">RM 0</span></div>
+            <div class="fee-total"><span>Total due (Deposit)</span><span id="feeTotal">RM 0</span></div>
+          </div>
+          <div style="margin-top:20px; padding:20px; background:var(--bg-body); border:1px solid var(--border); border-radius:var(--radius);">
+            <h4 style="margin:0 0 10px; font-size:14px; font-weight:600;">Payment Instructions</h4>
+            <p style="margin:0 0 16px; font-size:13px; color:var(--text-muted); line-height:1.5;">Please transfer the exact <b>Total Due</b> to the Malaysian Chess Federation account before submitting this dossier.</p>
+            <div style="display:flex; justify-content:space-between; border-bottom:1px dashed var(--border); padding-bottom:10px; margin-bottom:10px;"><span style="font-size:12px; color:var(--text-muted);">Bank Name</span><b style="font-size:13px;">CIMB Bank Berhad</b></div>
+            <div style="display:flex; justify-content:space-between; border-bottom:1px dashed var(--border); padding-bottom:10px; margin-bottom:20px;"><span style="font-size:12px; color:var(--text-muted);">Account Number</span><b style="font-size:13px;">8000-1234-5678</b></div>
+            <div class="field full" style="margin:0;"><label>Bank Transaction Reference Number *</label><input type="text" id="paymentRef" placeholder="e.g. CIMB-9876543210" required></div>
+            <div class="field full" style="margin-top:16px;"><label>Upload Payment Receipt (PDF/Image) *</label><input type="file" id="receiptUpload" accept="image/*,.pdf" style="background:transparent; border:1px dashed var(--primary); padding:16px; cursor:pointer;" required></div>
+          </div>
+        </section>
+
+        <!-- STEP 6: Section F (Event Poster & Regulations) -->
+        <section class="step" data-step="6">
+          <div class="step-head"><p class="step-eyebrow">Section F</p><h2>Event Poster / Rules & Regulations</h2></div>
+          <div class="field-grid">
+            <div class="field full">
+              <label>Upload Event Poster / Rules & Regulations (PDF / Image) *</label>
+              <input type="file" id="posterUpload" accept="image/*,.pdf" style="background:transparent; border:1px dashed var(--primary); padding:16px; cursor:pointer;" required>
+              <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Upload the official prospectus, invitation letter, or tournament regulations flyer.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 7: Section G (Objectives) -->
+        <section class="step" data-step="7">
+          <div class="step-head"><p class="step-eyebrow">Section G</p><h2>Objectives</h2></div>
+          <div class="field-grid"><div class="field full"><label>Objective 1 *</label><textarea id="obj1" rows="4" required>Provide FIDE-rated competition for local chess players.</textarea></div></div>
+        </section>
+
+        <!-- STEP 8: Section H (Declaration) -->
+        <section class="step" data-step="8">
+          <div class="step-head"><p class="step-eyebrow">Section H</p><h2>Declaration</h2></div>
+          <div class="field-grid">
+            <div class="field"><label>Signed Name *</label><input type="text" id="signName" placeholder="Full name"></div>
+            <div class="field"><label>Date *</label><input type="date" id="signDate"></div>
+          </div>
+        </section>
+
+        <section class="step" data-step="review">
+          <div class="step-head"><p class="step-eyebrow">Checkmate</p><h2>Review your dossier</h2></div>
+          <div id="reviewOut"></div>
+        </section>
+
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="backBtn">← Back</button>
+          <div style="display:flex; gap:12px; margin-left:auto;">
+            <button type="button" class="btn btn-primary" id="nextBtn">Continue →</button>
+            <button type="button" class="btn btn-primary" id="submitAppBtn" style="display:none;">Submit Application</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+
+<!-- ================= 6. ADMIN DASHBOARD ================= -->
+<div id="view-admin" class="view dash-view">
+  <div class="mobile-nav-bar">
+    <h2>Admin Portal</h2>
+    <button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰ Menu</button>
+  </div>
+  <aside class="rail" id="mainRailAdmin">
+    <div class="crest">
+      <div class="crest-mark" style="width: 44px; height: auto; background: transparent;">
+        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
+      </div>
+      <div class="crest-text"><p class="eyebrow" id="adminRoleEyebrow">Administration</p><h1>Admin Portal</h1></div>
+    </div>
+    <p class="nav-label">Queue Filter</p>
+    <nav class="nav-list" id="navFilter">
+      <button class="nav-item active" data-filter="all">All Applications <span class="badge" id="cntAll">0</span></button>
+      <button class="nav-item" data-filter="pending_state">Pending State <span class="badge" id="cntPendingState">0</span></button>
+      <button class="nav-item" data-filter="pending_admin">Pending MCF <span class="badge" id="cntPendingAdmin">0</span></button>
+      <button class="nav-item" data-filter="approved">Approved <span class="badge" id="cntApproved">0</span></button>
+      <button class="nav-item" data-filter="revision">Revision Req. <span class="badge" id="cntRevision">0</span></button>
+    </nav>
+    <div id="systemAdminMenu" style="display:none;">
+        <p class="nav-label" style="margin-top: 16px;">System Admin</p>
+        <nav class="nav-list"><button class="nav-item" id="btnNavUsers">Manage Users</button></nav>
+    </div>
+    <div class="admin-stats">
+      <div class="stat-row"><span>Approved Fees:</span><strong id="statFees">RM 0</strong></div>
+      <div class="stat-row"><span>Pending Action:</span><strong id="statAction">0 Events</strong></div>
+    </div>
+    <div class="rail-foot" style="margin-top:auto; display:flex; flex-direction:column; gap:16px; width:100%;">
+      <button type="button" class="btn btn-ghost" id="btnGoOrgView" style="width:100%; justify-content:center;">Switch to Organizer View</button>
+      <div style="display:flex; justify-content:space-between; width: 100%; border-top:1px solid rgba(255,255,255,0.05); padding-top:16px;">
+        <button type="button" class="btn-logout btnGoProfile">My Profile</button>
+        <button type="button" class="btn-logout btnLogOut">Log Out</button>
+      </div>
+    </div>
+  </aside>
+  <main class="stage">
+    <div id="adminAppsWrap">
+      <div class="stage-header">
+        <div><h2 id="viewTitle">All Applications</h2><p>Review dossiers, check endorsements, and assign rating approval.</p></div>
+        <div style="display:flex; gap:12px; align-items:center;">
+          <select id="stateFilter" style="width: 180px; padding: 10px 14px;">
+            <option value="all">All States / Regions</option>
+            <option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Penang">Penang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option>
+          </select>
+          <input type="text" id="searchInput" placeholder="Search event or organizer..." style="width:240px;">
+          <button class="btn btn-ghost" id="btnRefreshData">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Event Name & Code</th>
+              <th>State</th>
+              <th>System / TC</th>
+              <th>Expected Pax</th>
+              <th>Fee & Ref</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="adminUsersWrap" style="display:none;">
+      <div class="stage-header">
+        <div><h2>User Management</h2><p>View registered users and instantly sort or search.</p></div>
+        <div style="display:flex; gap:12px; align-items:center;">
+          <select id="userRoleFilter" style="width: 150px; padding: 10px 14px;">
+            <option value="all">All Roles</option>
+            <option value="organizer">Organizer</option>
+            <option value="state_admin">State Admin</option>
+            <option value="admin">MCF Admin</option>
+            <option value="core_admin">Core Admin</option>
+          </select>
+          <select id="userStateFilter" style="width: 170px; padding: 10px 14px;">
+            <option value="all">All States</option>
+            <option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Penang">Penang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option>
+          </select>
+          <input type="text" id="searchUsers" placeholder="Search name or email..." style="width:220px;">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>State</th><th>Role</th><th>Actions</th></tr></thead>
+          <tbody id="tableBodyUsers"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- DRAWER (ADMIN MODAL) -->
+<!-- HYBRID FIX: Explicit inline onclick="closeDrawer()" guarantees it ALWAYS triggers -->
+<div class="drawer-back" id="drawerBack" onclick="if(event.target.id === 'drawerBack') closeDrawer();">
   <div class="drawer">
     <div class="drawer-head">
-      <div><h3 id="dTitle">Event Title</h3><p id="dSubtitle" style="font-family:var(--mono); font-size:12px; margin:0; color:var(--ink-soft);"></p></div>
-      <button class="drawer-close" onclick="closeDrawer()">×</button>
+      <div><h3 id="dTitle">Event Title</h3><p id="dSubtitle">ID: </p></div>
+      <button class="drawer-close" id="drawerClose" onclick="closeDrawer()">×</button>
     </div>
     <div class="drawer-body" id="drawerContent"></div>
     <div class="drawer-footer" id="drawerFooter"></div>
   </div>
 </div>
 
+<!-- FORGOT PASSWORD MODAL -->
+<div id="forgotModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); z-index:400; align-items:center; justify-content:center;">
+  <div style="background:var(--surface); padding:32px; border-radius:var(--radius-lg); width:100%; max-width:380px; box-shadow:var(--shadow-lg);">
+    <h3 style="margin:0 0 8px; font-size:18px; color:var(--text-main);">Reset Password</h3>
+    <p style="margin:0 0 20px; font-size:13px; color:var(--text-muted);">Enter your account email and we'll send you a password reset link.</p>
+    <div class="field" style="margin-bottom:16px;">
+      <label>Email Address</label>
+      <input type="email" id="resetEmail" placeholder="you@domain.com">
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button type="button" class="btn btn-ghost" id="btnCloseReset">Cancel</button>
+      <button type="button" class="btn btn-primary" id="btnSendReset" style="width:auto;">Send Link</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- ================= SCRIPTS ================= -->
 <script>
-  // 1. APPS SCRIPT WEB APP ENDPOINT (Replace with your deployed script URL)
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwaf4tH7GB83xrMjUi1WHezOH7UItzieWMH_SjStIdJVAW09HCv4K15181LhlBFFA-s/exec";
+// ============================================================================
+// CRITICAL: REPLACE THE URL BELOW WITH YOUR ACTUAL APPS SCRIPT WEB APP URL
+// IF RUNNING IN APPS SCRIPT NATIVELY, IT WILL AUTOMATICALLY USE GOOGLE.SCRIPT.RUN
+// ============================================================================
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec";
+// ============================================================================
+</script>
 
-  // 2. FIDE STANDARD TIME CONTROLS
-  const TC_DATA = {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyD1TGam7x7DaVq-ZhC5Drx3dNfR9Cmzquo",
+    authDomain: "mcf-fide-portal.firebaseapp.com",
+    projectId: "mcf-fide-portal",
+    storageBucket: "mcf-fide-portal.firebasestorage.app",
+    messagingSenderId: "207429811337",
+    appId: "1:207429811337:web:0ae95296abc1c7856d9a58"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const CORE_ADMIN_EMAIL = "mrsyaifulzamani02@gmail.com"; 
+
+let applications = [];
+let usersList = [];
+let currentFilterAdmin = "all";
+let currentFilterOrg = "all";
+let searchQ = "";
+let selectedStateFilter = "all";
+let searchUsersQ = "";
+let selectedUserRoleFilter = "all";
+let selectedUserStateFilter = "all";
+let selectedId = null;
+
+let currentUserProfile = { uid: "", email: "", role: "", name: "", phone: "", state: "" };
+let stepIdx = 0;
+const steps = ["1","2","3","4","5","6","7","8","review"];
+
+const TC = {
     "FIDE Blitz": [
-      "3 minutes for game with 2 seconds increment from move 1",
-      "5 minutes for game",
-      "5 minutes for game with 3 seconds increment from move 1"
+        "3 minutes for game with 2 seconds increment from move 1",
+        "5 minutes for game",
+        "4 minutes for game with 2 seconds increment from move 1",
+        "3 minutes for game with 1 second increment from move 1",
+        "5 minutes for game with 3 seconds increment from move 1"
     ],
     "FIDE Rapid": [
-      "15 minutes for game with 10 seconds increment from move 1",
-      "25 minutes for game",
-      "25 minutes for game with 10 seconds increment from move 1"
+        "15 minutes for game with 10 seconds increment from move 1",
+        "10 minutes for game with 5 seconds increment from move 1",
+        "25 minutes for game with 10 seconds increment from move 1",
+        "15 minutes for game",
+        "20 minutes for game",
+        "30 minutes for game"
     ],
     "FIDE Standard": [
-      "90 minutes for game with 30 seconds increment from move 1",
-      "60 minutes for game",
-      "90 min/40 moves + 30 min/end + 30 sec increment from move 1"
+        "90 minutes for first 40 moves and 30 minutes for the rest of the game with 30sec increment from move 1",
+        "90 minutes for game with 30 seconds increment from move 1",
+        "60 minutes for game with 30 seconds increment from move 1",
+        "45 minutes for game with 15 seconds increment from move 1"
     ]
-  };
+};
 
-  let stepIdx = 0;
-  const totalSteps = 8;
-  let applications = [];
-  let selectedApp = null;
-  let activeFilter = "all";
-
-  // Initialize Chessboard Progress Tracker
-  function initProgressBoard() {
-    const rank = document.getElementById('rank');
-    const files = document.getElementById('files');
-    rank.innerHTML = ""; files.innerHTML = "";
-    const letters = ["a","b","c","d","e","f","g","h"];
-    for (let i = 0; i < 8; i++) {
-      const b = document.createElement('button');
-      b.type = "button";
-      b.className = "sq" + (i < stepIdx ? " done" : "") + (i === stepIdx ? " current" : "");
-      b.textContent = i < stepIdx ? "✓" : (i + 1);
-      b.onclick = () => { if (i <= stepIdx) { stepIdx = i; renderStep(); } };
-      rank.appendChild(b);
-
-      const s = document.createElement('span');
-      s.textContent = letters[i];
-      files.appendChild(s);
+// Clean Helper for Malaysia Local Time (GMT+8) formatting
+function formatLocalDate(dateStr) {
+    if (!dateStr) return '—';
+    try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString('en-GB', { timeZone: 'Asia/Kuala_Lumpur', day: '2-digit', month: 'short', year: 'numeric' });
+    } catch(e) {
+        return dateStr;
     }
-    document.getElementById('stepNumLabel').textContent = stepIdx + 1;
-  }
+}
 
-  // Calculate MCF Rating Endorsement Fees
-  function calculateFees() {
-    const pax = parseInt(document.getElementById('pax').value, 10) || 0;
-    const tc = document.getElementById('tcInput').value;
-    const system = document.getElementById('system').value;
+// HYBRID GLOBAL FUNCTION - Allows inline onclick logic from HTML
+window.closeDrawer = function() { 
+    document.getElementById('drawerBack').classList.remove('open'); 
+};
 
-    let base = 250, perPlayer = 3;
-    if (tc.includes("Standard")) {
-      base = (system === "Round Robin") ? 150 : 500;
-      perPlayer = 10;
+function toggleSidebar(btn) {
+    const activeView = document.querySelector('.view.active');
+    const rail = activeView ? activeView.querySelector('.rail') : null;
+    if (rail) {
+        rail.classList.toggle('mobile-open');
+        btn.textContent = rail.classList.contains('mobile-open') ? '✕ Close' : '☰ Menu';
     }
+}
 
-    const total = base + (perPlayer * pax);
-    document.getElementById('feeBase').textContent = `RM ${base}`;
-    document.getElementById('feePerPlayer').textContent = `RM ${perPlayer * pax}`;
-    document.getElementById('feeTotal').textContent = `RM ${total}`;
-    document.getElementById('dFee').textContent = `RM ${total}`;
-    return { base, perPlayer, total };
-  }
+function toggleNormFields() {
+    const chk = document.getElementById('chkTitleNorms');
+    const wrap = document.getElementById('normAvailableWrap');
+    if (chk && wrap) {
+        wrap.style.display = chk.checked ? 'block' : 'none';
+    }
+}
 
-  // Live Update Dossier Card on the Side
-  function updateSideDossier() {
-    document.getElementById('dEventName').textContent = document.getElementById('eventName').value || "Untitled event";
-    document.getElementById('dVenue').textContent = document.getElementById('venue').value || "—";
-    document.getElementById('dSystem').textContent = document.getElementById('system').value || "—";
-    document.getElementById('dTC').textContent = document.getElementById('tcInput').value || "—";
-    document.getElementById('dArbiter').textContent = document.getElementById('chiefArbiter').value || "—";
+function toggleAffiliateLetter() {
+    const orgCat = document.getElementById('orgCategory')?.value || '';
+    const field = document.getElementById('affiliateLetterField');
+    if (field) {
+        field.style.display = orgCat.includes('State Affiliate') ? 'block' : 'none';
+    }
+}
 
-    const s = document.getElementById('dateStart').value;
-    const e = document.getElementById('dateEnd').value;
-    document.getElementById('dDates').textContent = s && e ? `${s} to ${e}` : (s || e || "—");
+function toggleArbiterInput(type) {
+    const chk = document.getElementById(type === 'Sector' ? 'addSectorArbiters' : type === 'Arbiter' ? 'addArbiters' : type === 'Assistant' ? 'addAssistantArbiters' : 'addPairingsArbiters');
+    const container = document.getElementById(type === 'Sector' ? 'sectorArbiterFields' : type === 'Arbiter' ? 'arbiterFields' : type === 'Assistant' ? 'assistantArbiterFields' : 'pairingsArbiterFields');
+    if (chk && container) {
+        container.style.display = chk.checked ? 'block' : 'none';
+    }
+}
 
-    calculateFees();
-  }
+function showView(viewId){
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + viewId).classList.add('active');
+    window.scrollTo({top:0, behavior:'instant'});
+}
 
-  function renderStep() {
-    document.querySelectorAll('#wizardForm .step').forEach((s, idx) => {
-      s.classList.toggle('active', idx === stepIdx);
-    });
-    initProgressBoard();
-    updateSideDossier();
+auth.onAuthStateChanged(user => {
+    if (user) {
+        db.collection('users').doc(user.uid).get().then(doc => {
+            if(doc.exists) {
+                currentUserProfile = { uid: user.uid, email: user.email, ...doc.data() };
+                
+                if (user.email.toLowerCase() === CORE_ADMIN_EMAIL.toLowerCase() && currentUserProfile.role !== 'core_admin') {
+                    db.collection('users').doc(user.uid).update({ role: 'core_admin' });
+                    currentUserProfile.role = 'core_admin';
+                }
+                
+                if(currentUserProfile.role === 'admin' || currentUserProfile.role === 'core_admin' || currentUserProfile.role === 'state_admin') {
+                    document.getElementById('btnGoAdminView').style.display = 'inline-flex'; 
+                    document.getElementById('adminRoleEyebrow').innerText = currentUserProfile.role === 'state_admin' ? (currentUserProfile.state + ' Association') : 'MCF Administration';
+                    
+                    if (currentUserProfile.role === 'state_admin') {
+                        const stateSel = document.getElementById('stateFilter');
+                        if (stateSel) {
+                            stateSel.value = currentUserProfile.state;
+                            stateSel.disabled = true;
+                            selectedStateFilter = currentUserProfile.state;
+                        }
+                    }
 
-    document.getElementById('btnBack').style.visibility = stepIdx === 0 ? "hidden" : "visible";
-    document.getElementById('btnNext').style.display = stepIdx === totalSteps - 1 ? "none" : "inline-block";
-    document.getElementById('btnSubmit').style.display = stepIdx === totalSteps - 1 ? "inline-block" : "none";
-  }
+                    if (currentUserProfile.role === 'core_admin') {
+                        document.getElementById('systemAdminMenu').style.display = 'block';
+                        listenForUsers();
+                    }
+                    showView('admin');
+                } else {
+                    document.getElementById('btnGoAdminView').style.display = 'none'; 
+                    showView('organizer-dash');
+                }
+                fetchDossiers(); 
+            } else { auth.signOut(); }
+        });
+    } else {
+        showView('login');
+        currentUserProfile = {}; 
+    }
+});
 
-  // Time Control Combo Logic
-  function buildTCMenu(filter = "") {
-    const list = document.getElementById('tcList');
-    list.innerHTML = "";
-    Object.keys(TC_DATA).forEach(cat => {
-      const items = TC_DATA[cat].filter(i => i.toLowerCase().includes(filter.toLowerCase()));
-      if (!items.length) return;
+document.getElementById('goToRegister').addEventListener('click', () => showView('register'));
+document.getElementById('goToLogin').addEventListener('click', () => showView('login'));
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+        const cred = await auth.createUserWithEmailAndPassword(document.getElementById('regEmail').value, document.getElementById('regPass').value);
+        await db.collection('users').doc(cred.user.uid).set({ name: document.getElementById('regName').value, email: document.getElementById('regEmail').value.toLowerCase(), role: "organizer", phone: "", state: document.getElementById('regState').value });
+        showToast("Account created successfully!");
+    } catch (error) { document.getElementById('regError').textContent = error.message; document.getElementById('regError').style.display = 'block'; }
+});
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try { await auth.signInWithEmailAndPassword(document.getElementById('loginEmail').value, document.getElementById('loginPass').value); showToast("Welcome back!"); } 
+    catch (error) { document.getElementById('loginError').textContent = "Invalid credentials."; document.getElementById('loginError').style.display = 'block'; }
+});
+document.querySelectorAll('.btnLogOut').forEach(btn => btn.addEventListener('click', () => auth.signOut()));
+document.getElementById('btnGoOrgView')?.addEventListener('click', () => showView('organizer-dash'));
+document.getElementById('btnGoAdminView')?.addEventListener('click', () => showView('admin'));
 
-      const group = document.createElement('div');
-      group.className = "combo-group-label";
-      group.textContent = cat;
-      list.appendChild(group);
+document.getElementById('forgotPassLink').addEventListener('click', () => {
+    const loginEmail = document.getElementById('loginEmail').value;
+    if (loginEmail) {
+        document.getElementById('resetEmail').value = loginEmail;
+    }
+    document.getElementById('forgotModal').style.display = 'flex';
+});
 
-      items.forEach(t => {
-        const item = document.createElement('div');
-        item.className = "combo-opt";
-        item.textContent = t;
-        item.onclick = () => {
-          document.getElementById('tcInput').value = `${t} (${cat})`;
-          document.getElementById('tcPanel').classList.remove('open');
-          updateSideDossier();
-        };
-        list.appendChild(item);
-      });
-    });
-  }
+document.getElementById('btnCloseReset').addEventListener('click', () => {
+    document.getElementById('forgotModal').style.display = 'none';
+});
 
-  document.getElementById('tcInput').addEventListener('click', () => {
-    document.getElementById('tcPanel').classList.add('open');
-    buildTCMenu();
-  });
-  document.getElementById('tcSearch').addEventListener('input', e => buildTCMenu(e.target.value));
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.combo')) document.getElementById('tcPanel').classList.remove('open');
-  });
-
-  document.querySelectorAll('#wizardForm input, #wizardForm select, #wizardForm textarea').forEach(el => {
-    el.addEventListener('input', updateSideDossier);
-  });
-
-  document.getElementById('btnNext').onclick = () => { if (stepIdx < totalSteps - 1) { stepIdx++; renderStep(); } };
-  document.getElementById('btnBack').onclick = () => { if (stepIdx > 0) { stepIdx--; renderStep(); } };
-
-  // Helper: File to Base64
-  const fileToBase64 = file => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = err => reject(err);
-  });
-
-  // Submit Handler: Apps Script (Sheets API v4 + Drive)
-  document.getElementById('btnSubmit').onclick = async () => {
-    const btn = document.getElementById('btnSubmit');
+document.getElementById('btnSendReset').addEventListener('click', async () => {
+    const email = document.getElementById('resetEmail').value.trim();
+    if (!email) {
+        showToast("Please enter your email address.");
+        return;
+    }
+    const btn = document.getElementById('btnSendReset');
+    btn.textContent = "Sending...";
     btn.disabled = true;
-    btn.textContent = "Writing to Google Sheets...";
-
     try {
-      const receiptInput = document.getElementById('receiptFile');
-      let receiptBase64 = "", receiptMimeType = "";
-      if (receiptInput.files.length > 0) {
-        receiptBase64 = await fileToBase64(receiptInput.files[0]);
-        receiptMimeType = receiptInput.files[0].type;
-      }
-
-      const payload = {
-        organizerEmail: document.getElementById('organizerEmail').value,
-        eventName: document.getElementById('eventName').value,
-        venue: document.getElementById('venue').value,
-        pax: parseInt(document.getElementById('pax').value, 10),
-        startDate: document.getElementById('dateStart').value,
-        endDate: document.getElementById('dateEnd').value,
-        system: document.getElementById('system').value,
-        rounds: document.getElementById('rounds').value,
-        maxRating: document.getElementById('maxRating').value,
-        software: document.getElementById('software').value,
-        tb1: document.getElementById('tb1').value,
-        tb2: document.getElementById('tb2').value,
-        timeControl: document.getElementById('tcInput').value,
-        totalFee: calculateFees().total,
-        paymentRef: document.getElementById('paymentRef').value,
-        state: document.getElementById('stateSelect').value,
-        orgBody: document.getElementById('orgBody').value,
-        chiefOrg: document.getElementById('chiefOrg').value,
-        chiefArbiter: document.getElementById('chiefArbiter').value,
-        chiefArbiterFide: document.getElementById('chiefArbiterFide').value,
-        obj1: document.getElementById('obj1').value,
-        signName: document.getElementById('signName').value,
-        signDate: document.getElementById('signDate').value,
-        receiptBase64: receiptBase64,
-        receiptMimeType: receiptMimeType
-      };
-
-      const res = await fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        showToast("Dossier submitted and appended to Google Sheet!");
-        document.getElementById('wizardForm').reset();
-        stepIdx = 0;
-        renderStep();
-        showDashboard();
-      } else {
-        showToast("Submission error: " + (data.error || "Unknown"));
-      }
-    } catch (err) {
-      showToast("Network error. Verify Apps Script Web App URL.");
+        await auth.sendPasswordResetEmail(email);
+        showToast("✓ Password reset email sent! Check your inbox.");
+        document.getElementById('forgotModal').style.display = 'none';
+    } catch (error) {
+        showToast("Error: " + error.message);
     } finally {
-      btn.disabled = false;
-      btn.textContent = "Submit Dossier";
+        btn.textContent = "Send Link";
+        btn.disabled = false;
     }
-  };
+});
 
-  // Fetch from Google Sheet via Apps Script (GET)
-  async function fetchDossiers() {
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Querying Google Sheets API v4...</td></tr>`;
-
-    try {
-      const res = await fetch(SCRIPT_URL);
-      const json = await res.json();
-      applications = json.dossiers || [];
-      renderTable();
-      updateFilterCounts();
-    } catch (e) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--claret);">Failed to connect to Google Sheets backend.</td></tr>`;
-    }
-  }
-
-  function updateFilterCounts() {
-    document.getElementById('cntAll').textContent = applications.length;
-    document.getElementById('cntState').textContent = applications.filter(a => a.status === "PENDING STATE").length;
-    document.getElementById('cntMcf').textContent = applications.filter(a => a.status === "PENDING ADMIN").length;
-    document.getElementById('cntApproved').textContent = applications.filter(a => a.status === "APPROVED").length;
-  }
-
-  function renderTable() {
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = "";
-
-    const query = document.getElementById('searchInput').value.toLowerCase();
-    const filtered = applications.filter(app => {
-      const matchesSearch = app.eventName.toLowerCase().includes(query) || app.organizerEmail.toLowerCase().includes(query);
-      const matchesFilter = activeFilter === "all" || app.status === activeFilter;
-      return matchesSearch && matchesFilter;
+document.querySelectorAll('.btnGoProfile').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.getElementById('profEmail').value = currentUserProfile.email;
+        document.getElementById('profName').value = currentUserProfile.name || "";
+        document.getElementById('profPhone').value = currentUserProfile.phone || "";
+        document.getElementById('profState').value = currentUserProfile.state || "";
+        showView('profile');
     });
+});
+document.getElementById('btnBackFromProfile').addEventListener('click', () => {
+    if(currentUserProfile.role === 'admin' || currentUserProfile.role === 'core_admin' || currentUserProfile.role === 'state_admin') showView('admin');
+    else showView('organizer-dash');
+});
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnSaveProfile'); btn.textContent = "Saving...";
+    const updates = { name: document.getElementById('profName').value, phone: document.getElementById('profPhone').value, state: document.getElementById('profState').value };
+    try { await db.collection('users').doc(currentUserProfile.uid).update(updates); currentUserProfile = { ...currentUserProfile, ...updates }; showToast("Profile updated!"); btn.textContent = "Save Changes"; } 
+    catch (error) { document.getElementById('profError').textContent = "Update failed."; document.getElementById('profError').style.display = 'block'; btn.textContent = "Save Changes"; }
+});
 
-    if (!filtered.length) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No dossiers match filter.</td></tr>`;
-      return;
+function getBadgeStyle(status) {
+    if (status === 'PENDING STATE') return 'background: #FEF3C7; color: #92400E;';
+    if (status === 'PENDING ADMIN') return 'background: #DBEAFE; color: #1E40AF;';
+    if (status === 'APPROVED') return 'background: #D1FAE5; color: #065F46;';
+    return 'background: #FEE2E2; color: #991B1B;';
+}
+
+// HYBRID FETCH: Works natively in GAS or via API on GitHub
+window.fetchDossiers = async function() {
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(function(data) {
+            applications = (data || []).reverse(); 
+            updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
+        }).withFailureHandler(function(err){
+            showToast("Error loading data from Sheets.");
+        }).getDossiers();
+    } else {
+        if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return;
+        try {
+            const res = await fetch(`${SCRIPT_URL}?action=getDossiers`);
+            const data = await res.json();
+            applications = (data || []).reverse();
+            updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
+        } catch (err) {
+            showToast("Error loading data via API.");
+        }
+    }
+};
+
+document.getElementById('btnRefreshData')?.addEventListener('click', fetchDossiers);
+document.getElementById('btnRefreshOrg')?.addEventListener('click', fetchDossiers);
+
+function updateAdminCounts() {
+    let viewableApps = applications;
+    if (currentUserProfile.role === 'state_admin') viewableApps = applications.filter(a => a.state === currentUserProfile.state);
+    document.getElementById('cntAll').innerText = viewableApps.length;
+    document.getElementById('cntPendingState').innerText = viewableApps.filter(a => a.status === 'PENDING STATE').length;
+    document.getElementById('cntPendingAdmin').innerText = viewableApps.filter(a => a.status === 'PENDING ADMIN').length;
+    document.getElementById('cntApproved').innerText = viewableApps.filter(a => a.status === 'APPROVED').length;
+    document.getElementById('cntRevision').innerText = viewableApps.filter(a => a.status === 'REVISION REQ.').length;
+    document.getElementById('statFees').innerText = 'RM ' + viewableApps.filter(a => a.status === 'APPROVED').reduce((sum, app) => sum + (Number(app.fee) || 0), 0);
+    
+    const pendingCount = viewableApps.filter(a => a.status === 'PENDING STATE' || a.status === 'PENDING ADMIN').length;
+    document.getElementById('statAction').innerText = pendingCount + ' Events';
+}
+
+function renderAdminTable() {
+    const tbody = document.getElementById('tableBody');
+    if (!tbody) return; tbody.innerHTML = '';
+    
+    let filtered = applications; 
+    
+    if (currentUserProfile.role === 'state_admin') {
+        filtered = filtered.filter(a => a.state === currentUserProfile.state);
+    } else if (selectedStateFilter !== 'all') {
+        filtered = filtered.filter(a => a.state === selectedStateFilter);
     }
 
+    if (currentFilterAdmin !== 'all') {
+        let target = currentFilterAdmin === 'pending_state' ? 'PENDING STATE' : currentFilterAdmin === 'pending_admin' ? 'PENDING ADMIN' : currentFilterAdmin === 'approved' ? 'APPROVED' : 'REVISION REQ.';
+        filtered = filtered.filter(a => a.status === target);
+    }
+
+    if (searchQ.trim() !== '') {
+        const q = searchQ.toLowerCase();
+        filtered = filtered.filter(a => 
+            (a.eventName || '').toLowerCase().includes(q) || 
+            (a.organizerEmail || '').toLowerCase().includes(q) ||
+            (a.id || '').toLowerCase().includes(q)
+        );
+    }
+    
     filtered.forEach(app => {
-      const tr = document.createElement('tr');
-      let badgeCol = "var(--ink-soft)";
-      if (app.status === "PENDING STATE") badgeCol = "var(--brass)";
-      if (app.status === "PENDING ADMIN") badgeCol = "#0077b6";
-      if (app.status === "APPROVED") badgeCol = "var(--felt)";
-
-      tr.innerHTML = `
-        <td><b style="font-family:var(--serif); font-size:15px;">${app.eventName}</b><br><span style="font-size:11px; color:var(--ink-soft);">${app.id} &bull; ${app.organizerEmail}</span></td>
-        <td>${app.state}</td>
-        <td>${app.system}<br><span style="font-size:11px; color:var(--ink-soft);">${app.timeControl}</span></td>
-        <td>${app.pax} pax</td>
-        <td><b>RM ${app.fee}</b></td>
-        <td><span style="font-family:var(--mono); font-size:10.5px; font-weight:600; padding:3px 7px; border-radius:3px; background:${badgeCol}15; color:${badgeCol};">${app.status}</span></td>
-      `;
-      tr.onclick = () => openDrawer(app);
-      tbody.appendChild(tr);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <b style="font-size:14px; color:var(--text-main);">${app.eventName}</b><br>
+                <span style="font-size:11px; color:var(--text-muted);">${app.id} &bull; ${app.organizerEmail}</span>
+            </td>
+            <td>${app.state}<br><span style="font-size:11px; color:var(--text-muted);">${formatLocalDate(app.startDate)}</span></td>
+            <td>${app.system} (${app.rounds || '-'} Rds)<br><span style="font-size:11px; color:var(--text-muted);">${app.timeControl || '-'}</span></td>
+            <td>${app.pax} pax</td>
+            <td>
+                <b style="color:var(--text-main);">RM ${app.fee || 0}</b><br>
+                <span style="font-size:11px; color:var(--text-muted);">Ref: ${app.paymentRef || '-'}</span>
+            </td>
+            <td>
+                <div style="display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                    <span class="status-pill" style="${getBadgeStyle(app.status)}">${app.status}</span>
+                    <button type="button" class="btn btn-ghost" style="padding:4px 10px; font-size:11px;">Review</button>
+                </div>
+            </td>
+        `;
+        tr.addEventListener('click', () => openDrawer(app.id));
+        tbody.appendChild(tr);
     });
-  }
+}
 
-  // Drawer Inspection Modal
-  function openDrawer(app) {
-    selectedApp = app;
-    document.getElementById('dTitle').textContent = app.eventName;
-    document.getElementById('dSubtitle').textContent = `Dossier ID: ${app.id} | Row: ${app.rowIndex}`;
+document.getElementById('searchInput').addEventListener('input', e => { searchQ = e.target.value; renderAdminTable(); });
+document.getElementById('stateFilter').addEventListener('change', e => { selectedStateFilter = e.target.value; renderAdminTable(); });
+
+function updateOrgCounts() {
+    const myApps = applications.filter(a => a.organizerEmail === currentUserProfile.email);
+    document.getElementById('cntOrgAll').innerText = myApps.length;
+    document.getElementById('cntOrgPendingState').innerText = myApps.filter(a => a.status === 'PENDING STATE').length;
+    document.getElementById('cntOrgPendingAdmin').innerText = myApps.filter(a => a.status === 'PENDING ADMIN').length;
+    document.getElementById('cntOrgApproved').innerText = myApps.filter(a => a.status === 'APPROVED').length;
+    document.getElementById('cntOrgRevision').innerText = myApps.filter(a => a.status === 'REVISION REQ.').length;
+}
+
+function renderOrgTable() {
+    const tbody = document.getElementById('tableBodyOrg');
+    if (!tbody) return; tbody.innerHTML = '';
+    let myApps = applications.filter(a => a.organizerEmail === currentUserProfile.email);
+    if (currentFilterOrg !== 'all') {
+        let target = currentFilterOrg === 'pending_state' ? 'PENDING STATE' : currentFilterOrg === 'pending_admin' ? 'PENDING ADMIN' : currentFilterOrg === 'approved' ? 'APPROVED' : 'REVISION REQ.';
+        myApps = myApps.filter(a => a.status === target);
+    }
+    myApps.forEach(app => {
+        const tr = document.createElement('tr');
+        
+        let reportBadgeHtml = '';
+        if (app.status === 'APPROVED') {
+            const tunStatus = app.tunStatus || 'PENDING';
+            if (tunStatus === 'RECEIVED') {
+                reportBadgeHtml = `<br><span class="status-pill" style="background:#D1FAE5; color:#065F46; font-size:10px; margin-top:4px;">✓ .tun Received by MCF</span>`;
+            } else if (tunStatus === 'REJECTED') {
+                reportBadgeHtml = `<br><span class="status-pill" style="background:#FEE2E2; color:#991B1B; font-size:10px; margin-top:4px;">✗ .tun Rejected - Re-upload Req.</span>`;
+            } else {
+                const hasTun = app.tunUrl && app.tunUrl.startsWith('http');
+                reportBadgeHtml = hasTun 
+                    ? `<br><span class="status-pill" style="background:#DBEAFE; color:#1E40AF; font-size:10px; margin-top:4px;">⏳ .tun Pending Review</span>` 
+                    : `<br><span class="status-pill" style="background:#FEF3C7; color:#92400E; font-size:10px; margin-top:4px;">⚠ .tun Report Missing</span>`;
+            }
+        }
+
+        tr.innerHTML = `
+            <td>
+                <b style="font-size:14px; color:var(--text-main);">${app.eventName}</b><br>
+                <span style="font-size:11px; color:var(--text-muted);">${app.id}</span>
+            </td>
+            <td>${app.state}<br><span style="font-size:11px; color:var(--text-muted);">${formatLocalDate(app.startDate)}</span></td>
+            <td>${app.system} (${app.rounds || '-'} Rds)<br><span style="font-size:11px; color:var(--text-muted);">${app.timeControl || '-'}</span></td>
+            <td>${app.pax} pax</td>
+            <td>
+                <b style="color:var(--text-main);">RM ${app.fee || 0}</b><br>
+                <span style="font-size:11px; color:var(--text-muted);">Ref: ${app.paymentRef || '-'}</span>
+            </td>
+            <td>
+                <div style="display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                    <span class="status-pill" style="${getBadgeStyle(app.status)}">${app.status}</span>
+                    <button type="button" class="btn btn-ghost" style="padding:4px 10px; font-size:11px;">View</button>
+                </div>
+                ${reportBadgeHtml}
+            </td>
+        `;
+        tr.addEventListener('click', () => openDrawer(app.id));
+        tbody.appendChild(tr);
+    });
+}
+document.querySelectorAll('#navFilterOrg .nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('#navFilterOrg .nav-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active'); currentFilterOrg = btn.getAttribute('data-filter'); renderOrgTable();
+    });
+});
+document.querySelectorAll('#navFilter .nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active'); currentFilterAdmin = btn.getAttribute('data-filter'); renderAdminTable();
+        document.getElementById('adminAppsWrap').style.display = 'block'; document.getElementById('adminUsersWrap').style.display = 'none';
+    });
+});
+
+function listenForUsers() {
+    db.collection("users").onSnapshot((snapshot) => {
+        usersList = []; snapshot.forEach(doc => usersList.push({ id: doc.id, ...doc.data() }));
+        usersList.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+        renderUsersTable();
+    });
+}
+
+function renderUsersTable() {
+    const tbody = document.getElementById('tableBodyUsers'); 
+    if (!tbody) return; 
+    tbody.innerHTML = '';
+    
+    let filteredUsers = usersList;
+
+    if (selectedUserRoleFilter !== 'all') {
+        filteredUsers = filteredUsers.filter(u => (u.role || 'organizer') === selectedUserRoleFilter);
+    }
+
+    if (selectedUserStateFilter !== 'all') {
+        filteredUsers = filteredUsers.filter(u => (u.state || '') === selectedUserStateFilter);
+    }
+
+    if (searchUsersQ.trim() !== '') {
+        const q = searchUsersQ.toLowerCase();
+        filteredUsers = filteredUsers.filter(u => 
+            (u.name || '').toLowerCase().includes(q) || 
+            (u.email || '').toLowerCase().includes(q)
+        );
+    }
+
+    filteredUsers.forEach(u => {
+        const tr = document.createElement('tr');
+        let roleBadge = 'ORGANIZER', badgeStyle = 'background:#F1F5F9; color:#64748B;';
+        if (u.role === 'state_admin') { roleBadge = 'STATE ADMIN'; badgeStyle = 'background:#FEF3C7; color:#92400E;'; }
+        if (u.role === 'admin') { roleBadge = 'MCF ADMIN'; badgeStyle = 'background:#DBEAFE; color:#1E40AF;'; }
+        if (u.role === 'core_admin') { roleBadge = 'CORE ADMIN'; badgeStyle = 'background:#FEE2E2; color:#991B1B;'; }
+
+        let actionHtml = '-';
+        
+        if (currentUserProfile.role === 'core_admin') {
+            if (u.email !== currentUserProfile.email) {
+                actionHtml = `
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <select class="role-select" id="role_${u.id}" style="padding:4px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                        <option value="organizer" ${u.role === 'organizer' ? 'selected' : ''}>Organizer</option>
+                        <option value="state_admin" ${u.role === 'state_admin' ? 'selected' : ''}>State Admin</option>
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>MCF Admin</option>
+                        <option value="core_admin" ${u.role === 'core_admin' ? 'selected' : ''}>Core Admin</option>
+                    </select>
+                    <button class="btn btn-gold btnChangeRole" data-id="${u.id}" style="padding: 3px 8px; font-size: 10px;">Save</button>
+                </div>`;
+            } else {
+                actionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic;">(Your Account)</span>`;
+            }
+        } else {
+            actionHtml = `<span style="font-size:12px; color:var(--text-muted);">Restricted</span>`;
+        }
+
+        tr.innerHTML = `<td><b style="font-size:14px;">${u.name || 'N/A'}</b></td><td>${u.email}</td><td>${u.state || '-'}</td><td><span class="status-pill" style="${badgeStyle}">${roleBadge}</span></td><td>${actionHtml}</td>`;
+        tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.btnChangeRole').forEach(b => b.addEventListener('click', (e) => {
+        if (currentUserProfile.role !== 'core_admin') {
+            showToast("Unauthorized action.");
+            return;
+        }
+        db.collection('users').doc(e.target.dataset.id).update({ role: document.getElementById(`role_${e.target.dataset.id}`).value }); 
+        showToast("Role updated successfully.");
+    }));
+}
+
+document.getElementById('searchUsers').addEventListener('input', (e) => {
+    searchUsersQ = e.target.value;
+    renderUsersTable();
+});
+
+document.getElementById('userRoleFilter').addEventListener('change', (e) => {
+    selectedUserRoleFilter = e.target.value;
+    renderUsersTable();
+});
+
+document.getElementById('userStateFilter').addEventListener('change', (e) => {
+    selectedUserStateFilter = e.target.value;
+    renderUsersTable();
+});
+
+document.getElementById('btnNavUsers')?.addEventListener('click', (e) => {
+    document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active')); e.target.classList.add('active');
+    document.getElementById('adminAppsWrap').style.display = 'none'; document.getElementById('adminUsersWrap').style.display = 'block';
+});
+
+function openDrawer(id){
+    selectedId = id; const t = applications.find(x => x.id === id); if(!t) return;
+    document.getElementById('dTitle').textContent = t.eventName;
+    document.getElementById('dSubtitle').textContent = "Application ID: " + t.id;
+    
+    let tunSectionHtml = '';
+    const isApproved = t.status === 'APPROVED';
+    const isOrganizer = currentUserProfile.email === t.organizerEmail;
+    const isMCFAdmin = ['admin', 'core_admin'].includes(currentUserProfile.role);
+
+    if (isApproved) {
+        const tunStatus = t.tunStatus || 'PENDING';
+        let statusBadge = '';
+        if (tunStatus === 'RECEIVED') {
+            statusBadge = `<span style="font-size:12px; color:#065F46; font-weight:600; background:#D1FAE5; padding:4px 10px; border-radius:99px;">✓ .tun Received & Accepted</span>`;
+        } else if (tunStatus === 'REJECTED') {
+            statusBadge = `<span style="font-size:12px; color:#991B1B; font-weight:600; background:#FEE2E2; padding:4px 10px; border-radius:99px;">✗ .tun Rejected: ${t.tunRejectReason || 'No reason provided'}</span>`;
+        } else {
+            statusBadge = `<span style="font-size:12px; color:#1E40AF; font-weight:600; background:#DBEAFE; padding:4px 10px; border-radius:99px;">⏳ Pending MCF Review</span>`;
+        }
+
+        let tunActionHtml = '';
+        if (t.tunUrl && t.tunUrl.startsWith('http')) {
+            tunActionHtml = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                <a href="${t.tunUrl}" target="_blank" class="btn btn-ghost" style="padding:6px 12px; font-size:12px; text-decoration:none; background:white;">Download Submitted .tun Report</a>
+                ${isMCFAdmin && tunStatus !== 'RECEIVED' ? `
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-primary" style="padding:6px 12px; font-size:12px; background:#059669;" onclick="setTunStatus('${t.id}', 'RECEIVED')">Receive .tun</button>
+                        <button class="btn btn-ghost" style="padding:6px 12px; font-size:12px; color:#DC2626; border-color:#DC2626;" onclick="promptRejectTun('${t.id}')">Reject .tun</button>
+                    </div>
+                ` : ''}
+            </div>`;
+        } else {
+            tunActionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic; display:block; margin-top:8px;">No report uploaded yet by organizer.</span>`;
+        }
+
+        let organizerUploadHtml = '';
+        if (isOrganizer && (tunStatus === 'REJECTED' || !t.tunUrl || !t.tunUrl.startsWith('http'))) {
+            organizerUploadHtml = `
+            <div style="margin-top: 16px; border-top: 1px dashed var(--border); padding-top: 14px;">
+                <p style="font-size:12px; font-weight:600; color:var(--text-main); margin:0 0 8px;">${tunStatus === 'REJECTED' ? 'Please re-upload corrected .tun file:' : 'Upload tournament report file:'}</p>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="file" id="tunUploadInput" style="padding:6px; font-size:12px; background:white;">
+                    <button class="btn btn-primary" style="padding:8px 16px; font-size:12px; white-space:nowrap;" onclick="uploadTunFile('${t.id}')">Upload .tun File</button>
+                </div>
+            </div>`;
+        }
+
+        tunSectionHtml = `
+        <div style="background: var(--bg-body); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-top: 24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Tournament Report File (.tun / Results)</div>
+                ${statusBadge}
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px;">Submit or review the official pairing and results report.</p>
+            ${tunActionHtml}
+            ${organizerUploadHtml}
+        </div>`;
+    }
+
+    let previewUrl = t.previewReceiptUrl || t.receiptUrl || '';
+    let letterPreviewUrl = t.previewLetterUrl || t.letterUrl || '';
+    let posterPreviewUrl = t.previewPosterUrl || t.posterUrl || '';
 
     document.getElementById('drawerContent').innerHTML = `
-      <div style="background:#fff8eb; padding:14px; border:1px solid #e3b872; border-radius:var(--radius); margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-          <span style="font-family:var(--mono); font-size:10px; text-transform:uppercase; color:#8a6018;">Payment Reference</span>
-          <b style="font-family:var(--mono); font-size:13px;">${app.paymentRef}</b>
+    <div style="background: var(--bg-body); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 24px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 12px;">
+            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 600;">Payment & Status Audit</span>
+            <span class="status-pill" style="${getBadgeStyle(t.status)}">${t.status}</span>
         </div>
-        <div style="display:flex; justify-content:space-between;">
-          <span style="font-family:var(--mono); font-size:10px; text-transform:uppercase; color:#8a6018;">Total Verified Fee</span>
-          <b style="font-family:var(--serif); font-size:16px; color:var(--felt);">RM ${app.fee}</b>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items:center;">
+            <div>
+                <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block; margin-bottom:4px;">Calculated Fee</span>
+                <b style="font-size: 18px; color: var(--text-main);">RM ${t.fee || 0}</b>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Ref: ${t.paymentRef || '-'}</div>
+            </div>
+            <div style="text-align:right;">
+                ${t.receiptUrl && t.receiptUrl.startsWith('http') ? `<a href="${t.receiptUrl}" target="_blank" class="btn btn-ghost" style="padding:6px 12px; font-size:11px; text-decoration:none; background:white;">🔗 Open Receipt</a>` : `<span style="font-size:12px; color:var(--text-muted);">No Receipt Attached</span>`}
+            </div>
         </div>
-      </div>
-      <div class="section-title">Tournament Parameters</div>
-      <div class="data-grid">
-        <div class="data-item"><span class="label">Host State</span><span>${app.state}</span></div>
-        <div class="data-item"><span class="label">Venue</span><span>${app.venue}</span></div>
-        <div class="data-item"><span class="label">Dates</span><span>${app.startDate} to ${app.endDate}</span></div>
-        <div class="data-item"><span class="label">System / Rounds</span><span>${app.system} (${app.rounds} Rds)</span></div>
-        <div class="data-item" style="grid-column:1/-1;"><span class="label">Time Control</span><span>${app.timeControl}</span></div>
-      </div>
-      <div class="section-title">Officials</div>
-      <div class="data-grid">
-        <div class="data-item"><span class="label">Organizing Body</span><span>${app.orgBody}</span></div>
-        <div class="data-item"><span class="label">Chief Organizer</span><span>${app.chiefOrg}</span></div>
-        <div class="data-item"><span class="label">Chief Arbiter</span><span>${app.chiefArbiter}</span></div>
-        <div class="data-item"><span class="label">Chief Arbiter FIDE ID</span><span>${app.chiefArbiterFide}</span></div>
-      </div>
-      <div style="margin-top:20px; display:flex; gap:8px;">
-        ${app.receiptUrl !== "N/A" ? `<a href="${app.receiptUrl}" target="_blank" class="btn btn-ghost" style="flex:1; text-align:center; text-decoration:none; font-size:12px;">View Uploaded Receipt ↗</a>` : ''}
-        <button type="button" class="btn btn-ghost" onclick="downloadPDF()" style="flex:1; font-size:12px;">📄 Download Dossier PDF</button>
-      </div>
+        ${t.receiptUrl && t.receiptUrl.startsWith('http') ? `
+        <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+            <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block; margin-bottom:8px;">Payment Receipt Preview</span>
+            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 300px; display: flex; align-items: center; justify-content: center;">
+                ${t.receiptUrl.toLowerCase().includes('.pdf') || t.receiptUrl.includes('application/pdf') 
+                    ? `<iframe src="${previewUrl}" style="width:100%; height:100%; border:none;"></iframe>`
+                    : `<img src="${previewUrl}" alt="Payment Receipt" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.onerror=null; this.src='${t.receiptUrl}';">`
+                }
+            </div>
+        </div>` : ''}
+
+        ${t.letterUrl && t.letterUrl.startsWith('http') ? `
+        <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block;">State Affiliate Letter</span>
+                <a href="${t.letterUrl}" target="_blank" class="btn btn-ghost" style="padding:4px 10px; font-size:11px; text-decoration:none; background:white;">🔗 Open Letter</a>
+            </div>
+            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 250px; display: flex; align-items: center; justify-content: center;">
+                ${t.letterUrl.toLowerCase().includes('.pdf') || t.letterUrl.includes('application/pdf') 
+                    ? `<iframe src="${letterPreviewUrl}" style="width:100%; height:100%; border:none;"></iframe>`
+                    : `<img src="${letterPreviewUrl}" alt="Affiliate Letter" style="max-width:100%; max-height:100%; object-fit:contain;">`
+                }
+            </div>
+        </div>` : ''}
+
+        ${t.posterUrl && t.posterUrl.startsWith('http') ? `
+        <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block;">Event Poster / Regulations</span>
+                <a href="${t.posterUrl}" target="_blank" class="btn btn-ghost" style="padding:4px 10px; font-size:11px; text-decoration:none; background:white;">🔗 Open Poster</a>
+            </div>
+            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 250px; display: flex; align-items: center; justify-content: center;">
+                ${t.posterUrl.toLowerCase().includes('.pdf') || t.posterUrl.includes('application/pdf') 
+                    ? `<iframe src="${posterPreviewUrl}" style="width:100%; height:100%; border:none;"></iframe>`
+                    : `<img src="${posterPreviewUrl}" alt="Event Poster" style="max-width:100%; max-height:100%; object-fit:contain;">`
+                }
+            </div>
+        </div>` : ''}
+    </div>
+    
+    <div class="section-title">FIDE Tournament Registration Fields (Copy & Paste Ready)</div>
+    <div class="data-grid">
+        <div class="data-item"><span class="label">Event Name</span><span>${t.eventName || '-'}</span></div>
+        <div class="data-item"><span class="label">Venue & State</span><span>${t.venue || '-'}, ${t.state || '-'}</span></div>
+        <div class="data-item"><span class="label">Organizer Category</span><span>${t.orgCategory || '-'}</span></div>
+        <div class="data-item"><span class="label">FIDE Laws Followed</span><span>${t.fideLaws || 'Yes'}</span></div>
+        <div class="data-item"><span class="label">National Championship (1.43a)</span><span>${t.natChampionship || 'No'}</span></div>
+        <div class="data-item"><span class="label">Title Norms Available</span><span>${t.titleNorms || 'No'} (${t.normAvailable || 'No'})</span></div>
+        <div class="data-item"><span class="label">Direct Title Events</span><span>${t.directTitle || 'No'}</span></div>
+        <div class="data-item"><span class="label">Tournament Type</span><span>${t.tourneyType || 'Over the Board'}</span></div>
+        <div class="data-item"><span class="label">Start Date</span><span>${formatLocalDate(t.startDate)}</span></div>
+        <div class="data-item"><span class="label">End Date</span><span>${formatLocalDate(t.endDate)}</span></div>
+        <div class="data-item"><span class="label">Expected Players</span><span>${t.pax || 0}</span></div>
+        <div class="data-item"><span class="label">Tournament System</span><span>${t.system || '-'}</span></div>
+        <div class="data-item"><span class="label">Number of Rounds Reported</span><span>${t.rounds || '-'}</span></div>
+        <div class="data-item"><span class="label">Number of Multiple Round Days</span><span>${t.multiRoundDays || '1'}</span></div>
+        <div class="data-item"><span class="label">Chief Arbiter</span><span>${t.chiefArbiter || '-'} (FIDE ID: ${t.chiefArbiterFide || '-'})</span></div>
+        <div class="data-item"><span class="label">Deputy Chief Arbiter</span><span>${t.deputyArbiter || 'None'} (FIDE ID: ${t.deputyArbiterFide || '-'})</span></div>
+        <div class="data-item"><span class="label">Chief Organizer</span><span>${t.chiefOrg || '-'} (FIDE ID: ${t.chiefOrgFide || '-'})</span></div>
+        <div class="data-item"><span class="label">Organizing Body</span><span>${t.orgBody || '-'} (FIDE ID: ${t.orgBodyFide || '-'})</span></div>
+        <div class="data-item"><span class="label">Fair Play Officer</span><span>${t.fairPlay || 'None'} (FIDE ID: ${t.fairPlayFide || '-'})</span></div>
+        <div class="data-item" style="grid-column: 1 / -1;"><span class="label">Time Control & Specification</span><span>${t.timeControl || '-'}</span></div>
+        <div class="data-item"><span class="label">Pairing Software</span><span>${t.software || '-'}</span></div>
+        <div class="data-item"><span class="label">1st Tiebreak Method</span><span>${t.tb1 || '-'}</span></div>
+        <div class="data-item"><span class="label">2nd Tiebreak Method</span><span>${t.tb2 || '-'}</span></div>
+        <div class="data-item"><span class="label">3rd Tiebreak Method</span><span>${t.tb3 || '-'}</span></div>
+        <div class="data-item"><span class="label">Female Only?</span><span>${t.femaleOnly || 'No'}</span></div>
+        <div class="data-item"><span class="label">Max Rating Limit</span><span>${t.maxRating || 'No limit'}</span></div>
+        <div class="data-item"><span class="label">Age Limit</span><span>${t.ageLimit || 'None'}</span></div>
+        <div class="data-item"><span class="label">All Digital Clocks?</span><span>${t.digitalClock || 'Yes'}</span></div>
+        <div class="data-item"><span class="label">Will PGN be Provided?</span><span>${t.pgnProvided || 'No'}</span></div>
+        <div class="data-item"><span class="label">Internet Transmission?</span><span>${t.internetLive || 'No'}</span></div>
+        <div class="data-item"><span class="label">Contact Email</span><span>${t.contactEmail || t.organizerEmail || '-'}</span></div>
+        <div class="data-item"><span class="label">Internet Homepage</span><span>${t.homepage || '-'}</span></div>
+        <div class="data-item"><span class="label">Prize Fund</span><span>${t.prizeFund || '-'}</span></div>
+        <div class="data-item" style="grid-column: 1 / -1;"><span class="label">Remarks</span><span>${t.remarks || '-'}</span></div>
+    </div>
+
+    ${tunSectionHtml}
+    
+    <div style="margin-top: 32px;">
+        <button class="btn btn-ghost" onclick="generateDossierPDF('${t.id}')" style="width: 100%; border-style: dashed; justify-content:center;">↓ Download Official Summary PDF</button>
+    </div>
     `;
 
-    document.getElementById('drawerFooter').innerHTML = `
-      <div style="display:flex; gap:8px;">
-        <button class="btn btn-ghost" onclick="updateStatus('REVISION REQ.')" style="color:var(--claret); border-color:var(--claret);">Request Revision</button>
-      </div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn btn-gold" onclick="updateStatus('PENDING ADMIN')">Endorse (State)</button>
-        <button class="btn btn-primary" onclick="updateStatus('APPROVED')">Approve (MCF)</button>
-      </div>
-    `;
+    let footerHtml = '';
+    const isAdmin = ['admin', 'core_admin', 'state_admin'].includes(currentUserProfile.role);
+    if (isAdmin) {
+        const isStateAdmin = currentUserProfile.role === 'state_admin';
+        const isPendingState = t.status === 'PENDING STATE';
+        const isAlreadyApproved = t.status === 'APPROVED';
 
-    document.getElementById('drawerBack').classList.add('open');
-  }
+        footerHtml = `
+            <button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger); border-color:var(--danger);">Reject Application</button>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end;">
+                <button class="btn btn-gold" onclick="changeStatus('REVISION REQ.')">Request Revision</button>
+        `;
 
-  function closeDrawer() {
-    document.getElementById('drawerBack').classList.remove('open');
-  }
-
-  async function updateStatus(newStatus) {
-    if (!selectedApp) return;
-    showToast(`Updating row ${selectedApp.rowIndex} to ${newStatus}...`);
-
-    try {
-      const res = await fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          action: "updateStatus",
-          rowIndex: selectedApp.rowIndex,
-          newStatus: newStatus
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast("Status updated in Google Sheet!");
-        closeDrawer();
-        fetchDossiers();
-      }
-    } catch (e) {
-      showToast("Failed to update status in Google Sheet.");
+        if (isStateAdmin) {
+            footerHtml += `<button class="btn btn-primary" style="width:auto;" onclick="changeStatus('PENDING ADMIN')">✓ 1. Endorse (State)</button>`;
+        } else {
+            if (isPendingState) {
+                footerHtml += `
+                    <span style="font-size:12px; color:var(--warning); font-weight:500;">⚠️ Waiting for State Endorsement</span>
+                    <button class="btn btn-primary" style="width:auto; opacity:0.5; cursor:not-allowed;" disabled title="State must endorse first">✓ 2. Approve (MCF Final)</button>
+                `;
+            } else {
+                if (isAlreadyApproved) {
+                    footerHtml += `
+                        <button class="btn btn-gold" style="width:auto;" onclick="changeStatus('PENDING STATE')">Revert to State</button>
+                        <button class="btn btn-primary" style="width:auto; background:#9CA3AF; color:#FFFFFF; opacity:0.7; cursor:not-allowed;" disabled>✓ Approved & Finalized</button>
+                    `;
+                } else {
+                    footerHtml += `
+                        <button class="btn btn-gold" style="width:auto;" onclick="changeStatus('PENDING STATE')">Revert to State</button>
+                        <button class="btn btn-primary" style="width:auto;" onclick="changeStatus('APPROVED')">✓ 2. Approve (MCF Final)</button>
+                    `;
+                }
+            }
+        }
+        footerHtml += `</div>`;
+    } else {
+        footerHtml = `<div style="width:100%; text-align:right;"><button class="btn btn-ghost" onclick="closeDrawer()">Close Window</button></div>`;
     }
-  }
+    
+    document.getElementById('drawerFooter').innerHTML = footerHtml;
+    document.getElementById('drawerBack').classList.add('open');
+}
 
-  // Official jsPDF Summary Generator
-  function downloadPDF() {
-    if (!selectedApp) return;
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+// HYBRID FETCH: Works natively in GAS or via API on GitHub for uploadTunFile
+window.uploadTunFile = async function(id) {
+    const fileInput = document.getElementById('tunUploadInput');
+    if (!fileInput || fileInput.files.length === 0) {
+        showToast("Please select a file first.");
+        return;
+    }
+    const file = fileInput.files[0];
+    showToast("Uploading tournament report...");
 
-    doc.setFillColor(21, 18, 13);
-    doc.rect(0, 0, 210, 42, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("MALAYSIAN CHESS FEDERATION", 105, 20, { align: "center" });
+    const fileData = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+    });
 
-    doc.setTextColor(227, 184, 114);
-    doc.setFontSize(13);
-    doc.setFont("helvetica", "normal");
-    doc.text("FIDE Rating Application Dossier", 105, 30, { align: "center" });
+    const onSuccess = function(res) {
+        if (res && res.status === 'success') {
+            showToast("✓ Tournament report uploaded successfully!");
+            const item = applications.find(x => x.id === id);
+            if (item) { item.tunUrl = res.tunUrl; item.tunStatus = 'PENDING'; item.tunRejectReason = ''; }
+            openDrawer(id); fetchDossiers();
+        } else { showToast("Error uploading file: " + (res.message || "Unknown error")); }
+    };
+    const onError = function(err) { showToast("Connection Error: " + err.message); };
 
-    doc.setTextColor(40, 40, 40);
-    doc.setFontSize(10);
-    let y = 54;
-    const addRow = (lbl, val) => {
-      doc.setFont("helvetica", "bold");
-      doc.text(lbl + ":", 20, y);
-      doc.setFont("helvetica", "normal");
-      doc.text(String(val || "-"), 75, y);
-      y += 8;
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onError).submitTunFile(id, fileData, file.name);
+    } else {
+        if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return onError({message: "SCRIPT_URL missing."});
+        try {
+            const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'submitTunFile', id: id, fileData: fileData, fileName: file.name }) });
+            onSuccess(await response.json());
+        } catch (err) { onError(err); }
+    }
+};
+
+// HYBRID FETCH: Works natively in GAS or via API on GitHub for setTunStatus
+window.setTunStatus = async function(id, status) {
+    showToast("Updating .tun status...");
+    const onSuccess = function(res) {
+        if (res && res.status === 'success') {
+            showToast("✓ Tournament report marked as Received!");
+            const item = applications.find(x => x.id === id);
+            if (item) item.tunStatus = status;
+            openDrawer(id); fetchDossiers();
+        } else { showToast("Error: " + (res.message || "Unknown error")); }
+    };
+    const onError = function(err) { showToast("Connection Error: " + err.message); };
+
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onError).updateTunStatus(id, status, "");
+    } else {
+        if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return onError({message: "SCRIPT_URL missing."});
+        try {
+            const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateTunStatus', id: id, status: status, reason: "" }) });
+            onSuccess(await response.json());
+        } catch (err) { onError(err); }
+    }
+};
+
+// HYBRID FETCH: Works natively in GAS or via API on GitHub for promptRejectTun
+window.promptRejectTun = async function(id) {
+    const reason = prompt("Please provide a reason why this .tun report is being rejected:");
+    if (reason === null) return;
+    if (!reason.trim()) { alert("Rejection reason cannot be empty."); return; }
+
+    showToast("Submitting rejection comment...");
+    const onSuccess = function(res) {
+        if (res && res.status === 'success') {
+            showToast("✓ .tun report rejected with comments.");
+            const item = applications.find(x => x.id === id);
+            if (item) { item.tunStatus = 'REJECTED'; item.tunRejectReason = reason; }
+            openDrawer(id); fetchDossiers();
+        } else { showToast("Error: " + (res.message || "Unknown error")); }
+    };
+    const onError = function(err) { showToast("Connection Error: " + err.message); };
+
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onError).updateTunStatus(id, 'REJECTED', reason);
+    } else {
+        if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return onError({message: "SCRIPT_URL missing."});
+        try {
+            const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateTunStatus', id: id, status: 'REJECTED', reason: reason }) });
+            onSuccess(await response.json());
+        } catch (err) { onError(err); }
+    }
+};
+
+// HYBRID FETCH: Works natively in GAS or via API on GitHub for changeStatus
+window.changeStatus = async function(newStatus){
+    if (!selectedId) {
+        showToast("Error: No application selected.");
+        return;
+    }
+    const footerBtns = document.querySelectorAll('#drawerFooter button');
+    footerBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
+    showToast("Saving status...");
+
+    const onSuccess = function(res) {
+        footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+        if (res && res.status === 'success') { 
+            const item = applications.find(x => x.id === selectedId);
+            if (item) item.status = newStatus;
+            updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
+            closeDrawer(); showToast("✓ Status updated to " + newStatus); 
+            fetchDossiers();
+        } else {
+            showToast("Error: " + (res.message || "Unknown error"));
+        }
+    };
+    
+    const onError = function(err) {
+        footerBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+        showToast("Connection Error: " + err.message);
     };
 
-    addRow("Application ID", selectedApp.id);
-    addRow("Event Name", selectedApp.eventName);
-    addRow("Host State", selectedApp.state);
-    addRow("Venue", selectedApp.venue);
-    addRow("Tournament Dates", `${selectedApp.startDate} to ${selectedApp.endDate}`);
-    addRow("Pairing System", selectedApp.system);
-    addRow("Rounds / Expected Pax", `${selectedApp.rounds} Rounds / ${selectedApp.pax} Pax`);
-    addRow("Time Control", selectedApp.timeControl);
-    addRow("Total MCF Fee", `RM ${selectedApp.fee}`);
-    addRow("Payment Reference", selectedApp.paymentRef);
-    addRow("Organizing Body", selectedApp.orgBody);
-    addRow("Chief Organizer", selectedApp.chiefOrg);
-    addRow("Chief Arbiter", `${selectedApp.chiefArbiter} (FIDE ID: ${selectedApp.chiefArbiterFide})`);
-    addRow("Signatory", `${selectedApp.signName} (${selectedApp.signDate})`);
-    addRow("Current Status", selectedApp.status);
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onError).updateDossierStatus(selectedId, newStatus);
+    } else {
+        if (!SCRIPT_URL || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzUvQe3IcqNhiB8a1gx18oLm0Qpv7wirsavbNwvC8urQD5P4eCbYdp-Hg6AidcdSZEU/exec")) return onError({message: "SCRIPT_URL missing."});
+        try {
+            const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateDossierStatus', id: selectedId, status: newStatus }) });
+            onSuccess(await response.json());
+        } catch (err) { onError(err); }
+    }
+};
 
-    doc.save(`MCF_Dossier_${selectedApp.id}.pdf`);
-  }
+window.generateDossierPDF = function(id) {
+    const app = applications.find(x => x.id === id); if (!app) return;
+    const { jsPDF } = window.jspdf; const doc = new jsPDF();
 
-  // View Navigation Helpers
-  function showWizard() {
-    document.getElementById('view-dashboard').classList.remove('active');
-    document.getElementById('view-wizard').classList.add('active');
-  }
+    doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 45, 'F'); 
+    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(22); doc.text("MALAYSIAN CHESS FEDERATION", 105, 22, { align: "center" });
+    doc.setTextColor(220, 38, 38); doc.setFont("helvetica", "normal"); doc.setFontSize(14); doc.text("FIDE-Rated Event Application Summary", 105, 32, { align: "center" });
 
-  function showDashboard() {
-    document.getElementById('view-wizard').classList.remove('active');
-    document.getElementById('view-dashboard').classList.add('active');
-    fetchDossiers();
-  }
+    let currentY = 55; const labelX = 20, valueX = 85;
 
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    document.getElementById('toastMsg').textContent = msg;
-    t.classList.add('show');
-    clearTimeout(window._toastTimer);
-    window._toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
-  }
-
-  // Filter Bar Navigation
-  document.querySelectorAll('#navFilter .nav-item').forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeFilter = btn.dataset.filter;
-      renderTable();
+    const drawSection = (title) => {
+        if (currentY > 250) { doc.addPage(); currentY = 20; } 
+        currentY += 4;
+        doc.setTextColor(15, 23, 42); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text(title, 20, currentY);
+        currentY += 3; doc.setDrawColor(226, 232, 240); doc.setLineWidth(0.5); doc.line(20, currentY, 190, currentY); currentY += 7;
     };
-  });
-  document.getElementById('searchInput').addEventListener('input', renderTable);
 
-  // Initialize Form
-  document.getElementById('signDate').value = new Date().toISOString().split('T')[0];
-  renderStep();
+    const printRow = (label, value) => {
+        if (currentY > 270) { doc.addPage(); currentY = 20; }
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text(label + ":", labelX, currentY);
+        doc.setFont("helvetica", "normal"); const splitValue = doc.splitTextToSize(String(value || '-'), 105); doc.text(splitValue, valueX, currentY); currentY += (splitValue.length * 5) + 2; 
+    };
+
+    drawSection("1. Compliance & General Details");
+    printRow("Application ID", app.id);
+    printRow("Approval Status", app.status);
+    printRow("Event Name", app.eventName);
+    printRow("Venue & State", `${app.venue || '-'}, ${app.state || '-'}`);
+    printRow("Organizer Category", app.orgCategory);
+    printRow("FIDE Laws Followed", app.fideLaws);
+    printRow("National Championship (1.43a)", app.natChampionship);
+    printRow("Title Norms Available", `${app.titleNorms} (${app.normAvailable || 'No'})`);
+    printRow("Direct Title Events", app.directTitle);
+    printRow("Tournament Type", app.tourneyType);
+    printRow("Start Date", formatLocalDate(app.startDate));
+    printRow("End Date", formatLocalDate(app.endDate));
+
+    drawSection("2. Format & Technical Specifications");
+    printRow("Expected Players", app.pax);
+    printRow("Tournament System", app.system);
+    printRow("Number of Rounds Reported", app.rounds);
+    printRow("Multiple Round Days", app.multiRoundDays);
+    printRow("Time Control Category", app.timeControl);
+    printRow("Pairing Software", app.software);
+    printRow("1st Tiebreak Method", app.tb1);
+    printRow("2nd Tiebreak Method", app.tb2);
+    printRow("3rd Tiebreak Method", app.tb3 || '-');
+
+    drawSection("3. Officials & Arbiters");
+    printRow("Chief Arbiter", `${app.chiefArbiter || '-'} (FIDE ID: ${app.chiefArbiterFide || '-'})`);
+    printRow("Deputy Chief Arbiter", `${app.deputyArbiter || 'None'} (FIDE ID: ${app.deputyArbiterFide || '-'})`);
+    printRow("Chief Organizer", `${app.chiefOrg || '-'} (FIDE ID: ${app.chiefOrgFide || '-'})`);
+    printRow("Organizing Body", `${app.orgBody || '-'} (FIDE ID: ${app.orgBodyFide || '-'})`);
+    printRow("Fair Play Officer", `${app.fairPlay || 'None'} (FIDE ID: ${app.fairPlayFide || '-'})`);
+
+    drawSection("4. Additional Info, Payment & Declaration");
+    printRow("Female Only?", app.femaleOnly);
+    printRow("Max Rating Limit", app.maxRating);
+    printRow("Age Limit", app.ageLimit);
+    printRow("All Digital Clocks?", app.digitalClock);
+    printRow("Will PGN be Provided?", app.pgnProvided);
+    printRow("Internet Transmission?", app.internetLive);
+    printRow("Contact Email", app.contactEmail || app.organizerEmail);
+    printRow("Internet Homepage", app.homepage);
+    printRow("Prize Fund", app.prizeFund);
+    printRow("Remarks", app.remarks);
+    printRow("Total Fee Due (Deposit)", 'RM ' + (app.fee || 0));
+    printRow("Payment Reference", app.paymentRef);
+    printRow("Objectives", app.obj1);
+    printRow("Signed By", `${app.signName || '-'} on ${formatLocalDate(app.signDate)}`);
+
+    doc.save(`MCF_FIDE_Dossier_${(app.eventName || 'Event').replace(/\s+/g, '_')}.pdf`);
+};
 </script>
 </body>
 </html>
