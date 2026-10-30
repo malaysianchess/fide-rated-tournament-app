@@ -838,6 +838,18 @@
   </div>
 </div>
 
+<!-- USER PROFILE VIEW MODAL -->
+<div class="drawer-back" id="userProfileDrawerBack" onclick="if(event.target.id === 'userProfileDrawerBack') closeUserProfileDrawer();">
+  <div class="drawer">
+    <div class="drawer-head">
+      <div><h3 id="upTitle">User Profile</h3><p id="upSubtitle">MCF ID: </p></div>
+      <button class="drawer-close" onclick="closeUserProfileDrawer()">×</button>
+    </div>
+    <div class="drawer-body" id="upContent"></div>
+    <div class="drawer-footer" id="upFooter"></div>
+  </div>
+</div>
+
 <!-- FORGOT PASSWORD MODAL -->
 <div id="forgotModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); z-index:400; align-items:center; justify-content:center;">
   <div style="background:var(--surface); padding:32px; border-radius:var(--radius-lg); width:100%; max-width:380px; box-shadow:var(--shadow-lg);">
@@ -1004,7 +1016,7 @@ auth.onAuthStateChanged(user => {
                         }
                     }
 
-                    if (currentUserProfile.role === 'core_admin') {
+                    if (currentUserProfile.role === 'core_admin' || currentUserProfile.role === 'admin') {
                         document.getElementById('systemAdminMenu').style.display = 'block';
                         listenForUsers();
                     }
@@ -1334,66 +1346,114 @@ function renderUsersTable() {
         if (u.role === 'core_admin') { roleBadge = 'CORE ADMIN'; badgeStyle = 'background:#FEE2E2; color:#991B1B;'; }
 
         let actionHtml = '-';
-        // Allow both Core Admin and MCF Admin to manage/delete users
         const canManage = currentUserProfile.role === 'core_admin' || currentUserProfile.role === 'admin';
 
         if (canManage) {
-            if (u.email !== currentUserProfile.email) {
-                // Only Core Admins can change user roles, but both MCF Admin and Core Admin can delete/blacklist
-                const roleSelectHtml = currentUserProfile.role === 'core_admin' ? `
-                    <select class="role-select" id="role_${u.id}" style="padding:4px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
-                        <option value="organizer" ${u.role === 'organizer' ? 'selected' : ''}>Organizer</option>
-                        <option value="state_admin" ${u.role === 'state_admin' ? 'selected' : ''}>State Admin</option>
-                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>MCF Admin</option>
-                        <option value="core_admin" ${u.role === 'core_admin' ? 'selected' : ''}>Core Admin</option>
-                    </select>
-                    <button class="btn btn-gold btnChangeRole" data-id="${u.id}" style="padding: 3px 8px; font-size: 10px;">Save</button>
-                ` : `<span style="font-size:11px; color:var(--text-muted);">${roleBadge}</span>`;
-
-                actionHtml = `
-                <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                    ${roleSelectHtml}
-                    <button class="btn btn-ghost btnDeleteUser" data-id="${u.id}" data-email="${u.email}" style="padding: 3px 8px; font-size: 10px; color:#DC2626; border-color:#DC2626;">Delete / Blacklist</button>
-                </div>`;
-            } else { actionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic;">(Your Account)</span>`; }
-        } else { actionHtml = `<span style="font-size:12px; color:var(--text-muted);">Restricted</span>`; }
+            actionHtml = `
+            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                <button class="btn btn-ghost btnViewUserProfile" data-id="${u.id}" style="padding: 3px 10px; font-size: 11px;">View Profile</button>
+            </div>`;
+        } else { 
+            actionHtml = `<span style="font-size:12px; color:var(--text-muted);">Restricted</span>`; 
+        }
 
         tr.innerHTML = `<td><b style="font-size:14px;">${u.name || 'N/A'}</b><br><span style="font-size:11px; color:var(--text-muted);">MCF ID: ${u.mcfId || '-'}</span></td><td>${u.email}</td><td>${u.state || '-'}</td><td><span class="status-pill" style="${badgeStyle}">${roleBadge}</span></td><td>${actionHtml}</td>`;
         tbody.appendChild(tr);
     });
 
-    // Save role change handler (Core Admin only)
-    document.querySelectorAll('.btnChangeRole').forEach(b => b.addEventListener('click', (e) => {
-        if (currentUserProfile.role !== 'core_admin') { showToast("Unauthorized action."); return; }
-        db.collection('users').doc(e.target.dataset.id).update({ role: document.getElementById(`role_${e.target.dataset.id}`).value }); 
-        showToast("Role updated successfully.");
-    }));
-
-    // Double-confirmation Delete / Blacklist handler (MCF Admin & Core Admin)
-    document.querySelectorAll('.btnDeleteUser').forEach(b => b.addEventListener('click', async (e) => {
-        const userId = e.target.dataset.id;
-        const userEmail = e.target.dataset.email;
-
-        // First Confirmation Prompt
-        const firstConfirm = confirm(`⚠️ WARNING:\nAre you sure you want to delete/blacklist the account for ${userEmail}?\n\nThis action is permanent.`);
-        if (!firstConfirm) return;
-
-        // Second Confirmation Prompt (Double Confirmation)
-        const secondConfirm = prompt(`DOUBLE CONFIRMATION:\nPlease type the exact email ("${userEmail}") to confirm deletion and blacklisting:`);
-        if (secondConfirm !== userEmail) {
-            alert("Email did not match. Deletion cancelled.");
-            return;
-        }
-
-        try {
-            showToast("Deleting user profile...");
-            await db.collection('users').doc(userId).delete();
-            showToast("✓ User account successfully blacklisted and removed.");
-        } catch (err) {
-            alert("Error deleting user: " + err.message);
-        }
+    document.querySelectorAll('.btnViewUserProfile').forEach(b => b.addEventListener('click', (e) => {
+        openUserProfileDrawer(e.target.dataset.id);
     }));
 }
+
+window.openUserProfileDrawer = function(userId) {
+    const u = usersList.find(x => x.id === userId);
+    if (!u) return;
+
+    document.getElementById('upTitle').textContent = u.name || 'User Profile';
+    document.getElementById('upSubtitle').textContent = "MCF ID: " + (u.mcfId || 'Not provided');
+
+    let roleDisplay = 'Organizer';
+    if (u.role === 'state_admin') roleDisplay = 'State Admin';
+    if (u.role === 'admin') roleDisplay = 'MCF Admin';
+    if (u.role === 'core_admin') roleDisplay = 'Core Admin';
+
+    document.getElementById('upContent').innerHTML = `
+        <div style="background: var(--bg-body); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 24px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 12px;">
+                <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 600;">Account Details</span>
+                <span class="status-pill" style="background:#DBEAFE; color:#1E40AF;">${roleDisplay.toUpperCase()}</span>
+            </div>
+            <div class="data-grid">
+                <div class="data-item"><span class="label">Full Name</span><span>${u.name || '-'}</span></div>
+                <div class="data-item"><span class="label">MCF ID</span><span>${u.mcfId || '-'}</span></div>
+                <div class="data-item"><span class="label">Email Address</span><span>${u.email || '-'}</span></div>
+                <div class="data-item"><span class="label">Phone Number</span><span>${u.phone || 'Not provided'}</span></div>
+                <div class="data-item"><span class="label">State / Region</span><span>${u.state || '-'}</span></div>
+                <div class="data-item"><span class="label">System Role</span><span>${roleDisplay}</span></div>
+            </div>
+        </div>
+        ${currentUserProfile.role === 'core_admin' ? `
+        <div style="margin-top:20px; padding:16px; background:white; border:1px solid var(--border); border-radius:var(--radius);">
+            <label style="font-size:12px; font-weight:600; display:block; margin-bottom:6px;">Change System Role:</label>
+            <div style="display:flex; gap:8px;">
+                <select id="drawerRoleSelect" style="padding:6px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                    <option value="organizer" ${u.role === 'organizer' ? 'selected' : ''}>Organizer</option>
+                    <option value="state_admin" ${u.role === 'state_admin' ? 'selected' : ''}>State Admin</option>
+                    <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>MCF Admin</option>
+                    <option value="core_admin" ${u.role === 'core_admin' ? 'selected' : ''}>Core Admin</option>
+                </select>
+                <button class="btn btn-gold" style="padding:6px 12px; font-size:11px;" onclick="updateUserRoleFromDrawer('${u.id}')">Update Role</button>
+            </div>
+        </div>` : ''}
+    `;
+
+    let footerHtml = '';
+    const isSelf = u.email === currentUserProfile.email;
+    if (!isSelf) {
+        footerHtml = `
+            <button class="btn btn-ghost" onclick="closeUserProfileDrawer()" style="width:auto;">Close</button>
+            <button class="btn btn-primary" onclick="confirmDeleteUser('${u.id}', '${u.email}')" style="background:#DC2626; border-color:#DC2626; width:auto;">Delete / Blacklist User</button>
+        `;
+    } else {
+        footerHtml = `<div style="width:100%; text-align:right;"><button class="btn btn-ghost" onclick="closeUserProfileDrawer()">Close</button></div>`;
+    }
+
+    document.getElementById('upFooter').innerHTML = footerHtml;
+    document.getElementById('userProfileDrawerBack').classList.add('open');
+};
+
+window.closeUserProfileDrawer = function() {
+    document.getElementById('userProfileDrawerBack').classList.remove('open');
+};
+
+window.updateUserRoleFromDrawer = async function(userId) {
+    if (currentUserProfile.role !== 'core_admin') { showToast("Unauthorized action."); return; }
+    const newRole = document.getElementById('drawerRoleSelect').value;
+    try {
+        await db.collection('users').doc(userId).update({ role: newRole });
+        showToast("✓ Role updated successfully.");
+        openUserProfileDrawer(userId);
+    } catch (err) { alert("Error updating role: " + err.message); }
+};
+
+window.confirmDeleteUser = async function(userId, userEmail) {
+    const firstConfirm = confirm(`⚠️ WARNING:\nAre you sure you want to delete/blacklist the account for ${userEmail}?\n\nThis action is permanent.`);
+    if (!firstConfirm) return;
+
+    const secondConfirm = prompt(`DOUBLE CONFIRMATION:\nPlease type the exact email ("${userEmail}") to confirm deletion and blacklisting:`);
+    if (secondConfirm !== userEmail) {
+        alert("Email did not match. Deletion cancelled.");
+        return;
+    }
+
+    try {
+        showToast("Deleting user profile...");
+        await db.collection('users').doc(userId).delete();
+        showToast("✓ User account successfully blacklisted and removed.");
+        closeUserProfileDrawer();
+    } catch (err) { alert("Error deleting user: " + err.message); }
+};
 
 document.getElementById('searchUsers').addEventListener('input', (e) => { searchUsersQ = e.target.value; renderUsersTable(); });
 document.getElementById('userRoleFilter').addEventListener('change', (e) => { selectedUserRoleFilter = e.target.value; renderUsersTable(); });
