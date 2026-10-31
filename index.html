@@ -466,7 +466,7 @@
               </select>
             </div>
 
-            <!-- Direct Title Category Checkboxes -->
+            <!-- Direct Title Event Categories -->
             <div class="field full" style="background: var(--bg-body); padding: 14px; border-radius: var(--radius); border: 1px solid var(--border);">
               <label style="font-weight: 600; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; display: block;">Direct Title Event Categories</label>
               <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -490,7 +490,7 @@
               </select>
             </div>
 
-            <div class="field full" style="margin-top: 5px;"><label>Event name *</label><input type="text" id="eventName" placeholder="e.g. Kuala Lumpur Open 2026" required></div>
+            <div class="field full" style="margin-top: 5px;"><label>Event name *</label><input type="text" id="eventName" placeholder="e.g. Kuala Lumpur Open 2026" required oninput="updateDossier()"></div>
             
             <!-- Venue with Dropdown / Manual Input -->
             <div class="field full combo">
@@ -520,7 +520,7 @@
             
             <!-- Dates with Validation -->
             <div class="field"><label>Start date *</label><input type="date" id="dateStart" required onchange="validateDates(); updateDossier();"></div>
-            <div class="field"><label>End date *</label><input type="date" id="dateEnd" required onchange="validateDates();"></div>
+            <div class="field"><label>End date *</label><input type="date" id="dateEnd" required onchange="validateDates(); updateDossier();"></div>
           </div>
         </section>
 
@@ -585,16 +585,6 @@
             <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
               <div class="field" style="margin-bottom:0;"><label>Chief Organizer Name *</label><input type="text" id="chiefOrg" placeholder="Full Name" required></div>
               <div class="field" style="margin-bottom:0;"><label>FIDE ID *</label><input type="text" id="chiefOrgFide" placeholder="FIDE ID" required></div>
-            </div>
-
-            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
-              <div class="field" style="margin-bottom:0;"><label>Organiser (Up to 10 names allowed)</label><input type="text" id="orgBody" placeholder="Organizer Name / Club"></div>
-              <div class="field" style="margin-bottom:0;"><label>FIDE ID</label><input type="text" id="orgBodyFide" placeholder="FIDE ID"></div>
-            </div>
-
-            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
-              <div class="field" style="margin-bottom:0;"><label>Fair Play Officer Name</label><input type="text" id="fairPlayOfficer" placeholder="Full Name"></div>
-              <div class="field" style="margin-bottom:0;"><label>FIDE ID</label><input type="text" id="fairPlayOfficerFide" placeholder="FIDE ID"></div>
             </div>
 
             <div class="field full"><label>1st Tiebreak Method *</label><input type="text" id="tb1" placeholder="e.g. Direct encounter" value="Direct encounter"></div>
@@ -1005,6 +995,7 @@ document.getElementById('btnGoAdminView')?.addEventListener('click', () => showV
 document.getElementById('btnNewAppDash')?.addEventListener('click', () => { 
     currentStepIndex = 0;
     updateWizardView();
+    updateDossier();
     showView('organizer-wizard'); 
 });
 document.getElementById('btnCancelWizard')?.addEventListener('click', () => { showView('organizer-dash'); });
@@ -1091,6 +1082,7 @@ if (venueInput && venuePanel) {
 function selectVenue(cityName) {
     if (venueInput) venueInput.value = cityName;
     if (venuePanel) venuePanel.style.display = 'none';
+    updateDossier();
 }
 
 function generateReviewSummary() {
@@ -1115,17 +1107,22 @@ function updateDossier() {
     const en = document.getElementById('dateEnd')?.value || '';
     const sys = document.getElementById('system')?.value || '—';
     const pax = Number(document.getElementById('pax')?.value || 0);
+    const tc = document.getElementById('tcInput')?.value || '—';
+    const arb = document.getElementById('chiefArbiter')?.value || '—';
 
-    document.getElementById('dEventName').textContent = ev;
-    document.getElementById('dVenue').textContent = vn;
-    document.getElementById('dDates').textContent = (st && en) ? `${formatLocalDate(st)} - ${formatLocalDate(en)}` : '—';
-    document.getElementById('dSystem').textContent = sys;
+    if(document.getElementById('dEventName')) document.getElementById('dEventName').textContent = ev;
+    if(document.getElementById('dVenue')) document.getElementById('dVenue').textContent = vn;
+    if(document.getElementById('dDates')) document.getElementById('dDates').textContent = (st && en) ? `${formatLocalDate(st)} - ${formatLocalDate(en)}` : '—';
+    if(document.getElementById('dSystem')) document.getElementById('dSystem').textContent = sys;
+    if(document.getElementById('dTC')) document.getElementById('dTC').textContent = tc;
+    if(document.getElementById('dArbiter')) document.getElementById('dArbiter').textContent = arb;
     
     // Fee calculation logic (Clause 3.3)
     const baseFee = 300;
     const ratingFee = pax * 5;
     const total = baseFee + ratingFee;
-    document.getElementById('dFee').textContent = 'RM ' + total;
+    
+    if(document.getElementById('dFee')) document.getElementById('dFee').textContent = 'RM ' + total;
     if(document.getElementById('feeBase')) document.getElementById('feeBase').textContent = 'RM ' + baseFee;
     if(document.getElementById('feePerPlayer')) document.getElementById('feePerPlayer').textContent = 'RM ' + ratingFee;
     if(document.getElementById('feeTotal')) document.getElementById('feeTotal').textContent = 'RM ' + total;
