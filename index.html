@@ -1493,16 +1493,69 @@ window.openDrawer = function(id){
         </div>` : ''}
     </div>
     
-    <div class="section-title">Tournament Details</div>
-    <div class="data-grid">
-        <div class="data-item"><span class="label">Event Name</span><span>${t.eventName || '-'}</span></div>
-        <div class="data-item"><span class="label">Venue & State</span><span>${t.venue || '-'}, ${t.state || '-'}</span></div>
-        <div class="data-item"><span class="label">Start Date</span><span>${formatLocalDate(t.startDate)}</span></div>
-        <div class="data-item"><span class="label">End Date</span><span>${formatLocalDate(t.endDate)}</span></div>
-        <div class="data-item"><span class="label">Expected Players</span><span>${t.pax || 0} pax</span></div>
-        <div class="data-item"><span class="label">Tournament System</span><span>${t.system || '-'} (${t.rounds || '-'} Rds)</span></div>
-        <div class="data-item"><span class="label">Chief Arbiter</span><span>${t.chiefArbiter || '-'}</span></div>
-        <div class="data-item"><span class="label">Contact Email</span><span>${t.contactEmail || t.organizerEmail || '-'}</span></div>
+    <div class="section-title">FIDE Server Copy & Paste Fields</div>
+    <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Event Name</span>
+            <b style="font-size:13px; user-select:all;">${t.eventName || '-'}</b>
+        </div>
+        
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Venue & State</span>
+            <b style="font-size:13px; user-select:all;">${t.venue || '-'}, ${t.state || '-'}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Start Date (YYYY-MM-DD)</span>
+            <b style="font-size:13px; user-select:all; color:var(--primary);">${t.startDate || '-'}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">End Date (YYYY-MM-DD)</span>
+            <b style="font-size:13px; user-select:all; color:var(--primary);">${t.endDate || '-'}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Expected Players</span>
+            <b style="font-size:13px; user-select:all;">${t.pax || 0}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Tournament System</span>
+            <b style="font-size:13px; user-select:all;">${t.system || 'Swiss'}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Number of Rounds reported</span>
+            <b style="font-size:13px; user-select:all;">${t.rounds || '7'}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Chief Arbiter (Name / FIDE ID)</span>
+            <b style="font-size:13px; user-select:all;">${t.chiefArbiter || '-'} ${t.chiefArbiterFide ? '('+t.chiefArbiterFide+')' : ''}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Time Control</span>
+            <b style="font-size:13px; user-select:all;">${t.timeControl || 'Standard'}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Tiebreak Method</span>
+            <b style="font-size:13px; user-select:all;">${t.tb1 || 'Direct encounter'}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Software</span>
+            <b style="font-size:13px; user-select:all;">${t.software || 'ChessManager'}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between;">
+            <span style="font-size:12px; color:var(--text-muted);">Contact Email</span>
+            <b style="font-size:13px; user-select:all; color:#2563EB;">${t.contactEmail || t.organizerEmail || '-'}</b>
+        </div>
+
     </div>
 
     ${tunSectionHtml}
