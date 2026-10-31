@@ -1493,7 +1493,7 @@ window.openDrawer = function(id){
         </div>` : ''}
     </div>
     
-    <div class="section-title">FIDE Server Copy & Paste Fields</div>
+    <div class="section-title">FIDE Server Copy & Paste Fields (Complete)</div>
     <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; gap: 14px;">
         
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
@@ -1508,12 +1508,12 @@ window.openDrawer = function(id){
 
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
             <span style="font-size:12px; color:var(--text-muted);">Start Date (YYYY-MM-DD)</span>
-            <b style="font-size:13px; user-select:all; color:var(--primary);">${t.startDate || '-'}</b>
+            <b style="font-size:13px; user-select:all; color:var(--primary);">${t.startDate ? t.startDate.split('T')[0] : '-'}</b>
         </div>
 
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
             <span style="font-size:12px; color:var(--text-muted);">End Date (YYYY-MM-DD)</span>
-            <b style="font-size:13px; user-select:all; color:var(--primary);">${t.endDate || '-'}</b>
+            <b style="font-size:13px; user-select:all; color:var(--primary);">${t.endDate ? t.endDate.split('T')[0] : '-'}</b>
         </div>
 
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
@@ -1532,8 +1532,28 @@ window.openDrawer = function(id){
         </div>
 
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Chief Arbiter (Name / FIDE ID)</span>
+            <span style="font-size:12px; color:var(--text-muted);">Multiple Round Days</span>
+            <b style="font-size:13px; user-select:all;">${t.multiRoundDays || '1'}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Chief Arbiter</span>
             <b style="font-size:13px; user-select:all;">${t.chiefArbiter || '-'} ${t.chiefArbiterFide ? '('+t.chiefArbiterFide+')' : ''}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Deputy Chief Arbiter</span>
+            <b style="font-size:13px; user-select:all;">${t.deputyArbiter || 'None'} ${t.deputyArbiterFide ? '('+t.deputyArbiterFide+')' : ''}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Chief Organizer</span>
+            <b style="font-size:13px; user-select:all;">${t.chiefOrg || '-'} ${t.chiefOrgFide ? '('+t.chiefOrgFide+')' : ''}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Organizing Body / Club</span>
+            <b style="font-size:13px; user-select:all;">${t.orgBody || '-'} ${t.orgBodyFide ? '('+t.orgBodyFide+')' : ''}</b>
         </div>
 
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
@@ -1542,13 +1562,33 @@ window.openDrawer = function(id){
         </div>
 
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Tiebreak Method</span>
+            <span style="font-size:12px; color:var(--text-muted);">Tiebreak Method 1</span>
             <b style="font-size:13px; user-select:all;">${t.tb1 || 'Direct encounter'}</b>
         </div>
 
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Software</span>
+            <span style="font-size:12px; color:var(--text-muted);">Tiebreak Method 2 & 3</span>
+            <b style="font-size:13px; user-select:all;">${t.tb2 || '-'}, ${t.tb3 || '-'}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Pairing Software</span>
             <b style="font-size:13px; user-select:all;">${t.software || 'ChessManager'}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">FIDE Laws Followed</span>
+            <b style="font-size:13px; user-select:all;">${t.fideLaws || 'Yes'}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">National Championship (1.43a)</span>
+            <b style="font-size:13px; user-select:all;">${t.natChampionship || 'No'}</b>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">Max Rating & Age Limit</span>
+            <b style="font-size:13px; user-select:all;">Rating: ${t.maxRating || 'No limit'} | Age: ${t.ageLimit || 'None'}</b>
         </div>
 
         <div style="display:flex; justify-content:space-between;">
