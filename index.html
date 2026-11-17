@@ -9,250 +9,263 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Google Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+
 <style>
   :root {
     --surface: #ffffff;
-    --bg-body: #F8FAFC;
-    --sidebar: #0F172A;
-    --sidebar-hover: #1E293B;
+    --surface-hover: #F8FAFC;
+    --bg-body: #F1F5F9;
+    --sidebar: #020617; /* Ultra dark slate for modern tech feel */
+    --sidebar-hover: #0F172A;
     --text-main: #0F172A;
     --text-muted: #64748B;
     --text-light: #F8FAFC;
+    --text-sidebar-muted: #94A3B8;
     
-    --primary: #DC2626; /* Crimson Red */
-    --primary-hover: #B91C1C;
-    --primary-light: #FEE2E2;
+    --primary: #E11D48; /* Modern vibrant crimson/rose */
+    --primary-hover: #BE123C;
+    --primary-light: #FFE4E6;
+    --primary-glow: rgba(225, 29, 72, 0.2);
     
-    --accent: #EAB308; /* Bold Yellow */
-    --accent-hover: #CA8A04;
-    --accent-light: #FEF9C3;
+    --accent: #F59E0B; /* Vibrant Gold */
+    --accent-hover: #D97706;
     
-    --danger: #DC2626;
+    --success: #10B981;
+    --danger: #EF4444;
     --warning: #F59E0B;
+    --info: #3B82F6;
     
     --border: #E2E8F0;
     --border-soft: #F1F5F9;
+    --sidebar-border: rgba(255,255,255,0.08);
     
-    --radius: 8px;
-    --radius-lg: 12px;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 16px;
     
-    --font: 'Inter', sans-serif;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+    --shadow-glow: 0 0 20px var(--primary-glow);
+    
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
   }
   
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; min-height: 100vh; font-family: var(--font); background: var(--bg-body); color: var(--text-main); -webkit-font-smoothing: antialiased; }
   ::selection { background: var(--primary-light); color: var(--primary-hover); }
 
-  .view { display: none; min-height: 100vh; animation: fadeIn 0.3s ease-in-out; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  /* Utility Icons */
+  .material-symbols-outlined { font-size: 18px; vertical-align: middle; }
+
+  /* Transitions */
+  .view { display: none; min-height: 100vh; animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   
-  .auth-view.active { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: var(--sidebar); }
-  .dash-view.active { display: grid; grid-template-columns: 280px 1fr; }
-  .wizard-view.active { display: grid; grid-template-columns: 320px 1fr; }
+  .auth-view.active { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: var(--sidebar); position: relative; overflow: hidden; }
+  .auth-view.active::before { content: ''; position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(225,29,72,0.15) 0%, rgba(0,0,0,0) 70%); top: -200px; left: -200px; z-index: 0; }
+  
+  .dash-view.active, .wizard-view.active { display: grid; grid-template-columns: 280px 1fr; }
 
+  /* Mobile Responsive */
   .mobile-nav-bar { display: none; }
-
   @media (max-width: 900px) {
     .dash-view.active, .wizard-view.active { display: flex; flex-direction: column; }
     .mobile-nav-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--sidebar);
-      color: white;
-      padding: 16px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(12px);
+      color: white; padding: 16px 20px; border-bottom: 1px solid var(--sidebar-border);
+      position: sticky; top: 0; z-index: 100;
     }
-    .mobile-nav-bar h2 { font-size: 15px; margin: 0; font-weight: 600; }
+    .mobile-nav-bar h2 { font-size: 15px; margin: 0; font-weight: 600; letter-spacing: -0.01em; }
     .mobile-menu-btn {
-      background: rgba(255,255,255,0.1);
-      border: none;
-      color: white;
-      padding: 6px 12px;
-      border-radius: var(--radius);
-      font-size: 13px;
-      cursor: pointer;
-      font-weight: 500;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);
+      color: white; padding: 6px 12px; border-radius: var(--radius-sm);
+      font-size: 13px; cursor: pointer; font-weight: 500; display:flex; align-items:center; gap:6px;
     }
-    .rail {
-      position: relative !important;
-      height: auto !important;
-      width: 100% !important;
-      box-shadow: none !important;
-      display: none !important;
-    }
-    .rail.mobile-open {
-      display: flex !important;
-    }
-    .stage { padding: 20px !important; }
-    .stage-header { flex-direction: column; align-items: flex-start !important; gap: 12px; }
+    .rail { position: relative !important; height: auto !important; width: 100% !important; display: none !important; }
+    .rail.mobile-open { display: flex !important; animation: fadeIn 0.3s ease; }
+    .stage { padding: 24px 16px !important; }
+    .stage-header { flex-direction: column; align-items: flex-start !important; gap: 16px; }
     .stage-header > div:last-child { width: 100%; display: flex; flex-wrap: wrap; gap: 8px !important; }
     .field-grid { grid-template-columns: 1fr !important; }
   }
 
+  /* Sidebar (Rail) */
   .rail {
-    background: var(--sidebar);
-    color: var(--text-light);
-    padding: 32px 24px 24px;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid rgba(255,255,255,0.05);
+    background: var(--sidebar); color: var(--text-light);
+    padding: 32px 24px; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    display: flex; flex-direction: column; border-right: 1px solid var(--sidebar-border);
+    scrollbar-width: none; /* Firefox */
   }
-  .crest { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
-  .crest-mark { width: 44px; height: auto; flex: none; background: transparent; border-radius: 8px; display: grid; place-items: center; overflow: hidden; }
-  .crest-text .eyebrow { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 2px; font-weight: 600; }
-  .crest-text h1 { font-size: 16px; font-weight: 600; margin: 0; color: white; letter-spacing: -0.02em; }
-
-  .gateway { width: 100%; max-width: 420px; }
-  .brand-head { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 32px; }
-  .brand-head h1 { font-size: 24px; font-weight: 600; color: white; margin: 0; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 32px; position: relative; }
+  .rail::-webkit-scrollbar { display: none; } /* Chrome */
   
-  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
-  .field label { font-size: 12px; font-weight: 500; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
-  .field label .link-opt { text-transform: none; font-size: 12px; color: var(--primary); text-decoration: none; cursor: pointer; font-weight: 500; }
-  .field label .link-opt:hover { text-decoration: underline; }
+  .crest { display: flex; align-items: center; gap: 16px; margin-bottom: 40px; }
+  .crest-mark { width: 48px; height: 48px; background: #fff; border-radius: 12px; display: grid; place-items: center; overflow: hidden; padding: 4px; box-shadow: 0 0 20px rgba(255,255,255,0.05); }
+  .crest-text .eyebrow { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-sidebar-muted); margin: 0 0 4px; font-weight: 700; }
+  .crest-text h1 { font-size: 18px; font-weight: 700; margin: 0; color: white; letter-spacing: -0.02em; }
+
+  /* Navigation */
+  .nav-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-sidebar-muted); margin: 24px 0 12px; letter-spacing: 0.08em; }
+  .nav-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: auto; }
+  .nav-item { 
+    display: flex; justify-content: space-between; align-items: center; 
+    background: transparent; border: 1px solid transparent; color: var(--text-sidebar-muted); 
+    padding: 10px 14px; border-radius: var(--radius); font-family: var(--font); 
+    font-size: 13px; font-weight: 500; cursor: pointer; text-align: left; transition: all 0.2s; 
+  }
+  .nav-item .nav-icon-text { display: flex; align-items: center; gap: 10px; }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+  .nav-item.active { 
+    background: linear-gradient(90deg, rgba(225,29,72,0.15) 0%, rgba(225,29,72,0.05) 100%); 
+    color: white; border-color: rgba(225,29,72,0.3); border-left: 3px solid var(--primary); font-weight: 600; 
+  }
+  .badge { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; color: var(--text-sidebar-muted); }
+  .nav-item.active .badge { background: var(--primary); color: white; box-shadow: 0 0 10px var(--primary-glow); }
+
+  /* Stage (Main Content) */
+  .stage { padding: 48px; overflow-y: auto; height: 100vh; }
+  .stage-inner { max-width: 720px; margin: 0 auto; background: var(--surface); padding: 48px; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border: 1px solid var(--border); }
+  .stage-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; }
+  .stage-header h2 { font-size: 28px; font-weight: 700; margin: 0; letter-spacing: -0.03em; color: var(--text-main); }
+  .stage-header p { font-size: 14px; color: var(--text-muted); margin: 8px 0 0; }
+
+  /* Wizard Specific */
+  .rail-lede { font-size: 13px; line-height: 1.6; color: var(--text-sidebar-muted); margin: 0 0 32px; padding-bottom: 24px; border-bottom: 1px solid var(--sidebar-border); }
+  
+  /* Modern Stepper */
+  .board-progress { margin-bottom: 40px; }
+  .board-progress .label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-sidebar-muted); margin: 0 0 16px; letter-spacing: 0.08em; }
+  .rank { display: flex; align-items: center; justify-content: space-between; position: relative; }
+  .rank::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); height: 2px; background: rgba(255,255,255,0.1); z-index: 0; }
+  .sq { width: 24px; height: 24px; border-radius: 50%; background: var(--sidebar); border: 2px solid rgba(255,255,255,0.2); cursor: pointer; transition: all 0.3s ease; position: relative; z-index: 1; padding: 0; display: grid; place-items: center; }
+  .sq.done { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 12px var(--primary-glow); }
+  .sq.current { border-color: var(--accent); background: var(--sidebar); box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2); }
+  .sq.current::after { content: ''; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+
+  /* Holographic Dossier Snippet */
+  .dossier { 
+    margin-top: auto; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); 
+    border: 1px solid rgba(255,255,255,0.1); color: white; padding: 24px; border-radius: var(--radius-lg); 
+    backdrop-filter: blur(10px); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+  }
+  .dossier .tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin: 0 0 12px; display:flex; align-items:center; gap:6px; }
+  .dossier .tag::before { content:''; display:block; width:6px; height:6px; background:var(--accent); border-radius:50%; box-shadow: 0 0 8px var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+  .dossier h2 { font-size: 16px; font-weight: 600; margin: 0 0 20px; line-height: 1.4; }
+  .dossier dl { margin: 0; display: flex; flex-direction: column; gap: 12px; }
+  .dossier .row { display: flex; justify-content: space-between; font-size: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .dossier .row:last-child { border: none; padding-bottom: 0; }
+  .dossier dt { color: var(--text-sidebar-muted); font-weight: 500; }
+  .dossier dd { margin: 0; font-weight: 600; text-align: right; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Form Elements */
+  .step { display: none; animation: fadeSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .step.active { display: block; }
+  .step-head { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border-soft); }
+  .step-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--primary); margin: 0 0 8px; letter-spacing: 0.08em; }
+  .step-head h2 { font-size: 22px; font-weight: 700; margin: 0 0 8px; color: var(--text-main); letter-spacing: -0.02em; }
+  .step-head p { font-size: 14px; line-height: 1.6; color: var(--text-muted); margin: 0; }
+
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .field.full { grid-column: 1 / -1; }
+  .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 0; }
+  .field label { font-size: 13px; font-weight: 600; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
   
   input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], input[type=tel], select, textarea, input[type=file] {
-    font-family: var(--font); font-size: 14px; color: var(--text-main); background: var(--surface);
-    border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; width: 100%;
-    transition: all 0.2s ease;
+    font-family: var(--font); font-size: 14px; color: var(--text-main); background: #fff;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; width: 100%;
+    transition: all 0.2s ease; box-shadow: var(--shadow-sm);
   }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15); }
-  input:disabled { background: var(--bg-body); color: var(--text-muted); cursor: not-allowed; }
+  input:hover, select:hover, textarea:hover { border-color: #CBD5E1; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-glow); }
+  input:disabled { background: var(--bg-body); color: var(--text-muted); cursor: not-allowed; border-color: var(--border-soft); box-shadow: none; }
   
-  .form-error { background: #FEE2E2; color: #991B1B; font-size: 13px; font-weight: 500; padding: 10px 14px; border-radius: var(--radius); margin-bottom: 16px; text-align: center; display: none; }
-
-  .btn { font-family: var(--font); font-weight: 500; font-size: 14px; padding: 10px 20px; border-radius: var(--radius); border: 1px solid transparent; cursor: pointer; transition: all 0.2s ease; display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
-  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  /* Checkboxes */
+  input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; border-radius: 4px; border: 1px solid var(--border); }
+  
+  /* Buttons */
+  .btn { 
+    font-family: var(--font); font-weight: 600; font-size: 13px; padding: 10px 20px; 
+    border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; 
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); display: inline-flex; justify-content: center; align-items: center; gap: 8px; 
+  }
+  .btn:hover { transform: translateY(-2px); }
   .btn:active { transform: translateY(0); }
   .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
   
-  .btn-submit, .btn-primary { background: var(--primary); color: white; width: 100%; }
-  .btn-submit:hover, .btn-primary:hover { background: var(--primary-hover); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25); }
+  .btn-submit, .btn-primary { background: linear-gradient(135deg, var(--primary), #BE123C); color: white; box-shadow: 0 4px 12px var(--primary-glow); border: 1px solid rgba(0,0,0,0.1); }
+  .btn-submit:hover, .btn-primary:hover { box-shadow: 0 6px 16px rgba(225, 29, 72, 0.3); }
   
-  .btn-ghost { background: transparent; color: var(--text-muted); border-color: var(--border); width: auto; }
-  .btn-ghost:hover { background: var(--bg-body); color: var(--text-main); }
+  .btn-ghost { background: white; color: var(--text-main); border-color: var(--border); box-shadow: var(--shadow-sm); }
+  .btn-ghost:hover { background: var(--bg-body); border-color: #CBD5E1; }
   
-  .btn-gold { background: var(--surface); color: var(--text-main); border-color: var(--border); box-shadow: var(--shadow-sm); }
-  .btn-gold:hover { border-color: var(--accent); color: var(--accent-hover); }
+  .btn-gold { background: linear-gradient(135deg, #F59E0B, #D97706); color: white; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); border: 1px solid rgba(0,0,0,0.1); }
+  .btn-gold:hover { box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3); }
 
-  .gateway-foot { margin-top: 24px; text-align: center; font-size: 13px; color: var(--text-muted); }
-  .gateway-foot a { color: var(--primary); text-decoration: none; font-weight: 500; cursor: pointer; }
-  .gateway-foot a:hover { text-decoration: underline; }
+  .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border-soft); }
 
-  .rail-lede { font-size: 13px; line-height: 1.6; color: var(--text-muted); margin: 0 0 24px; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-  .board-progress { margin-bottom: 32px; }
-  .board-progress .label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin: 0 0 12px; letter-spacing: 0.05em; }
-  
-  .rank { display: flex; gap: 8px; }
-  .sq { flex: 1; height: 6px; border-radius: 99px; background: rgba(255,255,255,0.1); border: none; cursor: pointer; transition: all 0.3s ease; padding: 0; font-size: 0; }
-  .sq.done { background: var(--primary); }
-  .sq.current { background: var(--accent); box-shadow: 0 0 8px rgba(234, 179, 8, 0.5); }
-  
-  .dossier { margin-top: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: white; padding: 20px; border-radius: var(--radius-lg); }
-  .dossier .tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin: 0 0 8px; }
-  .dossier h2 { font-size: 16px; font-weight: 600; margin: 0 0 16px; }
-  .dossier dl { margin: 0; display: flex; flex-direction: column; gap: 10px; }
-  .dossier .row { display: flex; justify-content: space-between; font-size: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-  .dossier .row:last-child { border: none; padding-bottom: 0; }
-  .dossier dt { color: var(--text-muted); }
-  .dossier dd { margin: 0; font-weight: 500; text-align: right; }
-  
-  .stage { padding: 48px; overflow-y: auto; }
-  .stage-inner { max-width: 680px; margin: 0 auto; background: var(--surface); padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
-  .step-head { margin-bottom: 32px; }
-  .step-eyebrow { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--primary); margin: 0 0 8px; letter-spacing: 0.05em; }
-  .step-head h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px; color: var(--text-main); letter-spacing: -0.02em; }
-  .step-head p { font-size: 14px; line-height: 1.6; color: var(--text-muted); margin: 0; }
-  
-  .step { display: none; animation: slideUp 0.3s ease; }
-  .step.active { display: block; }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  
-  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
-  .field.full { grid-column: 1 / -1; }
-  
+  /* Combobox / Dropdown */
   .combo { position: relative; }
-  .combo-input { cursor: pointer; }
-  .combo-panel { position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); max-height: 280px; overflow-y: auto; display: none; }
-  .combo-panel.open { display: block; animation: fadeIn 0.15s ease; }
-  .combo-search { padding: 8px; border-bottom: 1px solid var(--border-soft); position: sticky; top: 0; background: var(--surface); z-index: 2; }
-  .combo-group-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); background: var(--bg-body); padding: 8px 14px; position: sticky; top: 51px; }
-  .combo-opt { padding: 10px 14px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border-soft); transition: background 0.15s; }
+  .combo-input { cursor: text; }
+  .combo-panel { position: absolute; z-index: 20; top: calc(100% + 8px); left: 0; right: 0; background: white; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); max-height: 280px; overflow-y: auto; display: none; }
+  .combo-panel.open { display: block; animation: fadeSlideUp 0.2s ease; }
+  .combo-search { padding: 12px; border-bottom: 1px solid var(--border-soft); position: sticky; top: 0; background: white; z-index: 2; }
+  .combo-search input { box-shadow: none; border-color: var(--border-soft); }
+  .combo-group-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); background: var(--bg-body); padding: 8px 16px; position: sticky; top: 61px; }
+  .combo-opt { padding: 12px 16px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border-soft); transition: background 0.15s; font-weight: 500; }
   .combo-opt:hover { background: var(--primary-light); color: var(--primary-hover); }
-  
-  .fee-box { background: var(--bg-body); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
-  .fee-box-label { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin: 0 0 16px; letter-spacing: 0.05em; }
-  .fee-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 12px; color: var(--text-main); }
-  .fee-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); font-size: 20px; font-weight: 700; color: var(--primary); }
-  
-  .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border); }
 
-  .nav-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin: 16px 0 8px; letter-spacing: 0.05em; }
-  .nav-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 32px; }
-  .nav-item { display: flex; justify-content: space-between; align-items: center; background: transparent; border: none; color: var(--text-muted); padding: 10px 12px; border-radius: var(--radius); font-family: var(--font); font-size: 13px; font-weight: 500; cursor: pointer; text-align: left; transition: all 0.2s; }
-  .nav-item:hover { background: var(--sidebar-hover); color: white; }
-  .nav-item.active { background: rgba(220, 38, 38, 0.15); color: var(--accent); font-weight: 600; }
-  .badge { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
-  .nav-item.active .badge { background: var(--primary); color: white; }
-  
-  .admin-stats { margin-top: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: var(--radius); margin-bottom: 24px; }
-  .stat-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
-  .stat-row:last-child { margin: 0; }
-  .stat-row strong { color: white; font-weight: 600; }
-  
-  .btn-logout { background: transparent; border: none; font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; padding: 0; transition: color 0.2s; }
-  .btn-logout:hover { color: var(--danger); }
+  /* Fee Box */
+  .fee-box { background: linear-gradient(to right, #F8FAFC, #F1F5F9); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+  .fee-box-label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin: 0 0 20px; letter-spacing: 0.08em; }
+  .fee-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 12px; color: var(--text-main); font-weight: 500; }
+  .fee-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 20px; padding-top: 20px; border-top: 1px dashed #CBD5E1; font-size: 22px; font-weight: 700; color: var(--primary); }
 
-  .stage-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
-  .stage-header h2 { font-size: 24px; font-weight: 700; margin: 0; letter-spacing: -0.02em; }
-  .stage-header p { font-size: 14px; color: var(--text-muted); margin: 6px 0 0; }
-  
-  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
-  th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); background: var(--bg-body); padding: 14px 20px; border-bottom: 1px solid var(--border); }
-  td { padding: 16px 20px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-soft); vertical-align: middle; transition: background 0.2s; }
+  /* Tables */
+  .table-wrap { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow-x: auto; overflow-y: hidden; }
+  table { width: 100%; border-collapse: collapse; text-align: left; min-width: 700px; }
+  th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); background: var(--surface-hover); padding: 16px 24px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 18px 24px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-soft); vertical-align: middle; transition: background 0.2s; }
   tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--bg-body); cursor: pointer; }
+  tr:hover td { background: var(--surface-hover); cursor: pointer; }
   
-  .status-pill { display: inline-flex; align-items: center; justify-content: center; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; }
-  
-  .drawer-back { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); display: flex; justify-content: flex-end; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+  .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 99px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; border: 1px solid transparent; }
+
+  /* Drawer (Modals) */
+  .drawer-back { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.4); backdrop-filter: blur(6px); display: flex; justify-content: flex-end; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
   .drawer-back.open { opacity: 1; pointer-events: auto; }
-  .drawer { background: var(--surface); width: 640px; max-width: 90vw; height: 100vh; overflow-y: auto; box-shadow: -10px 0 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .drawer { background: var(--surface); width: 700px; max-width: 90vw; height: 100vh; overflow-y: auto; box-shadow: -20px 0 40px rgba(0,0,0,0.15); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
   .drawer-back.open .drawer { transform: translateX(0); }
   
-  .drawer-head { padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; background: var(--surface); position: sticky; top: 0; z-index: 10; }
-  .drawer-head h3 { font-size: 20px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.01em; }
-  .drawer-head p { margin: 0; font-size: 13px; color: var(--text-muted); }
-  .drawer-close { background: var(--bg-body); border: 1px solid var(--border); border-radius: 50%; width: 32px; height: 32px; display: grid; place-items: center; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
-  .drawer-close:hover { background: var(--border); color: var(--text-main); }
+  .drawer-head { padding: 24px 32px; border-bottom: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: flex-start; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 10; }
+  .drawer-head h3 { font-size: 22px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.02em; color: var(--text-main); }
+  .drawer-head p { margin: 0; font-size: 13px; color: var(--text-muted); font-family: monospace; }
+  .drawer-close { background: var(--bg-body); border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; display: grid; place-items: center; cursor: pointer; color: var(--text-muted); transition: all 0.2s; font-size: 18px; }
+  .drawer-close:hover { background: var(--border); color: var(--text-main); transform: rotate(90deg); }
   
   .drawer-body { padding: 32px; flex: 1; }
-  .section-title { font-size: 14px; font-weight: 600; color: var(--text-main); margin: 32px 0 16px; display: flex; align-items: center; gap: 12px; }
-  .section-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  .section-title { font-size: 14px; font-weight: 700; color: var(--text-main); margin: 32px 0 20px; display: flex; align-items: center; gap: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .section-title::after { content: ""; flex: 1; height: 1px; background: var(--border-soft); }
   .section-title:first-child { margin-top: 0; }
   
-  .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
-  .data-item .label { display: block; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px; }
-  .data-item span:not(.label) { font-size: 14px; color: var(--text-main); font-weight: 500; }
+  .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .data-item .label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px; }
+  .data-item span:not(.label) { font-size: 14px; color: var(--text-main); font-weight: 500; line-height: 1.5; }
   
-  .drawer-footer { padding: 20px 32px; border-top: 1px solid var(--border); background: var(--bg-body); display: flex; justify-content: space-between; position: sticky; bottom: 0; }
+  .drawer-footer { padding: 20px 32px; border-top: 1px solid var(--border); background: var(--bg-body); display: flex; justify-content: space-between; position: sticky; bottom: 0; z-index: 10; }
 
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--sidebar); color: white; padding: 12px 24px; border-radius: 99px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 10px; z-index: 300; }
+  /* Toast Notification */
+  .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #020617; color: white; padding: 14px 28px; border-radius: 99px; font-size: 14px; font-weight: 500; box-shadow: var(--shadow-lg); border: 1px solid rgba(255,255,255,0.1); opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 12px; z-index: 300; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .toast .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .toast .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+
+  /* Login Card Specifics */
+  .gateway { z-index: 1; }
+  .gateway .card { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 20px; padding: 40px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+  .form-error { background: var(--primary-light); color: var(--primary-hover); font-size: 13px; font-weight: 600; padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 20px; text-align: center; border: 1px solid rgba(225, 29, 72, 0.2); display: none; }
 </style>
 </head>
 <body>
@@ -261,20 +274,20 @@
 <div id="view-login" class="view auth-view active">
   <div class="gateway">
     <header class="brand-head">
-      <div class="crest-mark" style="width: 90px; height: auto; background: transparent; margin-bottom: 12px;">
-        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
+      <div class="crest-mark" style="width: 72px; height: 72px; background: white; margin-bottom: 20px; border-radius: 16px; padding: 8px;">
+        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: 100%; object-fit: contain;">
       </div>
-      <h1>Portal Access</h1>
+      <h1 style="text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Portal Access</h1>
     </header>
     <main class="card">
       <div id="loginError" class="form-error"></div>
       <form id="loginForm" novalidate>
         <div class="field"><label>Email Address or MCF ID</label><input type="text" id="loginEmail" placeholder="organizer@klchess.my or MCF ID" required></div>
         <div class="field"><label><span>Password</span><a class="link-opt" id="forgotPassLink">Forgot password?</a></label><input type="password" id="loginPass" placeholder="••••••••••••" required></div>
-        <button type="submit" class="btn-submit" id="loginBtn">Sign In</button>
+        <button type="submit" class="btn-submit" id="loginBtn" style="margin-top: 12px; padding: 12px;">Sign In <span class="material-symbols-outlined" style="font-size:16px;">arrow_forward</span></button>
       </form>
     </main>
-    <footer class="gateway-foot"><span>Don't have an account? <a id="goToRegister">Sign Up Here</a></span></footer>
+    <footer class="gateway-foot"><span style="color: rgba(255,255,255,0.7);">Don't have an account? <a id="goToRegister" style="color:white; font-weight:600;">Sign Up Here</a></span></footer>
   </div>
 </div>
 
@@ -282,17 +295,19 @@
 <div id="view-register" class="view auth-view">
   <div class="gateway">
     <header class="brand-head">
-      <div class="crest-mark" style="width: 90px; height: auto; background: transparent; margin-bottom: 12px;">
-        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
+      <div class="crest-mark" style="width: 72px; height: 72px; background: white; margin-bottom: 20px; border-radius: 16px; padding: 8px;">
+        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: 100%; object-fit: contain;">
       </div>
-      <h1>Create Account</h1>
+      <h1 style="text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Create Account</h1>
     </header>
     <main class="card">
       <div id="regError" class="form-error"></div>
       <form id="registerForm" novalidate>
         <div class="field"><label>Full Name *</label><input type="text" id="regName" placeholder="e.g. Ahmad bin Abdullah" required></div>
-        <div class="field"><label>MCF ID *</label><input type="text" id="regMcfId" placeholder="e.g. 102938" required></div>
-        <div class="field"><label>Email Address *</label><input type="email" id="regEmail" placeholder="you@domain.com" required></div>
+        <div class="field-grid" style="gap: 16px;">
+          <div class="field" style="margin-bottom:0;"><label>MCF ID *</label><input type="text" id="regMcfId" placeholder="e.g. 102938" required></div>
+          <div class="field" style="margin-bottom:0;"><label>Email Address *</label><input type="email" id="regEmail" placeholder="you@domain.com" required></div>
+        </div>
         <div class="field">
           <label>State / Region *</label>
           <select id="regState" required>
@@ -301,10 +316,10 @@
           </select>
         </div>
         <div class="field"><label>Password *</label><input type="password" id="regPass" placeholder="Minimum 6 characters" required></div>
-        <button type="submit" class="btn-submit" style="margin-top:8px;">Register Account</button>
+        <button type="submit" class="btn-submit" style="margin-top:12px; padding: 12px;">Register Account</button>
       </form>
     </main>
-    <footer class="gateway-foot"><span>Already have an account? <a id="goToLogin">Sign In Here</a></span></footer>
+    <footer class="gateway-foot"><span style="color: rgba(255,255,255,0.7);">Already have an account? <a id="goToLogin" style="color:white; font-weight:600;">Sign In Here</a></span></footer>
   </div>
 </div>
 
@@ -312,16 +327,14 @@
 <div id="view-profile" class="view dash-view">
   <div class="mobile-nav-bar">
     <h2>MCF Portal Settings</h2>
-    <button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰ Menu</button>
+    <button class="mobile-menu-btn" onclick="toggleSidebar(this)"><span class="material-symbols-outlined">menu</span> Menu</button>
   </div>
   <aside class="rail" id="mainRailProfile">
     <div class="crest">
-      <div class="crest-mark" style="width: 44px; height: auto; background: transparent;">
-        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
-      </div>
+      <div class="crest-mark"><img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: 100%; object-fit: contain;"></div>
       <div class="crest-text"><p class="eyebrow">Settings</p><h1>My Profile</h1></div>
     </div>
-    <div class="rail-foot" style="margin-top:auto;"><button type="button" class="btn-logout" id="btnBackFromProfile">← Back to Dashboard</button></div>
+    <div class="rail-foot" style="margin-top:auto;"><button type="button" class="btn-logout" id="btnBackFromProfile" style="display:flex; align-items:center; gap:8px;"><span class="material-symbols-outlined">arrow_back</span> Back to Dashboard</button></div>
   </aside>
   <main class="stage">
     <div class="stage-inner">
@@ -340,7 +353,7 @@
             </select>
           </div>
         </div>
-        <div class="actions"><button type="submit" class="btn btn-primary" style="width:auto;" id="btnSaveProfile">Save Changes</button></div>
+        <div class="actions"><button type="submit" class="btn btn-primary" style="width:auto;" id="btnSaveProfile"><span class="material-symbols-outlined" style="font-size:18px;">save</span> Save Changes</button></div>
       </form>
     </div>
   </main>
@@ -350,53 +363,54 @@
 <div id="view-organizer-dash" class="view dash-view">
   <div class="mobile-nav-bar">
     <h2>Organizer Portal</h2>
-    <button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰ Menu</button>
+    <button class="mobile-menu-btn" onclick="toggleSidebar(this)"><span class="material-symbols-outlined">menu</span> Menu</button>
   </div>
   <aside class="rail" id="mainRailOrg">
     <div class="crest">
-      <div class="crest-mark" style="width: 44px; height: auto; background: transparent;">
-        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
-      </div>
+      <div class="crest-mark"><img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: 100%; object-fit: contain;"></div>
       <div class="crest-text"><p class="eyebrow">Malaysian Chess Federation</p><h1>Organizer Portal</h1></div>
     </div>
     
-    <div style="margin-top: 8px;"><button type="button" class="btn btn-primary" id="btnNewAppDash">+ New Application</button></div>
+    <div style="margin-top: 16px;"><button type="button" class="btn btn-primary" id="btnNewAppDash" style="padding: 12px; font-size:14px;"><span class="material-symbols-outlined">add</span> New Application</button></div>
 
-    <p class="nav-label" style="margin-top: 36px;">My Events</p>
+    <p class="nav-label">My Events</p>
     <nav class="nav-list" id="navFilterOrg">
-      <button class="nav-item active" data-filter="all">All Applications <span class="badge" id="cntOrgAll">0</span></button>
-      <button class="nav-item" data-filter="pending_state">Pending State <span class="badge" id="cntOrgPendingState">0</span></button>
-      <button class="nav-item" data-filter="pending_admin">Pending MCF <span class="badge" id="cntOrgPendingAdmin">0</span></button>
-      <button class="nav-item" data-filter="approved">Approved <span class="badge" id="cntOrgApproved">0</span></button>
-      <button class="nav-item" data-filter="revision">Revision Req. <span class="badge" id="cntOrgRevision">0</span></button>
+      <button class="nav-item active" data-filter="all"><div class="nav-icon-text"><span class="material-symbols-outlined">list_alt</span> All Applications</div> <span class="badge" id="cntOrgAll">0</span></button>
+      <button class="nav-item" data-filter="pending_state"><div class="nav-icon-text"><span class="material-symbols-outlined">hourglass_empty</span> Pending State</div> <span class="badge" id="cntOrgPendingState">0</span></button>
+      <button class="nav-item" data-filter="pending_admin"><div class="nav-icon-text"><span class="material-symbols-outlined">hourglass_top</span> Pending MCF</div> <span class="badge" id="cntOrgPendingAdmin">0</span></button>
+      <button class="nav-item" data-filter="approved"><div class="nav-icon-text"><span class="material-symbols-outlined">check_circle</span> Approved</div> <span class="badge" id="cntOrgApproved">0</span></button>
+      <button class="nav-item" data-filter="revision"><div class="nav-icon-text"><span class="material-symbols-outlined">edit_document</span> Revision Req.</div> <span class="badge" id="cntOrgRevision">0</span></button>
     </nav>
+    
     <div class="rail-foot" style="margin-top:auto; display:flex; flex-direction:column; gap:16px; width:100%;">
-      <button type="button" class="btn btn-ghost" id="btnGoAdminView" style="display:none; width:100%; justify-content:center;">Switch to Admin View &rarr;</button>
-      <div style="display:flex; justify-content:space-between; width: 100%; border-top:1px solid rgba(255,255,255,0.05); padding-top:16px;">
-        <button type="button" class="btn-logout btnGoProfile">My Profile</button>
-        <button type="button" class="btn-logout btnLogOut">Log Out</button>
+      <button type="button" class="btn btn-ghost" id="btnGoAdminView" style="display:none; width:100%; justify-content:center; background: rgba(255,255,255,0.05); color:white; border-color: rgba(255,255,255,0.1);"><span class="material-symbols-outlined">admin_panel_settings</span> Switch to Admin</button>
+      <div style="display:flex; justify-content:space-between; width: 100%; border-top:1px solid var(--sidebar-border); padding-top:20px;">
+        <button type="button" class="btn-logout btnGoProfile" style="display:flex; align-items:center; gap:6px;"><span class="material-symbols-outlined" style="font-size:16px;">person</span> Profile</button>
+        <button type="button" class="btn-logout btnLogOut" style="display:flex; align-items:center; gap:6px;"><span class="material-symbols-outlined" style="font-size:16px;">logout</span> Log Out</button>
       </div>
     </div>
   </aside>
   <main class="stage">
-    <div class="stage-header">
-      <div><h2 id="viewTitleOrg">All Applications</h2><p>Track the approval status of your submitted FIDE rating requests.</p></div>
-      <div><button class="btn btn-ghost" id="btnRefreshOrg">↻ Refresh Data</button></div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Event Name & Code</th>
-            <th>State</th>
-            <th>System / TC</th>
-            <th>Expected Pax</th>
-            <th>Fee & Ref</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="tableBodyOrg"></tbody>
-      </table>
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <div class="stage-header">
+        <div><h2 id="viewTitleOrg">All Applications</h2><p>Track the approval status of your submitted FIDE rating requests.</p></div>
+        <div><button class="btn btn-ghost" id="btnRefreshOrg" style="display:flex; align-items:center; gap:6px;"><span class="material-symbols-outlined" style="font-size:18px;">refresh</span> Refresh</button></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Event Name & Code</th>
+              <th>State</th>
+              <th>System / TC</th>
+              <th>Expected Pax</th>
+              <th>Fee & Ref</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tableBodyOrg"></tbody>
+        </table>
+      </div>
     </div>
   </main>
 </div>
@@ -405,13 +419,11 @@
 <div id="view-organizer-wizard" class="view wizard-view">
   <div class="mobile-nav-bar">
     <h2>Application Wizard</h2>
-    <button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰ Menu</button>
+    <button class="mobile-menu-btn" onclick="toggleSidebar(this)"><span class="material-symbols-outlined">menu</span> Menu</button>
   </div>
   <aside class="rail" id="mainRailWizard">
     <div class="crest">
-      <div class="crest-mark" style="width: 44px; height: auto; background: transparent;">
-        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
-      </div>
+      <div class="crest-mark"><img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: 100%; object-fit: contain;"></div>
       <div class="crest-text"><p class="eyebrow">Application Wizard</p><h1>FIDE-Rated Event</h1></div>
     </div>
     <p class="rail-lede">Complete this dossier to request MCF endorsement. Navigate via the progress steps below.</p>
@@ -422,17 +434,17 @@
     </div>
     
     <div class="dossier" id="dossier">
-      <p class="tag">Live Draft</p><h2 id="dEventName">Untitled event</h2>
+      <p class="tag">Live Draft Hologram</p><h2 id="dEventName">Untitled event</h2>
       <dl>
         <div class="row"><dt>Venue</dt><dd id="dVenue">—</dd></div>
         <div class="row"><dt>Dates</dt><dd id="dDates">—</dd></div>
         <div class="row"><dt>System</dt><dd id="dSystem">—</dd></div>
         <div class="row"><dt>Time Control</dt><dd id="dTC">—</dd></div>
-        <div class="row"><dt>Fee Due</dt><dd id="dFee" style="color:var(--accent); font-weight:600;">—</dd></div>
+        <div class="row"><dt>Fee Due</dt><dd id="dFee" style="color:var(--accent); font-weight:700;">—</dd></div>
         <div class="row"><dt>Arbiter</dt><dd id="dArbiter">—</dd></div>
       </dl>
     </div>
-    <div class="rail-foot" style="margin-top:32px;"><button type="button" id="btnCancelWizard" class="btn-logout">← Cancel & Return</button></div>
+    <div class="rail-foot" style="margin-top:32px;"><button type="button" id="btnCancelWizard" class="btn-logout" style="display:flex; align-items:center; gap:8px;"><span class="material-symbols-outlined">close</span> Cancel & Return</button></div>
   </aside>
   <main class="stage">
     <div class="stage-inner">
@@ -443,21 +455,21 @@
           <div class="step-head"><p class="step-eyebrow">Section A</p><h2>Compliance & General Details</h2></div>
           <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
             <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-              <input type="checkbox" id="chkFideLaws" style="width: 18px; height: 18px; accent-color: var(--primary);" checked required>
-              <label for="chkFideLaws" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">FIDE Laws to be followed *</label>
+              <input type="checkbox" id="chkFideLaws" checked required>
+              <label for="chkFideLaws" style="font-size: 13px; font-weight: 500; cursor: pointer;">FIDE Laws to be followed *</label>
             </div>
             
             <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-              <input type="checkbox" id="chkNatChampionship" style="width: 18px; height: 18px; accent-color: var(--primary);">
-              <label for="chkNatChampionship" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">National Championship 1.43a (Check if National Championship)</label>
+              <input type="checkbox" id="chkNatChampionship">
+              <label for="chkNatChampionship" style="font-size: 13px; font-weight: 500; cursor: pointer;">National Championship 1.43a (Check if National Championship)</label>
             </div>
             
             <div class="field full" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-              <input type="checkbox" id="chkTitleNorms" style="width: 18px; height: 18px; accent-color: var(--primary);" onchange="toggleNormFields()">
-              <label for="chkTitleNorms" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">Title norms available (Intl. Open)</label>
+              <input type="checkbox" id="chkTitleNorms" onchange="toggleNormFields()">
+              <label for="chkTitleNorms" style="font-size: 13px; font-weight: 500; cursor: pointer;">Title norms available (Intl. Open)</label>
             </div>
 
-            <div id="normAvailableWrap" class="field full" style="display: none; padding-left: 20px;">
+            <div id="normAvailableWrap" class="field full" style="display: none; padding-left: 28px;">
               <label>Norm type available</label>
               <select id="normAvailable">
                 <option value="GM/WGM">GM/WGM norm available</option>
@@ -466,17 +478,17 @@
             </div>
 
             <!-- Direct Title Event Categories -->
-            <div class="field full" style="background: var(--bg-body); padding: 14px; border-radius: var(--radius); border: 1px solid var(--border);">
-              <label style="font-weight: 600; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; display: block;">Direct Title Event Categories</label>
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                <label style="font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                  <input type="checkbox" id="chkWorldEvent" style="width: 16px; height: 16px; accent-color: var(--primary);"> World event
+            <div class="field full" style="background: var(--bg-body); padding: 16px 20px; border-radius: var(--radius); border: 1px solid var(--border);">
+              <label style="font-weight: 700; font-size: 11px; text-transform: uppercase; margin-bottom: 12px; display: block; color: var(--text-muted);">Direct Title Event Categories</label>
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <label style="font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                  <input type="checkbox" id="chkWorldEvent"> World event
                 </label>
-                <label style="font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                  <input type="checkbox" id="chkAsianEvent" style="width: 16px; height: 16px; accent-color: var(--primary);"> Asian event
+                <label style="font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                  <input type="checkbox" id="chkAsianEvent"> Asian event
                 </label>
-                <label style="font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                  <input type="checkbox" id="chkFideAffiliateEvent" style="width: 16px; height: 16px; accent-color: var(--primary);"> FIDE affiliate event
+                <label style="font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                  <input type="checkbox" id="chkFideAffiliateEvent"> FIDE affiliate event
                 </label>
               </div>
             </div>
@@ -489,13 +501,13 @@
               </select>
             </div>
 
-            <div class="field full" style="margin-top: 5px;"><label>Event name *</label><input type="text" id="eventName" placeholder="e.g. Kuala Lumpur Open 2026" required oninput="updateDossier()"></div>
+            <div class="field full" style="margin-top: 8px;"><label>Event name *</label><input type="text" id="eventName" placeholder="e.g. Kuala Lumpur Open 2026" required oninput="updateDossier()"></div>
             
             <!-- Venue with Dropdown / Manual Input -->
             <div class="field full combo">
               <label>Venue / City * (Select from Malaysian cities or type custom)</label>
               <input type="text" id="venue" class="combo-input" placeholder="Select city or type venue name..." required oninput="updateDossier()">
-              <div class="combo-panel" id="venuePanel" style="display:none; position:absolute; z-index:20; background:white; border:1px solid var(--border); width:100%; max-height:200px; overflow-y:auto; border-radius:var(--radius); box-shadow:var(--shadow-lg);">
+              <div class="combo-panel" id="venuePanel">
                 <div class="combo-opt" onclick="selectVenue('Kuala Lumpur')">Kuala Lumpur</div>
                 <div class="combo-opt" onclick="selectVenue('Putrajaya')">Putrajaya</div>
                 <div class="combo-opt" onclick="selectVenue('Georgetown, Penang')">Georgetown, Penang</div>
@@ -518,8 +530,10 @@
             <div class="field"><label>Expected players (Pax) *</label><input type="number" id="pax" min="1" placeholder="Expected players" required oninput="updateDossier()"></div>
             
             <!-- Dates with Validation -->
-            <div class="field"><label>Start date *</label><input type="date" id="dateStart" required onchange="validateDates(); updateDossier();"></div>
-            <div class="field"><label>End date *</label><input type="date" id="dateEnd" required onchange="validateDates(); updateDossier();"></div>
+            <div class="field-grid" style="grid-template-columns: 1fr 1fr; margin-top:0;">
+                <div class="field"><label>Start date *</label><input type="date" id="dateStart" required onchange="validateDates(); updateDossier();"></div>
+                <div class="field"><label>End date *</label><input type="date" id="dateEnd" required onchange="validateDates(); updateDossier();"></div>
+            </div>
           </div>
         </section>
 
@@ -535,10 +549,10 @@
               </select>
             </div>
             
-            <div class="field full" id="affiliateLetterField" style="display: none; background: var(--bg-body); padding: 16px; border-radius: var(--radius); border: 1px dashed var(--primary);">
-              <label style="font-weight: 600; color: var(--text-main); margin-bottom: 6px;">State Affiliate Endorsement / Authorization Letter *</label>
-              <input type="file" id="affiliateLetterUpload" accept="image/*,.pdf" style="background:transparent; cursor:pointer;">
-              <p style="font-size: 11px; color: var(--text-muted); margin: 6px 0 0;">Please attach the official endorsement letter from the State Chess Association.</p>
+            <div class="field full" id="affiliateLetterField" style="display: none; background: var(--bg-body); padding: 20px; border-radius: var(--radius); border: 1px dashed var(--primary);">
+              <label style="font-weight: 600; color: var(--text-main); margin-bottom: 8px;">State Affiliate Endorsement / Authorization Letter *</label>
+              <input type="file" id="affiliateLetterUpload" accept="image/*,.pdf" style="background:transparent; cursor:pointer; padding: 0; border: none; box-shadow: none;">
+              <p style="font-size: 11px; color: var(--text-muted); margin: 8px 0 0;">Please attach the official endorsement letter from the State Chess Association.</p>
             </div>
 
             <div class="field full">
@@ -570,18 +584,18 @@
         <!-- STEP 3: Section C (Officials & Arbiters) -->
         <section class="step" data-step="3">
           <div class="step-head"><p class="step-eyebrow">Section C</p><h2>Officials & Arbiters (B.06.3 – 8.3)</h2></div>
-          <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
-            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
+          <div class="field-grid" style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 0;">
               <div class="field" style="margin-bottom:0;"><label>Chief Arbiter Name * (1 person, licensed)</label><input type="text" id="chiefArbiter" placeholder="Full Name" required oninput="updateDossier()"></div>
               <div class="field" style="margin-bottom:0;"><label>FIDE ID *</label><input type="text" id="chiefArbiterFide" placeholder="FIDE ID" required></div>
             </div>
 
-            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
+            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 0;">
               <div class="field" style="margin-bottom:0;"><label>Deputy Chief Arbiter (Up to 2, licensed)</label><input type="text" id="deputyChiefArbiter" placeholder="Full Name"></div>
               <div class="field" style="margin-bottom:0;"><label>FIDE ID</label><input type="text" id="deputyChiefArbiterFide" placeholder="FIDE ID"></div>
             </div>
 
-            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 0;">
+            <div class="field-grid" style="grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 0;">
               <div class="field" style="margin-bottom:0;"><label>Chief Organizer Name *</label><input type="text" id="chiefOrg" placeholder="Full Name" required></div>
               <div class="field" style="margin-bottom:0;"><label>FIDE ID *</label><input type="text" id="chiefOrgFide" placeholder="FIDE ID" required></div>
             </div>
@@ -595,7 +609,7 @@
         <!-- STEP 4: Section D (Time Control, Software & Limits) -->
         <section class="step" data-step="4">
           <div class="step-head"><p class="step-eyebrow">Section D</p><h2>Time Control & Settings</h2></div>
-          <div class="field-grid" style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="field-grid" style="display: flex; flex-direction: column; gap: 20px;">
             <div class="field full combo">
               <label>Time Control Specification *</label>
               <input type="text" id="tcInput" class="combo-input" placeholder="e.g. 90 mins + 30 sec increment..." oninput="updateDossier()">
@@ -615,13 +629,13 @@
             <div class="fee-row"><span>Per-player Rating fee</span><span id="feePerPlayer">RM 0</span></div>
             <div class="fee-total"><span>Total due (Deposit)</span><span id="feeTotal">RM 0</span></div>
           </div>
-          <div style="margin-top:20px;" class="field full">
+          <div style="margin-top:24px;" class="field full">
             <label>Bank Transaction Reference Number *</label>
             <input type="text" id="paymentRef" placeholder="e.g. CIMB-9876543210" required>
           </div>
-          <div style="margin-top:16px;" class="field full">
+          <div style="margin-top:20px;" class="field full">
             <label>Upload Payment Receipt *</label>
-            <input type="file" id="receiptUpload" accept="image/*,.pdf" required>
+            <input type="file" id="receiptUpload" accept="image/*,.pdf" style="padding: 10px; border: 1px dashed var(--border); box-shadow: none;" required>
           </div>
         </section>
 
@@ -630,14 +644,14 @@
           <div class="step-head"><p class="step-eyebrow">Section F</p><h2>Event Poster / Regulations</h2></div>
           <div class="field full">
             <label>Upload Event Poster / Regulations *</label>
-            <input type="file" id="posterUpload" accept="image/*,.pdf" required>
+            <input type="file" id="posterUpload" accept="image/*,.pdf" style="padding: 24px; border: 1px dashed var(--border); background: var(--bg-body); box-shadow: none; text-align: center; cursor: pointer;" required>
           </div>
         </section>
 
         <!-- STEP 7: Section G (Objectives) -->
         <section class="step" data-step="7">
           <div class="step-head"><p class="step-eyebrow">Section G</p><h2>Objectives</h2></div>
-          <div class="field full"><label>Objective 1 *</label><textarea id="obj1" rows="4" required>Provide FIDE-rated competition for local chess players.</textarea></div>
+          <div class="field full"><label>Objective 1 *</label><textarea id="obj1" rows="5" required>Provide FIDE-rated competition for local chess players.</textarea></div>
         </section>
 
         <!-- STEP 8: Section H (Declaration) -->
@@ -655,10 +669,10 @@
         </section>
 
         <div class="actions">
-          <button type="button" class="btn btn-ghost" id="backBtn">← Back</button>
+          <button type="button" class="btn btn-ghost" id="backBtn" style="display:flex; align-items:center; gap:6px;"><span class="material-symbols-outlined">arrow_back</span> Back</button>
           <div style="display:flex; gap:12px; margin-left:auto;">
-            <button type="button" class="btn btn-primary" id="nextBtn">Continue →</button>
-            <button type="button" class="btn btn-primary" id="submitAppBtn" style="display:none;">Submit Application</button>
+            <button type="button" class="btn btn-primary" id="nextBtn">Continue <span class="material-symbols-outlined">arrow_forward</span></button>
+            <button type="button" class="btn btn-primary" id="submitAppBtn" style="display:none; background: linear-gradient(135deg, #10B981, #059669); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);"><span class="material-symbols-outlined">send</span> Submit Application</button>
           </div>
         </div>
       </form>
@@ -670,50 +684,48 @@
 <div id="view-admin" class="view dash-view">
   <div class="mobile-nav-bar">
     <h2>Admin Portal</h2>
-    <button class="mobile-menu-btn" onclick="toggleSidebar(this)">☰ Menu</button>
+    <button class="mobile-menu-btn" onclick="toggleSidebar(this)"><span class="material-symbols-outlined">menu</span> Menu</button>
   </div>
   <aside class="rail" id="mainRailAdmin">
     <div class="crest">
-      <div class="crest-mark" style="width: 44px; height: auto; background: transparent;">
-        <img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: auto; object-fit: contain;">
-      </div>
+      <div class="crest-mark"><img src="https://i.ibb.co/yBMRY8fy/MCF-LOGO.png" alt="MCF Logo" style="width: 100%; height: 100%; object-fit: contain;"></div>
       <div class="crest-text"><p class="eyebrow" id="adminRoleEyebrow">Administration</p><h1>Admin Portal</h1></div>
     </div>
     <p class="nav-label">Queue Filter</p>
     <nav class="nav-list" id="navFilter">
-      <button class="nav-item active" data-filter="all">All Applications <span class="badge" id="cntAll">0</span></button>
-      <button class="nav-item" data-filter="pending_state">Pending State <span class="badge" id="cntPendingState">0</span></button>
-      <button class="nav-item" data-filter="pending_admin">Pending MCF <span class="badge" id="cntPendingAdmin">0</span></button>
-      <button class="nav-item" data-filter="approved">Approved <span class="badge" id="cntApproved">0</span></button>
-      <button class="nav-item" data-filter="revision">Revision Req. <span class="badge" id="cntRevision">0</span></button>
+      <button class="nav-item active" data-filter="all"><div class="nav-icon-text"><span class="material-symbols-outlined">inbox</span> All Applications</div> <span class="badge" id="cntAll">0</span></button>
+      <button class="nav-item" data-filter="pending_state"><div class="nav-icon-text"><span class="material-symbols-outlined">hourglass_empty</span> Pending State</div> <span class="badge" id="cntPendingState">0</span></button>
+      <button class="nav-item" data-filter="pending_admin"><div class="nav-icon-text"><span class="material-symbols-outlined">hourglass_top</span> Pending MCF</div> <span class="badge" id="cntPendingAdmin">0</span></button>
+      <button class="nav-item" data-filter="approved"><div class="nav-icon-text"><span class="material-symbols-outlined">verified</span> Approved</div> <span class="badge" id="cntApproved">0</span></button>
+      <button class="nav-item" data-filter="revision"><div class="nav-icon-text"><span class="material-symbols-outlined">assignment_return</span> Revision Req.</div> <span class="badge" id="cntRevision">0</span></button>
     </nav>
     <div id="systemAdminMenu" style="display:none;">
-        <p class="nav-label" style="margin-top: 16px;">System Admin</p>
-        <nav class="nav-list"><button class="nav-item" id="btnNavUsers">Manage Users</button></nav>
+        <p class="nav-label">System Admin</p>
+        <nav class="nav-list"><button class="nav-item" id="btnNavUsers"><div class="nav-icon-text"><span class="material-symbols-outlined">manage_accounts</span> Manage Users</div></button></nav>
     </div>
     <div class="admin-stats">
       <div class="stat-row"><span>Approved Fees:</span><strong id="statFees">RM 0</strong></div>
       <div class="stat-row"><span>Pending Action:</span><strong id="statAction">0 Events</strong></div>
     </div>
     <div class="rail-foot" style="margin-top:auto; display:flex; flex-direction:column; gap:16px; width:100%;">
-      <button type="button" class="btn btn-ghost" id="btnGoOrgView" style="width:100%; justify-content:center;">Switch to Organizer View</button>
-      <div style="display:flex; justify-content:space-between; width: 100%; border-top:1px solid rgba(255,255,255,0.05); padding-top:16px;">
-        <button type="button" class="btn-logout btnGoProfile">My Profile</button>
-        <button type="button" class="btn-logout btnLogOut">Log Out</button>
+      <button type="button" class="btn btn-ghost" id="btnGoOrgView" style="width:100%; justify-content:center; background: rgba(255,255,255,0.05); color:white; border-color: rgba(255,255,255,0.1);"><span class="material-symbols-outlined">event</span> Switch to Organizer View</button>
+      <div style="display:flex; justify-content:space-between; width: 100%; border-top:1px solid var(--sidebar-border); padding-top:20px;">
+        <button type="button" class="btn-logout btnGoProfile" style="display:flex; align-items:center; gap:6px;"><span class="material-symbols-outlined" style="font-size:16px;">person</span> Profile</button>
+        <button type="button" class="btn-logout btnLogOut" style="display:flex; align-items:center; gap:6px;"><span class="material-symbols-outlined" style="font-size:16px;">logout</span> Log Out</button>
       </div>
     </div>
   </aside>
   <main class="stage">
-    <div id="adminAppsWrap">
+    <div style="max-width: 1400px; margin: 0 auto;" id="adminAppsWrap">
       <div class="stage-header">
         <div><h2 id="viewTitle">All Applications</h2><p>Review dossiers, check endorsements, and assign rating approval.</p></div>
-        <div style="display:flex; gap:12px; align-items:center;">
-          <select id="stateFilter" style="width: 180px; padding: 10px 14px;">
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <select id="stateFilter" style="width: 200px;">
             <option value="all">All States / Regions</option>
             <option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Penang">Penang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option>
           </select>
-          <input type="text" id="searchInput" placeholder="Search event or organizer..." style="width:240px;">
-          <button class="btn btn-ghost" id="btnRefreshData">↻ Refresh</button>
+          <input type="text" id="searchInput" placeholder="Search event or organizer..." style="width:260px;">
+          <button class="btn btn-ghost" id="btnRefreshData" style="display:flex; align-items:center; gap:6px;"><span class="material-symbols-outlined" style="font-size:18px;">refresh</span> Refresh</button>
         </div>
       </div>
       <div class="table-wrap">
@@ -733,22 +745,22 @@
       </div>
     </div>
 
-    <div id="adminUsersWrap" style="display:none;">
+    <div style="max-width: 1400px; margin: 0 auto; display:none;" id="adminUsersWrap">
       <div class="stage-header">
         <div><h2>User Management</h2><p>View registered users and instantly sort or search.</p></div>
-        <div style="display:flex; gap:12px; align-items:center;">
-          <select id="userRoleFilter" style="width: 150px; padding: 10px 14px;">
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <select id="userRoleFilter" style="width: 180px;">
             <option value="all">All Roles</option>
             <option value="organizer">Organizer</option>
             <option value="state_admin">State Admin</option>
             <option value="admin">MCF Admin</option>
             <option value="core_admin">Core Admin</option>
           </select>
-          <select id="userStateFilter" style="width: 170px; padding: 10px 14px;">
+          <select id="userStateFilter" style="width: 180px;">
             <option value="all">All States</option>
             <option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Penang">Penang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option>
           </select>
-          <input type="text" id="searchUsers" placeholder="Search name or email..." style="width:220px;">
+          <input type="text" id="searchUsers" placeholder="Search name or email..." style="width:260px;">
         </div>
       </div>
       <div class="table-wrap">
@@ -766,7 +778,7 @@
   <div class="drawer">
     <div class="drawer-head">
       <div><h3 id="dTitle">Event Title</h3><p id="dSubtitle">ID: </p></div>
-      <button class="drawer-close" id="drawerClose" onclick="closeDrawer()">×</button>
+      <button class="drawer-close" id="drawerClose" onclick="closeDrawer()"><span class="material-symbols-outlined">close</span></button>
     </div>
     <div class="drawer-body" id="drawerContent"></div>
     <div class="drawer-footer" id="drawerFooter"></div>
@@ -778,7 +790,7 @@
   <div class="drawer">
     <div class="drawer-head">
       <div><h3 id="upTitle">User Profile</h3><p id="upSubtitle">MCF ID: </p></div>
-      <button class="drawer-close" onclick="closeUserProfileDrawer()">×</button>
+      <button class="drawer-close" onclick="closeUserProfileDrawer()"><span class="material-symbols-outlined">close</span></button>
     </div>
     <div class="drawer-body" id="upContent"></div>
     <div class="drawer-footer" id="upFooter"></div>
@@ -786,17 +798,17 @@
 </div>
 
 <!-- FORGOT PASSWORD MODAL -->
-<div id="forgotModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); z-index:400; align-items:center; justify-content:center;">
-  <div style="background:var(--surface); padding:32px; border-radius:var(--radius-lg); width:100%; max-width:380px; box-shadow:var(--shadow-lg);">
-    <h3 style="margin:0 0 8px; font-size:18px; color:var(--text-main);">Reset Password</h3>
-    <p style="margin:0 0 20px; font-size:13px; color:var(--text-muted);">Enter your account email and we'll send you a password reset link.</p>
-    <div class="field" style="margin-bottom:16px;">
+<div id="forgotModal" style="display:none; position:fixed; inset:0; background:rgba(2, 6, 23, 0.7); backdrop-filter:blur(8px); z-index:400; align-items:center; justify-content:center;">
+  <div style="background:var(--surface); padding:40px; border-radius:var(--radius-lg); width:100%; max-width:420px; box-shadow:var(--shadow-lg); border: 1px solid var(--border);">
+    <h3 style="margin:0 0 8px; font-size:20px; font-weight:700; color:var(--text-main);">Reset Password</h3>
+    <p style="margin:0 0 24px; font-size:14px; color:var(--text-muted);">Enter your account email and we'll send you a password reset link.</p>
+    <div class="field" style="margin-bottom:24px;">
       <label>Email Address</label>
       <input type="email" id="resetEmail" placeholder="you@domain.com">
     </div>
-    <div style="display:flex; gap:10px; justify-content:flex-end;">
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
       <button type="button" class="btn btn-ghost" id="btnCloseReset">Cancel</button>
-      <button type="button" class="btn btn-primary" id="btnSendReset" style="width:auto;">Send Link</button>
+      <button type="button" class="btn btn-primary" id="btnSendReset" style="width:auto;"><span class="material-symbols-outlined" style="font-size:18px;">mail</span> Send Link</button>
     </div>
   </div>
 </div>
@@ -871,7 +883,7 @@ function toggleSidebar(btn) {
     const rail = activeView ? activeView.querySelector('.rail') : null;
     if (rail) {
         rail.classList.toggle('mobile-open');
-        btn.textContent = rail.classList.contains('mobile-open') ? '✕ Close' : '☰ Menu';
+        btn.innerHTML = rail.classList.contains('mobile-open') ? '<span class="material-symbols-outlined">close</span> Close' : '<span class="material-symbols-outlined">menu</span> Menu';
     }
 }
 
@@ -917,8 +929,10 @@ auth.onAuthStateChanged(user => {
                         }
                     }
 
-                    document.getElementById('systemAdminMenu').style.display = 'block';
-                    listenForUsers();
+                    if (currentUserProfile.role === 'core_admin') {
+                        document.getElementById('systemAdminMenu').style.display = 'block';
+                        listenForUsers();
+                    }
                     showView('admin');
                 } else {
                     document.getElementById('btnGoAdminView').style.display = 'none'; 
@@ -999,7 +1013,7 @@ document.getElementById('btnNewAppDash')?.addEventListener('click', () => {
 });
 document.getElementById('btnCancelWizard')?.addEventListener('click', () => { showView('organizer-dash'); });
 
-// Wizard Steps Progression Logic
+// Wizard Steps Progression Logic & Rank Rendering
 function updateWizardView() {
     const stepElements = document.querySelectorAll('#wizard .step');
     stepElements.forEach((el, idx) => {
@@ -1007,7 +1021,22 @@ function updateWizardView() {
     });
     
     const stepNumLabel = document.getElementById('stepNumLabel');
-    if (stepNumLabel) stepNumLabel.innerText = currentStepIndex + 1;
+    if (stepNumLabel) stepNumLabel.innerText = Math.min(currentStepIndex + 1, 8);
+    
+    // Render modern stepper dots
+    const rank = document.getElementById('rank'); 
+    if(rank) {
+        rank.innerHTML = ""; 
+        for(let i=0; i<8; i++){
+            const b = document.createElement('button');
+            b.type="button"; 
+            b.className="sq" + (i < currentStepIndex ? " done":"") + (i === currentStepIndex ? " current":"");
+            b.addEventListener('click', () => { 
+                if(i <= currentStepIndex){ currentStepIndex = i; updateWizardView(); updateDossier(); } 
+            });
+            rank.appendChild(b);
+        }
+    }
     
     const backBtn = document.getElementById('backBtn');
     const nextBtn = document.getElementById('nextBtn');
@@ -1046,6 +1075,7 @@ document.getElementById('nextBtn')?.addEventListener('click', () => {
     if (currentStepIndex < steps.length - 1) {
         currentStepIndex++;
         updateWizardView();
+        updateDossier();
     }
 });
 
@@ -1053,6 +1083,7 @@ document.getElementById('backBtn')?.addEventListener('click', () => {
     if (currentStepIndex > 0) {
         currentStepIndex--;
         updateWizardView();
+        updateDossier();
     }
 });
 
@@ -1071,16 +1102,16 @@ function validateDates() {
 const venueInput = document.getElementById('venue');
 const venuePanel = document.getElementById('venuePanel');
 if (venueInput && venuePanel) {
-    venueInput.addEventListener('focus', () => { venuePanel.style.display = 'block'; });
+    venueInput.addEventListener('focus', () => { venuePanel.classList.add('open'); });
     document.addEventListener('click', (e) => {
         if (!venueInput.contains(e.target) && !venuePanel.contains(e.target)) {
-            venuePanel.style.display = 'none';
+            venuePanel.classList.remove('open');
         }
     });
 }
 function selectVenue(cityName) {
     if (venueInput) venueInput.value = cityName;
-    if (venuePanel) venuePanel.style.display = 'none';
+    if (venuePanel) venuePanel.classList.remove('open');
     updateDossier();
 }
 
@@ -1088,12 +1119,28 @@ function generateReviewSummary() {
     const reviewOut = document.getElementById('reviewOut');
     if (!reviewOut) return;
     reviewOut.innerHTML = `
-        <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Please review your tournament details before final submission to MCF.</p>
-        <div style="background:var(--bg-body); padding:16px; border-radius:var(--radius); font-size:13px; display:flex; flex-direction:column; gap:8px;">
-            <div><b>Event Name:</b> ${document.getElementById('eventName')?.value || '-'}</div>
-            <div><b>Venue:</b> ${document.getElementById('venue')?.value || '-'}</div>
-            <div><b>Expected Players:</b> ${document.getElementById('pax')?.value || 0} pax</div>
-            <div><b>Dates:</b> ${document.getElementById('dateStart')?.value || '-'} to ${document.getElementById('dateEnd')?.value || '-'}</div>
+        <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">Please review your tournament details before final submission to MCF.</p>
+        <div style="background:var(--bg-body); padding:24px; border-radius:var(--radius-lg); font-size:13px; display:flex; flex-direction:column; gap:12px; border: 1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+                <span style="color:var(--text-muted);">Event Name</span>
+                <b>${document.getElementById('eventName')?.value || '-'}</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+                <span style="color:var(--text-muted);">Venue</span>
+                <b>${document.getElementById('venue')?.value || '-'}</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+                <span style="color:var(--text-muted);">Expected Players</span>
+                <b>${document.getElementById('pax')?.value || 0} pax</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+                <span style="color:var(--text-muted);">Dates</span>
+                <b>${formatLocalDate(document.getElementById('dateStart')?.value)} to ${formatLocalDate(document.getElementById('dateEnd')?.value)}</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-top: 8px;">
+                <span style="color:var(--text-main); font-weight:700;">Total Fee Due (Deposit)</span>
+                <b style="color:var(--primary); font-size:16px;">RM ${computeFee().total}</b>
+            </div>
         </div>
     `;
 }
@@ -1105,7 +1152,6 @@ function updateDossier() {
     const st = document.getElementById('dateStart')?.value || '';
     const en = document.getElementById('dateEnd')?.value || '';
     const sys = document.getElementById('system')?.value || '—';
-    const pax = Number(document.getElementById('pax')?.value || 0);
     const tc = document.getElementById('tcInput')?.value || '—';
     const arb = document.getElementById('chiefArbiter')?.value || '—';
 
@@ -1117,14 +1163,30 @@ function updateDossier() {
     if(document.getElementById('dArbiter')) document.getElementById('dArbiter').textContent = arb;
     
     // Fee calculation logic (Clause 3.3)
-    const baseFee = 300;
-    const ratingFee = pax * 5;
-    const total = baseFee + ratingFee;
+    const feeObj = computeFee();
+    if(document.getElementById('dFee')) document.getElementById('dFee').textContent = 'RM ' + feeObj.total;
+    if(document.getElementById('feeBase')) document.getElementById('feeBase').textContent = 'RM ' + feeObj.base;
+    if(document.getElementById('feePerPlayer')) document.getElementById('feePerPlayer').textContent = 'RM ' + (feeObj.perPlayer * Math.max(parseInt(document.getElementById('pax')?.value, 10) || 0, 32));
+    if(document.getElementById('feeTotal')) document.getElementById('feeTotal').textContent = 'RM ' + feeObj.total;
+}
+
+function computeFee(){
+    const pax = Math.max(parseInt(document.getElementById('pax')?.value, 10) || 0, 32); 
+    const orgCat = document.getElementById('orgCategory')?.value || "";
     
-    if(document.getElementById('dFee')) document.getElementById('dFee').textContent = 'RM ' + total;
-    if(document.getElementById('feeBase')) document.getElementById('feeBase').textContent = 'RM ' + baseFee;
-    if(document.getElementById('feePerPlayer')) document.getElementById('feePerPlayer').textContent = 'RM ' + ratingFee;
-    if(document.getElementById('feeTotal')) document.getElementById('feeTotal').textContent = 'RM ' + total;
+    let base = 300; 
+    // ONLY verified state admins get the RM200 fee, even if others select the option.
+    if (orgCat.includes("State Affiliate") && currentUserProfile.role === 'state_admin') {
+        base = 200;
+    }
+
+    let perPlayer = 10; 
+    const tcText = (document.getElementById('tcInput')?.value || "").toLowerCase();
+    if (tcText.includes("rapid") || tcText.includes("blitz")) {
+        perPlayer = 3; 
+    }
+
+    return { base, perPlayer, total: base + (perPlayer * pax) };
 }
 
 // Form Submission Handler
@@ -1156,7 +1218,7 @@ document.getElementById('submitAppBtn')?.addEventListener('click', async () => {
         endDate: document.getElementById('dateEnd')?.value || '',
         system: document.getElementById('system')?.value || '',
         rounds: document.getElementById('rounds')?.value || '7',
-        totalFee: Number(document.getElementById('dFee')?.textContent.replace('RM ', '') || 300),
+        totalFee: computeFee().total,
         paymentRef: document.getElementById('paymentRef')?.value || '',
         chiefArbiter: document.getElementById('chiefArbiter')?.value || '',
         chiefArbiterFide: document.getElementById('chiefArbiterFide')?.value || '',
@@ -1188,6 +1250,7 @@ document.getElementById('submitAppBtn')?.addEventListener('click', async () => {
         alert("Connection Error: " + err.message);
     } finally {
         btn.disabled = false;
+        btn.innerHTML = `<span class="material-symbols-outlined">send</span> Submit Application`;
     }
 });
 
@@ -1205,10 +1268,15 @@ document.getElementById('btnSendReset').addEventListener('click', async () => {
 });
 
 function getBadgeStyle(status) {
-    if (status === 'PENDING STATE') return 'background: #FEF3C7; color: #92400E;';
-    if (status === 'PENDING ADMIN') return 'background: #DBEAFE; color: #1E40AF;';
-    if (status === 'APPROVED') return 'background: #D1FAE5; color: #065F46;';
-    return 'background: #FEE2E2; color: #991B1B;';
+    if (status === 'PENDING STATE') return 'background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D;';
+    if (status === 'PENDING ADMIN') return 'background: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE;';
+    if (status === 'APPROVED') return 'background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0;';
+    return 'background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA;';
+}
+function getStatusIcon(status) {
+    if (status === 'PENDING STATE' || status === 'PENDING ADMIN') return 'hourglass_empty';
+    if (status === 'APPROVED') return 'check_circle';
+    return 'cancel';
 }
 
 window.fetchDossiers = async function() {
@@ -1218,7 +1286,7 @@ window.fetchDossiers = async function() {
         const data = await res.json();
         applications = (data || []).reverse();
         updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
-    } catch (err) { showToast("Error loading data."); }
+    } catch (err) { console.log("Error loading data."); }
 };
 
 document.getElementById('btnRefreshData')?.addEventListener('click', fetchDossiers);
@@ -1247,16 +1315,20 @@ function renderAdminTable() {
         let target = currentFilterAdmin === 'pending_state' ? 'PENDING STATE' : currentFilterAdmin === 'pending_admin' ? 'PENDING ADMIN' : currentFilterAdmin === 'approved' ? 'APPROVED' : 'REVISION REQ.';
         filtered = filtered.filter(a => a.status === target);
     }
+    if (searchQ.trim() !== '') {
+        const q = searchQ.toLowerCase();
+        filtered = filtered.filter(a => (a.eventName || '').toLowerCase().includes(q) || (a.organizerEmail || '').toLowerCase().includes(q) || (a.id || '').toLowerCase().includes(q));
+    }
     
     filtered.forEach(app => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><b>${app.eventName}</b><br><span style="font-size:11px; color:var(--text-muted);">${app.id} &bull; ${app.organizerEmail}</span></td>
+            <td><b style="font-size:14px;">${app.eventName}</b><br><span style="font-size:11px; color:var(--text-muted);">${app.id} &bull; ${app.organizerEmail}</span></td>
             <td>${app.state}<br><span style="font-size:11px; color:var(--text-muted);">${formatLocalDate(app.startDate)}</span></td>
             <td>${app.system} (${app.rounds || '-'} Rds)<br><span style="font-size:11px; color:var(--text-muted);">${app.timeControl || '-'}</span></td>
             <td>${app.pax} pax</td>
-            <td><b>RM ${app.fee || 0}</b><br><span style="font-size:11px; color:var(--text-muted);">Ref: ${app.paymentRef || '-'}</span></td>
-            <td><span class="status-pill" style="${getBadgeStyle(app.status)}">${app.status}</span></td>
+            <td><b style="color:var(--primary);">RM ${app.fee || 0}</b><br><span style="font-size:11px; color:var(--text-muted);">Ref: ${app.paymentRef || '-'}</span></td>
+            <td><span class="status-pill" style="${getBadgeStyle(app.status)}"><span class="material-symbols-outlined" style="font-size:14px;">${getStatusIcon(app.status)}</span> ${app.status}</span></td>
         `;
         tr.addEventListener('click', () => openDrawer(app.id));
         tbody.appendChild(tr);
@@ -1279,22 +1351,27 @@ function renderOrgTable() {
     const tbody = document.getElementById('tableBodyOrg');
     if (!tbody) return; tbody.innerHTML = '';
     let myApps = applications.filter(a => a.organizerEmail === currentUserProfile.email);
+    if (currentFilterOrg !== 'all') {
+        let target = currentFilterOrg === 'pending_state' ? 'PENDING STATE' : currentFilterOrg === 'pending_admin' ? 'PENDING ADMIN' : currentFilterOrg === 'approved' ? 'APPROVED' : 'REVISION REQ.';
+        myApps = myApps.filter(a => a.status === target);
+    }
+    
     myApps.forEach(app => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><b>${app.eventName}</b><br><span style="font-size:11px; color:var(--text-muted);">${app.id}</span></td>
+            <td><b style="font-size:14px;">${app.eventName}</b><br><span style="font-size:11px; color:var(--text-muted);">${app.id}</span></td>
             <td>${app.state}<br><span style="font-size:11px; color:var(--text-muted);">${formatLocalDate(app.startDate)}</span></td>
-            <td>${app.system} (${app.rounds || '-'} Rds)</td>
+            <td>${app.system} (${app.rounds || '-'} Rds)<br><span style="font-size:11px; color:var(--text-muted);">${app.timeControl || '-'}</span></td>
             <td>${app.pax} pax</td>
-            <td><b>RM ${app.fee || 0}</b></td>
-            <td><span class="status-pill" style="${getBadgeStyle(app.status)}">${app.status}</span></td>
+            <td><b style="color:var(--primary);">RM ${app.fee || 0}</b></td>
+            <td><span class="status-pill" style="${getBadgeStyle(app.status)}"><span class="material-symbols-outlined" style="font-size:14px;">${getStatusIcon(app.status)}</span> ${app.status}</span></td>
         `;
         tr.addEventListener('click', () => openDrawer(app.id));
         tbody.appendChild(tr);
     });
 }
 
-// RESTORED EVENT LISTENERS FOR SIDEBAR FILTERS (Org + Admin)
+// Ensure Sidebar clicks trigger updates
 document.querySelectorAll('#navFilterOrg .nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('#navFilterOrg .nav-item').forEach(b => b.classList.remove('active'));
@@ -1332,80 +1409,58 @@ function renderUsersTable() {
     if (selectedUserRoleFilter !== 'all') {
         filteredUsers = filteredUsers.filter(u => (u.role || 'organizer') === selectedUserRoleFilter);
     }
-
     if (selectedUserStateFilter !== 'all') {
         filteredUsers = filteredUsers.filter(u => (u.state || '') === selectedUserStateFilter);
     }
-
     if (searchUsersQ.trim() !== '') {
         const q = searchUsersQ.toLowerCase();
-        filteredUsers = filteredUsers.filter(u => 
-            (u.name || '').toLowerCase().includes(q) || 
-            (u.email || '').toLowerCase().includes(q)
-        );
+        filteredUsers = filteredUsers.filter(u => (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q));
     }
 
     filteredUsers.forEach(u => {
         const tr = document.createElement('tr');
-        let roleBadge = 'ORGANIZER', badgeStyle = 'background:#F1F5F9; color:#64748B;';
-        if (u.role === 'state_admin') { roleBadge = 'STATE ADMIN'; badgeStyle = 'background:#FEF3C7; color:#92400E;'; }
-        if (u.role === 'admin') { roleBadge = 'MCF ADMIN'; badgeStyle = 'background:#DBEAFE; color:#1E40AF;'; }
-        if (u.role === 'core_admin') { roleBadge = 'CORE ADMIN'; badgeStyle = 'background:#FEE2E2; color:#991B1B;'; }
+        let roleBadge = 'ORGANIZER', badgeStyle = 'background:#F1F5F9; color:#64748B; border: 1px solid #E2E8F0;';
+        if (u.role === 'state_admin') { roleBadge = 'STATE ADMIN'; badgeStyle = 'background:#FEF3C7; color:#92400E; border: 1px solid #FCD34D;'; }
+        if (u.role === 'admin') { roleBadge = 'MCF ADMIN'; badgeStyle = 'background:#DBEAFE; color:#1E40AF; border: 1px solid #BFDBFE;'; }
+        if (u.role === 'core_admin') { roleBadge = 'CORE ADMIN'; badgeStyle = 'background:#FEE2E2; color:#991B1B; border: 1px solid #FECACA;'; }
 
         let actionHtml = '-';
-        
         if (currentUserProfile.role === 'core_admin') {
             if (u.email !== currentUserProfile.email) {
                 actionHtml = `
-                <div style="display:flex; gap:6px; align-items:center;">
-                    <select class="role-select" id="role_${u.id}" style="padding:4px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <select class="role-select" id="role_${u.id}" style="padding:6px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm);">
                         <option value="organizer" ${u.role === 'organizer' ? 'selected' : ''}>Organizer</option>
                         <option value="state_admin" ${u.role === 'state_admin' ? 'selected' : ''}>State Admin</option>
                         <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>MCF Admin</option>
                         <option value="core_admin" ${u.role === 'core_admin' ? 'selected' : ''}>Core Admin</option>
                     </select>
-                    <button class="btn btn-gold btnChangeRole" data-id="${u.id}" style="padding: 3px 8px; font-size: 10px;">Save</button>
+                    <button class="btn btn-gold btnChangeRole" data-id="${u.id}" style="padding: 6px 12px; font-size: 11px;">Save</button>
+                    <button class="btn btn-ghost" style="padding:6px; color:var(--info); border-color:var(--info);" onclick="openUserProfileDrawer('${u.id}')" title="View Profile"><span class="material-symbols-outlined" style="font-size:16px;">visibility</span></button>
                 </div>`;
             } else {
                 actionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic;">(Your Account)</span>`;
             }
-        } else {
-            actionHtml = `<span style="font-size:12px; color:var(--text-muted);">Restricted</span>`;
         }
 
-        tr.innerHTML = `<td><b>${u.name || 'N/A'}</b><br><span style="font-size:11px; color:var(--text-muted);">MCF ID: ${u.mcfId || '-'}</span></td><td>${u.email}</td><td>${u.state || '-'}</td><td><span class="status-pill" style="${badgeStyle}">${roleBadge}</span></td><td>${actionHtml}</td>`;
+        tr.innerHTML = `<td><b style="font-size:14px;">${u.name || 'N/A'}</b><br><span style="font-size:11px; color:var(--text-muted);">MCF ID: ${u.mcfId || '-'}</span></td><td>${u.email}</td><td>${u.state || '-'}</td><td><span class="status-pill" style="${badgeStyle}">${roleBadge}</span></td><td>${actionHtml}</td>`;
         tbody.appendChild(tr);
     });
 
     document.querySelectorAll('.btnChangeRole').forEach(b => b.addEventListener('click', (e) => {
-        if (currentUserProfile.role !== 'core_admin') {
-            showToast("Unauthorized action.");
-            return;
-        }
+        if (currentUserProfile.role !== 'core_admin') { showToast("Unauthorized action."); return; }
         db.collection('users').doc(e.target.dataset.id).update({ role: document.getElementById(`role_${e.target.dataset.id}`).value }); 
         showToast("Role updated successfully.");
     }));
 }
 
-// RESTORED EVENT LISTENERS FOR USER MANAGEMENT SEARCH AND TABS
-document.getElementById('searchUsers')?.addEventListener('input', (e) => {
-    searchUsersQ = e.target.value;
-    renderUsersTable();
-});
-
-document.getElementById('userRoleFilter')?.addEventListener('change', (e) => {
-    selectedUserRoleFilter = e.target.value;
-    renderUsersTable();
-});
-
-document.getElementById('userStateFilter')?.addEventListener('change', (e) => {
-    selectedUserStateFilter = e.target.value;
-    renderUsersTable();
-});
+document.getElementById('searchUsers')?.addEventListener('input', (e) => { searchUsersQ = e.target.value; renderUsersTable(); });
+document.getElementById('userRoleFilter')?.addEventListener('change', (e) => { selectedUserRoleFilter = e.target.value; renderUsersTable(); });
+document.getElementById('userStateFilter')?.addEventListener('change', (e) => { selectedUserStateFilter = e.target.value; renderUsersTable(); });
 
 document.getElementById('btnNavUsers')?.addEventListener('click', (e) => {
     document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active')); 
-    e.target.classList.add('active');
+    e.currentTarget.classList.add('active');
     document.getElementById('adminAppsWrap').style.display = 'none'; 
     document.getElementById('adminUsersWrap').style.display = 'block';
 });
@@ -1417,29 +1472,29 @@ window.openUserProfileDrawer = function(userId) {
     document.getElementById('upSubtitle').textContent = "MCF ID: " + (u.mcfId || 'Not provided');
     
     const organizerEvents = applications.filter(app => (app.organizerEmail || '').toLowerCase().trim() === (u.email || '').toLowerCase().trim());
-    let eventsHtml = organizerEvents.length ? organizerEvents.map(evt => `<div style="background:white; border:1px solid var(--border); padding:10px; margin-bottom:6px; border-radius:6px; display:flex; justify-content:space-between;"><div><b>${evt.eventName}</b><br><small>${evt.id} &bull; ${formatLocalDate(evt.startDate)}</small></div><span class="status-pill" style="${getBadgeStyle(evt.status)}; font-size:10px;">${evt.status}</span></div>`).join('') : '<p style="font-size:13px; color:var(--text-muted);">No tournaments found.</p>';
+    let eventsHtml = organizerEvents.length ? organizerEvents.map(evt => `<div style="background:white; border:1px solid var(--border); padding:16px; margin-bottom:10px; border-radius:var(--radius); display:flex; justify-content:space-between; align-items:center; box-shadow:var(--shadow-sm);"><div><b style="font-size:14px;">${evt.eventName}</b><br><small style="color:var(--text-muted);">${evt.id} &bull; ${formatLocalDate(evt.startDate)}</small></div><span class="status-pill" style="${getBadgeStyle(evt.status)}; font-size:11px;">${evt.status}</span></div>`).join('') : '<p style="font-size:13px; color:var(--text-muted); background:var(--bg-body); padding:16px; border-radius:var(--radius); text-align:center;">No tournaments found for this user.</p>';
 
     document.getElementById('upContent').innerHTML = `
-        <div style="background:var(--bg-body); padding:16px; border-radius:8px; margin-bottom:20px;">
-            <p><b>Email:</b> ${u.email}</p>
-            <p><b>State:</b> ${u.state || '-'}</p>
-            <p><b>Role:</b> ${u.role}</p>
+        <div style="background:var(--bg-body); padding:20px; border-radius:var(--radius-lg); margin-bottom:32px; border:1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px; border-bottom:1px solid var(--border-soft); padding-bottom:12px;"><span style="color:var(--text-muted); font-size:13px;">Email</span><b style="font-size:14px;">${u.email}</b></div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px; border-bottom:1px solid var(--border-soft); padding-bottom:12px;"><span style="color:var(--text-muted); font-size:13px;">State / Region</span><b style="font-size:14px;">${u.state || '-'}</b></div>
+            <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-muted); font-size:13px;">Role</span><b style="font-size:14px; text-transform:uppercase; color:var(--primary);">${u.role}</b></div>
         </div>
         <div class="section-title">Organized Tournament History (${organizerEvents.length})</div>
-        <div style="max-height:220px; overflow-y:auto;">${eventsHtml}</div>
+        <div style="max-height:400px; overflow-y:auto; padding-right:8px;">${eventsHtml}</div>
     `;
-    document.getElementById('upFooter').innerHTML = `<button class="btn btn-primary" style="background:#DC2626;" onclick="confirmDeleteUser('${u.id}', '${u.email}')">Delete / Blacklist User</button>`;
+    document.getElementById('upFooter').innerHTML = `<button class="btn btn-primary" style="background:var(--danger); border:none;" onclick="confirmDeleteUser('${u.id}', '${u.email}')"><span class="material-symbols-outlined">delete_forever</span> Delete User Account</button>`;
     document.getElementById('userProfileDrawerBack').classList.add('open');
 };
 
 window.closeUserProfileDrawer = function() { document.getElementById('userProfileDrawerBack').classList.remove('open'); };
 
 window.confirmDeleteUser = async function(userId, userEmail) {
-    if (!confirm(`Are you sure you want to delete/blacklist ${userEmail}?`)) return;
+    if (!confirm(`Are you sure you want to delete ${userEmail}? This is permanent.`)) return;
     const typed = prompt(`Type "${userEmail}" to confirm deletion:`);
     if (typed !== userEmail) { alert("Email mismatch. Cancelled."); return; }
     await db.collection('users').doc(userId).delete();
-    showToast("User deleted.");
+    showToast("User deleted successfully.");
     closeUserProfileDrawer();
 };
 
@@ -1457,22 +1512,22 @@ window.openDrawer = function(id){
         const tunStatus = t.tunStatus || 'PENDING';
         let statusBadge = '';
         if (tunStatus === 'RECEIVED') {
-            statusBadge = `<span style="font-size:12px; color:#065F46; font-weight:600; background:#D1FAE5; padding:4px 10px; border-radius:99px;">✓ .tun Received & Verified</span>`;
+            statusBadge = `<span class="status-pill" style="background:#D1FAE5; color:#065F46; border:1px solid #34D399;"><span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> .tun Received & Verified</span>`;
         } else if (tunStatus === 'REJECTED') {
-            statusBadge = `<span style="font-size:12px; color:#991B1B; font-weight:600; background:#FEE2E2; padding:4px 10px; border-radius:99px;">✗ .tun Rejected: ${t.tunRejectReason || 'No reason'}</span>`;
+            statusBadge = `<span class="status-pill" style="background:#FEE2E2; color:#991B1B; border:1px solid #FCA5A5;"><span class="material-symbols-outlined" style="font-size:14px;">cancel</span> .tun Rejected</span>`;
         } else {
-            statusBadge = `<span style="font-size:12px; color:#1E40AF; font-weight:600; background:#DBEAFE; padding:4px 10px; border-radius:99px;">⏳ Pending MCF Review</span>`;
+            statusBadge = `<span class="status-pill" style="background:#DBEAFE; color:#1E40AF; border:1px solid #93C5FD;"><span class="material-symbols-outlined" style="font-size:14px;">pending</span> Pending MCF Review</span>`;
         }
 
         let tunActionHtml = '';
         if (t.tunUrl && t.tunUrl.startsWith('http')) {
             tunActionHtml = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:10px;">
-                <a href="${t.tunUrl}" target="_blank" class="btn btn-ghost" style="padding:6px 12px; font-size:12px; text-decoration:none; background:white;">Download Submitted .tun Report</a>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; flex-wrap:wrap; gap:10px; background:white; padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+                <a href="${t.tunUrl}" target="_blank" class="btn btn-ghost" style="font-size:12px;"><span class="material-symbols-outlined">download</span> Download Report</a>
                 ${isMCFAdmin && tunStatus !== 'RECEIVED' ? `
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <button class="btn btn-primary" style="padding:6px 12px; font-size:12px; background:#059669;" onclick="promptFinanceAdjustment('${t.id}')">Receive & Adjust Fees...</button>
-                        <button class="btn btn-ghost" style="padding:6px 12px; font-size:12px; color:#DC2626; border-color:#DC2626;" onclick="promptRejectTun('${t.id}')">Reject .tun</button>
+                        <button class="btn btn-primary" style="font-size:12px; background:linear-gradient(135deg, #10B981, #059669); border:none;" onclick="promptFinanceAdjustment('${t.id}')"><span class="material-symbols-outlined">check</span> Receive & Adjust Fees...</button>
+                        <button class="btn btn-ghost" style="font-size:12px; color:var(--danger); border-color:var(--danger);" onclick="promptRejectTun('${t.id}')"><span class="material-symbols-outlined">close</span> Reject .tun</button>
                     </div>
                 ` : ''}
             </div>`;
@@ -1484,33 +1539,34 @@ window.openDrawer = function(id){
         if (t.financeAction) {
             const isRefund = t.financeAction === 'REFUND';
             financeUI = `
-            <div style="margin-top: 16px; background: ${isRefund ? '#FEF3C7' : '#FEE2E2'}; border: 1px solid ${isRefund ? '#F59E0B' : '#DC2626'}; padding: 16px; border-radius: var(--radius);">
-                <h4 style="margin:0 0 6px; font-size:13px; color:${isRefund ? '#92400E' : '#991B1B'};">
-                    ${isRefund ? '💰 MCF Fee Refund Notice' : '⚠️ Additional Balance Top-Up Required'}
+            <div style="margin-top: 20px; background: ${isRefund ? '#FEF3C7' : '#FEE2E2'}; border: 1px solid ${isRefund ? '#F59E0B' : '#DC2626'}; padding: 20px; border-radius: var(--radius-lg);">
+                <h4 style="margin:0 0 8px; font-size:14px; color:${isRefund ? '#92400E' : '#991B1B'}; display:flex; align-items:center; gap:6px;">
+                    <span class="material-symbols-outlined">${isRefund ? 'account_balance_wallet' : 'warning'}</span> 
+                    ${isRefund ? 'MCF Fee Refund Notice' : 'Additional Balance Top-Up Required'}
                 </h4>
-                <p style="margin:0 0 12px; font-size:13px; color:var(--text-main);"><b>Admin Comment:</b> ${t.financeComment || 'No comments.'}</p>
+                <p style="margin:0 0 16px; font-size:13px; color:var(--text-main);"><b>Admin Comment:</b> ${t.financeComment || 'No comments.'}</p>
                 
                 ${isOrganizer ? `
                     ${isRefund ? `
-                        <div style="background:white; padding:12px; border-radius:var(--radius); border:1px solid var(--border);">
-                            <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Enter Bank Details for Refund:</label>
-                            <input type="text" id="orgBankInput" value="${t.bankDetails || ''}" placeholder="e.g. Maybank 1234567890 (Ahmad)" style="margin-bottom:8px;">
-                            <button class="btn btn-primary" style="padding:6px 14px; font-size:12px;" onclick="submitOrganizerBank('${t.id}')">Submit Bank Details</button>
-                            ${t.bankDetails ? '<span style="font-size:11px; color:#059669; display:block; margin-top:6px;">✓ Bank details submitted.</span>' : ''}
+                        <div style="background:white; padding:16px; border-radius:var(--radius); border:1px solid var(--border);">
+                            <label style="font-size:12px; font-weight:600; display:block; margin-bottom:8px;">Enter Bank Details for Refund:</label>
+                            <input type="text" id="orgBankInput" value="${t.bankDetails || ''}" placeholder="e.g. Maybank 1234567890 (Ahmad)" style="margin-bottom:12px;">
+                            <button class="btn btn-primary" style="font-size:12px;" onclick="submitOrganizerBank('${t.id}')">Submit Details</button>
+                            ${t.bankDetails ? '<span style="font-size:12px; color:#059669; display:block; margin-top:8px; font-weight:600;">✓ Bank details submitted.</span>' : ''}
                         </div>
                     ` : `
-                        <div style="background:white; padding:12px; border-radius:var(--radius); border:1px solid var(--border);">
-                            <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Upload Remaining Balance Receipt:</label>
-                            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                                <input type="file" id="topUpFileInput" accept="image/*,.pdf" style="font-size:12px; padding:4px;">
-                                <button class="btn btn-primary" style="padding:6px 14px; font-size:12px;" onclick="submitOrganizerTopUp('${t.id}')">Upload Receipt</button>
+                        <div style="background:white; padding:16px; border-radius:var(--radius); border:1px solid var(--border);">
+                            <label style="font-size:12px; font-weight:600; display:block; margin-bottom:8px;">Upload Remaining Balance Receipt:</label>
+                            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                                <input type="file" id="topUpFileInput" accept="image/*,.pdf" style="font-size:12px; padding:8px; background:var(--bg-body); box-shadow:none;">
+                                <button class="btn btn-primary" style="font-size:12px;" onclick="submitOrganizerTopUp('${t.id}')">Upload Receipt</button>
                             </div>
-                            ${t.topUpReceiptUrl ? `<a href="${t.topUpReceiptUrl}" target="_blank" style="font-size:11px; color:#2563EB; display:block; margin-top:6px;">🔗 View Uploaded Receipt</a>` : ''}
+                            ${t.topUpReceiptUrl ? `<a href="${t.topUpReceiptUrl}" target="_blank" style="font-size:12px; color:#2563EB; display:inline-flex; align-items:center; gap:4px; margin-top:12px; font-weight:600; text-decoration:none;"><span class="material-symbols-outlined" style="font-size:16px;">open_in_new</span> View Uploaded Receipt</a>` : ''}
                         </div>
                     `}
                 ` : `
-                    <div style="font-size:12px; color:var(--text-muted);">
-                        ${isRefund ? `<b>Organizer Bank Info:</b> ${t.bankDetails || 'Pending input...'}` : `<b>Top-Up Receipt:</b> ${t.topUpReceiptUrl ? `<a href="${t.topUpReceiptUrl}" target="_blank">View Receipt</a>` : 'Pending receipt...'}`}
+                    <div style="font-size:13px; color:var(--text-main); background:rgba(255,255,255,0.5); padding:12px; border-radius:var(--radius-sm);">
+                        ${isRefund ? `<b>Organizer Bank Info:</b> ${t.bankDetails || 'Pending input...'}` : `<b>Top-Up Receipt:</b> ${t.topUpReceiptUrl ? `<a href="${t.topUpReceiptUrl}" target="_blank" style="color:#2563EB; font-weight:600;">View Receipt</a>` : 'Pending receipt...'}`}
                     </div>
                 `}
             </div>`;
@@ -1519,19 +1575,19 @@ window.openDrawer = function(id){
         let organizerUploadHtml = '';
         if (isOrganizer && (tunStatus === 'REJECTED' || !t.tunUrl || !t.tunUrl.startsWith('http'))) {
             organizerUploadHtml = `
-            <div style="margin-top: 16px; border-top: 1px dashed var(--border); padding-top: 14px;">
-                <p style="font-size:12px; font-weight:600; color:var(--text-main); margin:0 0 8px;">${tunStatus === 'REJECTED' ? 'Re-upload corrected .tun file:' : 'Upload tournament report file:'}</p>
-                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                    <input type="file" id="tunUploadInput" style="padding:6px; font-size:12px; background:white;">
-                    <button class="btn btn-primary" style="padding:8px 16px; font-size:12px;" onclick="uploadTunFile('${t.id}')">Upload .tun File</button>
+            <div style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px;">
+                <p style="font-size:13px; font-weight:700; color:var(--text-main); margin:0 0 12px;">${tunStatus === 'REJECTED' ? 'Re-upload corrected .tun file:' : 'Upload tournament report file:'}</p>
+                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                    <input type="file" id="tunUploadInput" style="padding:10px; font-size:13px; background:white;">
+                    <button class="btn btn-primary" style="padding:10px 20px; font-size:13px;" onclick="uploadTunFile('${t.id}')"><span class="material-symbols-outlined">upload</span> Upload .tun</button>
                 </div>
             </div>`;
         }
 
         tunSectionHtml = `
-        <div style="background: var(--bg-body); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-top: 24px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Tournament Report (.tun) & Fee Adjustments</div>
+        <div style="background: var(--bg-body); padding: 24px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-top: 32px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-main); display:flex; align-items:center; gap:8px;"><span class="material-symbols-outlined" style="color:var(--primary);">description</span> Tournament Report (.tun)</div>
                 ${statusBadge}
             </div>
             ${tunActionHtml}
@@ -1555,150 +1611,151 @@ window.openDrawer = function(id){
     }
 
     document.getElementById('drawerContent').innerHTML = `
-    <div style="background: var(--bg-body); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 24px;">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 12px;">
-            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Payment & Status Audit</span>
+    <div style="background: var(--bg-body); padding: 24px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 32px; position:relative; overflow:hidden;">
+        <div style="position:absolute; top:0; left:0; width:4px; height:100%; background:var(--primary);"></div>
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 16px;">
+            <span style="font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing:0.08em; display:flex; align-items:center; gap:6px;"><span class="material-symbols-outlined" style="font-size:16px;">receipt_long</span> Payment Audit</span>
             <span class="status-pill" style="${getBadgeStyle(t.status)}">${t.status}</span>
         </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items:center;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items:center; background:white; padding:16px; border-radius:var(--radius-sm); border:1px solid var(--border-soft);">
             <div>
                 <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block; margin-bottom:4px;">Calculated Fee</span>
-                <b style="font-size: 18px; color: var(--text-main);">RM ${t.fee || 0}</b>
-                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Ref: ${t.paymentRef || '-'}</div>
+                <b style="font-size: 22px; color: var(--text-main); font-weight:800;">RM ${t.fee || 0}</b>
+                <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">Ref: ${t.paymentRef || '-'}</div>
             </div>
             <div style="text-align:right;">
-                ${t.receiptUrl && t.receiptUrl.startsWith('http') ? `<a href="${t.receiptUrl}" target="_blank" class="btn btn-ghost" style="padding:6px 12px; font-size:11px; text-decoration:none; background:white;">🔗 Open Receipt</a>` : `<span style="font-size:12px; color:var(--text-muted);">No Receipt</span>`}
+                ${t.receiptUrl && t.receiptUrl.startsWith('http') ? `<a href="${t.receiptUrl}" target="_blank" class="btn btn-ghost" style="padding:8px 16px; font-size:12px; text-decoration:none;"><span class="material-symbols-outlined">open_in_new</span> Open Receipt</a>` : `<span style="font-size:12px; color:var(--text-muted); font-style:italic;">No Receipt</span>`}
             </div>
         </div>
         ${t.receiptUrl && t.receiptUrl.startsWith('http') ? `
-        <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
-            <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block; margin-bottom:8px;">Payment Receipt Preview</span>
-            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; padding: 10px; text-align: center;">
-                <img src="${previewUrl}" alt="Payment Receipt" style="max-width:100%; max-height:280px; object-fit:contain; border-radius:4px;" onerror="this.onerror=null; this.src='https://placehold.co/600x400?text=Preview+Not+Available';">
-            </div>
-        </div>` : ''}
-
-        ${t.posterUrl && t.posterUrl.startsWith('http') ? `
-        <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block;">Event Poster / Regulations</span>
-                <a href="${t.posterUrl}" target="_blank" class="btn btn-ghost" style="padding:4px 10px; font-size:11px; text-decoration:none; background:white;">🔗 Open Poster</a>
-            </div>
-            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 350px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <iframe src="${posterUrl}" style="width:100%; height:100%; border:none;"></iframe>
+        <div style="margin-top: 20px;">
+            <span class="label" style="color: var(--text-muted); font-size:11px; font-weight:700; text-transform:uppercase; display:block; margin-bottom:8px;">Receipt Preview</span>
+            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; padding: 12px; text-align: center; box-shadow:var(--shadow-sm);">
+                <img src="${previewUrl}" alt="Payment Receipt" style="max-width:100%; max-height:240px; object-fit:contain; border-radius:6px;" onerror="this.onerror=null; this.src='https://placehold.co/600x400?text=Preview+Not+Available';">
             </div>
         </div>` : ''}
     </div>
     
-    <div class="section-title">FIDE Server Copy & Paste Fields (Complete)</div>
-    <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+    <div class="section-title"><span class="material-symbols-outlined">assignment</span> FIDE Server Copy & Paste Fields</div>
+    <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow:var(--shadow-sm);">
         
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Event Name</span>
-            <b style="font-size:13px; user-select:all;">${t.eventName || '-'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Event Name</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main); text-align:right;">${t.eventName || '-'}</b>
         </div>
         
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Venue & State</span>
-            <b style="font-size:13px; user-select:all;">${t.venue || '-'}, ${t.state || '-'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Venue & State</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main); text-align:right;">${t.venue || '-'}, ${t.state || '-'}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Start Date (YYYY-MM-DD)</span>
-            <b style="font-size:13px; user-select:all; color:var(--primary);">${t.startDate ? t.startDate.split('T')[0] : '-'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Start Date (YYYY-MM-DD)</span>
+            <b style="font-size:14px; user-select:all; color:var(--primary);">${t.startDate ? t.startDate.split('T')[0] : '-'}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">End Date (YYYY-MM-DD)</span>
-            <b style="font-size:13px; user-select:all; color:var(--primary);">${t.endDate ? t.endDate.split('T')[0] : '-'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">End Date (YYYY-MM-DD)</span>
+            <b style="font-size:14px; user-select:all; color:var(--primary);">${t.endDate ? t.endDate.split('T')[0] : '-'}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Expected Players</span>
-            <b style="font-size:13px; user-select:all;">${t.pax || 0}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Expected Players</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main);">${t.pax || 0}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Tournament System</span>
-            <b style="font-size:13px; user-select:all;">${t.system || 'Swiss'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Tournament System</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main);">${t.system || 'Swiss'}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Number of Rounds reported</span>
-            <b style="font-size:13px; user-select:all;">${t.rounds || '7'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Number of Rounds reported</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main);">${t.rounds || '7'}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Multiple Round Days</span>
-            <b style="font-size:13px; user-select:all;">${t.multiRoundDays || '1'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Multiple Round Days</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main);">${t.multiRoundDays || '1'}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Chief Arbiter</span>
-            <b style="font-size:13px; user-select:all;">${t.chiefArbiter || '-'} ${t.chiefArbiterFide ? '('+t.chiefArbiterFide+')' : ''}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Chief Arbiter</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main); text-align:right;">${t.chiefArbiter || '-'} ${t.chiefArbiterFide ? '('+t.chiefArbiterFide+')' : ''}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Deputy Chief Arbiter</span>
-            <b style="font-size:13px; user-select:all;">${t.deputyArbiter || 'None'} ${t.deputyArbiterFide ? '('+t.deputyArbiterFide+')' : ''}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Deputy Chief Arbiter</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main); text-align:right;">${t.deputyArbiter || 'None'} ${t.deputyArbiterFide ? '('+t.deputyArbiterFide+')' : ''}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Chief Organizer</span>
-            <b style="font-size:13px; user-select:all;">${t.chiefOrg || '-'} ${t.chiefOrgFide ? '('+t.chiefOrgFide+')' : ''}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Chief Organizer</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main); text-align:right;">${t.chiefOrg || '-'} ${t.chiefOrgFide ? '('+t.chiefOrgFide+')' : ''}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Organizing Body / Club</span>
-            <b style="font-size:13px; user-select:all;">${t.orgBody || '-'} ${t.orgBodyFide ? '('+t.orgBodyFide+')' : ''}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Organizing Body / Club</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main); text-align:right;">${t.orgBody || '-'} ${t.orgBodyFide ? '('+t.orgBodyFide+')' : ''}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Time Control</span>
-            <b style="font-size:13px; user-select:all;">${t.timeControl || 'Standard'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Time Control</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main); text-align:right;">${t.timeControl || 'Standard'}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Tiebreak Method 1</span>
-            <b style="font-size:13px; user-select:all;">${t.tb1 || 'Direct encounter'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Tiebreak Method 1</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main); text-align:right;">${t.tb1 || 'Direct encounter'}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Tiebreak Method 2 & 3</span>
-            <b style="font-size:13px; user-select:all;">${t.tb2 || '-'}, ${t.tb3 || '-'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Tiebreak Method 2 & 3</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main); text-align:right;">${t.tb2 || '-'}, ${t.tb3 || '-'}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Pairing Software</span>
-            <b style="font-size:13px; user-select:all;">${t.software || 'ChessManager'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Pairing Software</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main);">${t.software || 'ChessManager'}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">FIDE Laws Followed</span>
-            <b style="font-size:13px; user-select:all;">${t.fideLaws || 'Yes'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">FIDE Laws Followed</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main);">${t.fideLaws || 'Yes'}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">National Championship (1.43a)</span>
-            <b style="font-size:13px; user-select:all;">${t.natChampionship || 'No'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">National Championship (1.43a)</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main);">${t.natChampionship || 'No'}</b>
         </div>
 
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted);">Max Rating & Age Limit</span>
-            <b style="font-size:13px; user-select:all;">Rating: ${t.maxRating || 'No limit'} | Age: ${t.ageLimit || 'None'}</b>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-soft); padding-bottom:10px;">
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Max Rating & Age Limit</span>
+            <b style="font-size:14px; user-select:all; color:var(--text-main);">Rating: ${t.maxRating || 'No limit'} | Age: ${t.ageLimit || 'None'}</b>
         </div>
 
         <div style="display:flex; justify-content:space-between;">
-            <span style="font-size:12px; color:var(--text-muted);">Contact Email</span>
-            <b style="font-size:13px; user-select:all; color:#2563EB;">${t.contactEmail || t.organizerEmail || '-'}</b>
+            <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Contact Email</span>
+            <b style="font-size:14px; user-select:all; color:#2563EB;">${t.contactEmail || t.organizerEmail || '-'}</b>
         </div>
 
     </div>
 
+    ${t.posterUrl && t.posterUrl.startsWith('http') ? `
+        <div style="margin-top: 32px; background:white; padding:24px; border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <span style="font-size:14px; font-weight:700; color:var(--text-main); display:flex; align-items:center; gap:8px;"><span class="material-symbols-outlined">image</span> Event Poster / Regulations</span>
+                <a href="${t.posterUrl}" target="_blank" class="btn btn-ghost" style="padding:6px 14px; font-size:12px; text-decoration:none;"><span class="material-symbols-outlined">open_in_new</span> Open Full Size</a>
+            </div>
+            <div style="background: var(--bg-body); border-radius: var(--radius); overflow: hidden; height: 400px; display: flex; align-items: center; justify-content: center; padding: 0; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);">
+                <iframe src="${posterUrl}" style="width:100%; height:100%; border:none;"></iframe>
+            </div>
+        </div>` : ''}
+
     ${tunSectionHtml}
     
-    <div style="margin-top: 32px;">
-        <button class="btn btn-ghost" onclick="generateDossierPDF('${t.id}')" style="width: 100%; border-style: dashed; justify-content:center;">↓ Download Official Summary PDF</button>
+    <div style="margin-top: 40px;">
+        <button class="btn btn-ghost" onclick="generateDossierPDF('${t.id}')" style="width: 100%; border-style: dashed; justify-content:center; padding: 14px;"><span class="material-symbols-outlined">picture_as_pdf</span> Download Official Summary PDF</button>
     </div>
     `;
 
@@ -1706,15 +1763,15 @@ window.openDrawer = function(id){
     const isAdmin = ['admin', 'core_admin', 'state_admin'].includes(currentUserProfile.role);
     if (isAdmin) {
         footerHtml = `
-            <div style="display:flex; gap:6px; width:100%; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-                <button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger); border-color:var(--danger); padding:8px 12px; font-size:12px;">Reject</button>
-                <div style="display:flex; gap:6px;">
-                    <button class="btn btn-gold" onclick="changeStatus('REVISION REQ.')" style="padding:8px 12px; font-size:12px;">Revision</button>
-                    <button class="btn btn-primary" onclick="changeStatus('APPROVED')" style="padding:8px 16px; font-size:12px;">Approve</button>
+            <div style="display:flex; gap:12px; width:100%; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                <button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger); border-color:var(--danger); padding:10px 16px;"><span class="material-symbols-outlined">block</span> Reject</button>
+                <div style="display:flex; gap:12px;">
+                    <button class="btn btn-gold" onclick="changeStatus('REVISION REQ.')" style="padding:10px 16px;"><span class="material-symbols-outlined">edit_note</span> Revision</button>
+                    <button class="btn btn-primary" onclick="changeStatus('APPROVED')" style="padding:10px 24px; background:linear-gradient(135deg, #10B981, #059669); border:none; box-shadow:0 4px 12px rgba(16,185,129,0.3);"><span class="material-symbols-outlined">verified</span> Approve</button>
                 </div>
             </div>`;
     } else {
-        footerHtml = `<div style="width:100%; text-align:right;"><button class="btn btn-ghost" onclick="closeDrawer()">Close</button></div>`;
+        footerHtml = `<div style="width:100%; text-align:right;"><button class="btn btn-ghost" onclick="closeDrawer()" style="padding:10px 24px;"><span class="material-symbols-outlined">close</span> Close</button></div>`;
     }
     
     document.getElementById('drawerFooter').innerHTML = footerHtml;
