@@ -1294,6 +1294,27 @@ function renderOrgTable() {
     });
 }
 
+// RESTORED EVENT LISTENERS FOR SIDEBAR FILTERS (Org + Admin)
+document.querySelectorAll('#navFilterOrg .nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('#navFilterOrg .nav-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active'); 
+        currentFilterOrg = btn.getAttribute('data-filter'); 
+        renderOrgTable();
+    });
+});
+
+document.querySelectorAll('#navFilter .nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active'); 
+        currentFilterAdmin = btn.getAttribute('data-filter'); 
+        renderAdminTable();
+        document.getElementById('adminAppsWrap').style.display = 'block'; 
+        document.getElementById('adminUsersWrap').style.display = 'none';
+    });
+});
+
 function listenForUsers() {
     db.collection("users").onSnapshot((snapshot) => {
         usersList = []; snapshot.forEach(doc => usersList.push({ id: doc.id, ...doc.data() }));
@@ -1305,12 +1326,89 @@ function listenForUsers() {
 function renderUsersTable() {
     const tbody = document.getElementById('tableBodyUsers'); 
     if (!tbody) return; tbody.innerHTML = '';
-    usersList.forEach(u => {
+    
+    let filteredUsers = usersList;
+
+    if (selectedUserRoleFilter !== 'all') {
+        filteredUsers = filteredUsers.filter(u => (u.role || 'organizer') === selectedUserRoleFilter);
+    }
+
+    if (selectedUserStateFilter !== 'all') {
+        filteredUsers = filteredUsers.filter(u => (u.state || '') === selectedUserStateFilter);
+    }
+
+    if (searchUsersQ.trim() !== '') {
+        const q = searchUsersQ.toLowerCase();
+        filteredUsers = filteredUsers.filter(u => 
+            (u.name || '').toLowerCase().includes(q) || 
+            (u.email || '').toLowerCase().includes(q)
+        );
+    }
+
+    filteredUsers.forEach(u => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td><b>${u.name || 'N/A'}</b><br><span style="font-size:11px; color:var(--text-muted);">MCF ID: ${u.mcfId || '-'}</span></td><td>${u.email}</td><td>${u.state || '-'}</td><td><span class="status-pill" style="background:#DBEAFE; color:#1E40AF;">${(u.role || 'organizer').toUpperCase()}</span></td><td><button class="btn btn-ghost" style="padding:3px 10px; font-size:11px;" onclick="openUserProfileDrawer('${u.id}')">View Profile</button></td>`;
+        let roleBadge = 'ORGANIZER', badgeStyle = 'background:#F1F5F9; color:#64748B;';
+        if (u.role === 'state_admin') { roleBadge = 'STATE ADMIN'; badgeStyle = 'background:#FEF3C7; color:#92400E;'; }
+        if (u.role === 'admin') { roleBadge = 'MCF ADMIN'; badgeStyle = 'background:#DBEAFE; color:#1E40AF;'; }
+        if (u.role === 'core_admin') { roleBadge = 'CORE ADMIN'; badgeStyle = 'background:#FEE2E2; color:#991B1B;'; }
+
+        let actionHtml = '-';
+        
+        if (currentUserProfile.role === 'core_admin') {
+            if (u.email !== currentUserProfile.email) {
+                actionHtml = `
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <select class="role-select" id="role_${u.id}" style="padding:4px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                        <option value="organizer" ${u.role === 'organizer' ? 'selected' : ''}>Organizer</option>
+                        <option value="state_admin" ${u.role === 'state_admin' ? 'selected' : ''}>State Admin</option>
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>MCF Admin</option>
+                        <option value="core_admin" ${u.role === 'core_admin' ? 'selected' : ''}>Core Admin</option>
+                    </select>
+                    <button class="btn btn-gold btnChangeRole" data-id="${u.id}" style="padding: 3px 8px; font-size: 10px;">Save</button>
+                </div>`;
+            } else {
+                actionHtml = `<span style="font-size:12px; color:var(--text-muted); font-style:italic;">(Your Account)</span>`;
+            }
+        } else {
+            actionHtml = `<span style="font-size:12px; color:var(--text-muted);">Restricted</span>`;
+        }
+
+        tr.innerHTML = `<td><b>${u.name || 'N/A'}</b><br><span style="font-size:11px; color:var(--text-muted);">MCF ID: ${u.mcfId || '-'}</span></td><td>${u.email}</td><td>${u.state || '-'}</td><td><span class="status-pill" style="${badgeStyle}">${roleBadge}</span></td><td>${actionHtml}</td>`;
         tbody.appendChild(tr);
     });
+
+    document.querySelectorAll('.btnChangeRole').forEach(b => b.addEventListener('click', (e) => {
+        if (currentUserProfile.role !== 'core_admin') {
+            showToast("Unauthorized action.");
+            return;
+        }
+        db.collection('users').doc(e.target.dataset.id).update({ role: document.getElementById(`role_${e.target.dataset.id}`).value }); 
+        showToast("Role updated successfully.");
+    }));
 }
+
+// RESTORED EVENT LISTENERS FOR USER MANAGEMENT SEARCH AND TABS
+document.getElementById('searchUsers')?.addEventListener('input', (e) => {
+    searchUsersQ = e.target.value;
+    renderUsersTable();
+});
+
+document.getElementById('userRoleFilter')?.addEventListener('change', (e) => {
+    selectedUserRoleFilter = e.target.value;
+    renderUsersTable();
+});
+
+document.getElementById('userStateFilter')?.addEventListener('change', (e) => {
+    selectedUserStateFilter = e.target.value;
+    renderUsersTable();
+});
+
+document.getElementById('btnNavUsers')?.addEventListener('click', (e) => {
+    document.querySelectorAll('#navFilter .nav-item').forEach(b => b.classList.remove('active')); 
+    e.target.classList.add('active');
+    document.getElementById('adminAppsWrap').style.display = 'none'; 
+    document.getElementById('adminUsersWrap').style.display = 'block';
+});
 
 window.openUserProfileDrawer = function(userId) {
     const u = usersList.find(x => x.id === userId);
@@ -1449,11 +1547,11 @@ window.openDrawer = function(id){
         if (fileId) { previewUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=s1000`; }
     }
 
-    let posterUrl = t.posterUrl || '';
-    if (posterUrl.includes('drive.google.com') && !posterUrl.includes('thumbnail')) {
+    let posterUrl = t.previewPosterUrl || t.posterUrl || '';
+    if (posterUrl.includes('drive.google.com') && !posterUrl.includes('preview')) {
         const match = posterUrl.match(/\/d\/(.*?)\/|\?id=(.*?)(&|$)/);
         const fileId = match ? (match[1] || match[2]) : null;
-        if (fileId) { posterUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=s1000`; }
+        if (fileId) { posterUrl = `https://drive.google.com/file/d/${fileId}/preview`; }
     }
 
     document.getElementById('drawerContent').innerHTML = `
@@ -1486,8 +1584,8 @@ window.openDrawer = function(id){
                 <span class="label" style="color: var(--text-muted); font-size:10px; text-transform:uppercase; display:block;">Event Poster / Regulations</span>
                 <a href="${t.posterUrl}" target="_blank" class="btn btn-ghost" style="padding:4px 10px; font-size:11px; text-decoration:none; background:white;">🔗 Open Poster</a>
             </div>
-            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; padding: 10px; text-align: center;">
-                <img src="${posterUrl}" alt="Event Poster" style="max-width:100%; max-height:280px; object-fit:contain; border-radius:4px;" onerror="this.onerror=null; this.src='https://placehold.co/600x400?text=Poster+Preview+Unavailable';">
+            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: 350px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <iframe src="${posterUrl}" style="width:100%; height:100%; border:none;"></iframe>
             </div>
         </div>` : ''}
     </div>
