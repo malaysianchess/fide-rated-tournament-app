@@ -1849,6 +1849,21 @@ window.showToast = function(msg) {
     } else { alert(msg); }
 };
 
+function readFileAsDataURL(inputId) {
+    return new Promise((resolve) => {
+        const input = document.getElementById(inputId);
+        if (!input || !input.files || !input.files[0]) {
+            resolve({ data: "", name: "" });
+            return;
+        }
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onloadend = () => resolve({ data: reader.result || "", name: file.name || "" });
+        reader.onerror = () => resolve({ data: "", name: "" });
+        reader.readAsDataURL(file);
+    });
+}
+
 function formatLocalDate(dateStr) {
     if (!dateStr) return '—';
     try {
@@ -1987,12 +2002,46 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     } catch (error) { errorBox.textContent = error.message; errorBox.style.display = 'block'; }
 });
 
+document.getElementById('profileForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnSaveProfile');
+    const errBox = document.getElementById('profError');
+    errBox.style.display = 'none';
+
+    const name = document.getElementById('profName').value.trim();
+    const phone = document.getElementById('profPhone').value.trim();
+    const state = document.getElementById('profState').value;
+
+    if (!name || !state) {
+        errBox.textContent = "Full Name and State are required.";
+        errBox.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    try {
+        await db.collection('users').doc(currentUserProfile.uid).update({ name, phone, state });
+        currentUserProfile.name = name;
+        currentUserProfile.phone = phone;
+        currentUserProfile.state = state;
+        showToast("✓ Profile updated successfully!");
+    } catch (err) {
+        errBox.textContent = err.message;
+        errBox.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+    }
+});
+
 document.querySelectorAll('.btnLogOut').forEach(btn => btn.addEventListener('click', () => auth.signOut()));
 document.getElementById('btnGoOrgView')?.addEventListener('click', () => showView('organizer-dash'));
 document.getElementById('btnGoAdminView')?.addEventListener('click', () => showView('admin'));
 
 document.getElementById('btnNewAppDash')?.addEventListener('click', () => {
     currentStepIndex = 0;
+    if (currentUserProfile.state && document.getElementById('orgState')) {
+        document.getElementById('orgState').value = currentUserProfile.state;
+    }
     updateWizardView();
     updateDossier();
     showView('organizer-wizard');
@@ -2045,7 +2094,8 @@ document.getElementById('nextBtn')?.addEventListener('click', () => {
     let isValid = true;
 
     requiredInputs.forEach(input => {
-        if (!input.value.trim()) {
+        const empty = input.type === 'checkbox' ? !input.checked : !input.value.trim();
+        if (empty) {
             isValid = false;
             input.style.borderColor = 'var(--danger)';
         } else {
@@ -2172,50 +2222,73 @@ function computeFee(){
     return { base, perPlayer, total: base + (perPlayer * pax) };
 }
 
-// Form Submission Handler
+// Form Submission Handler (Uploads Receipt, Poster, and Affiliate Letter to auto-generated Drive folders)
 document.getElementById('submitAppBtn')?.addEventListener('click', async () => {
-    showToast("Submitting application dossier...");
+    showToast("Uploading files & submitting dossier...");
     const btn = document.getElementById('submitAppBtn');
     btn.disabled = true;
-
-    const fileInput = document.getElementById('receiptUpload');
-    let fileData = "", fileName = "";
-    if (fileInput && fileInput.files[0]) {
-        const file = fileInput.files[0];
-        fileName = file.name;
-        fileData = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(file);
-        });
-    }
-
-    const payload = {
-        action: 'submitDossier',
-        eventName: document.getElementById('eventName')?.value || '',
-        venue: document.getElementById('venue')?.value || '',
-        state: document.getElementById('orgState')?.value || currentUserProfile.state || 'Selangor',
-        orgCategory: document.getElementById('orgCategory')?.value || 'Independent Organizer',
-        pax: Number(document.getElementById('pax')?.value || 0),
-        startDate: document.getElementById('dateStart')?.value || '',
-        endDate: document.getElementById('dateEnd')?.value || '',
-        system: document.getElementById('system')?.value || '',
-        rounds: document.getElementById('rounds')?.value || '7',
-        totalFee: computeFee().total,
-        paymentRef: document.getElementById('paymentRef')?.value || '',
-        chiefArbiter: document.getElementById('chiefArbiter')?.value || '',
-        chiefArbiterFide: document.getElementById('chiefArbiterFide')?.value || '',
-        chiefOrg: currentUserProfile.name || '',
-        chiefOrgFide: currentUserProfile.mcfId || '',
-        contactEmail: currentUserProfile.email || '',
-        organizerEmail: currentUserProfile.email || '',
-        fileData: fileData,
-        fileName: fileName,
-        signName: document.getElementById('signName')?.value || '',
-        signDate: document.getElementById('signDate')?.value || ''
-    };
+    btn.innerHTML = `<span class="material-symbols-outlined">hourglass_top</span> Submitting...`;
 
     try {
+        const [receiptFile, posterFile, affiliateFile] = await Promise.all([
+            readFileAsDataURL('receiptUpload'),
+            readFileAsDataURL('posterUpload'),
+            readFileAsDataURL('affiliateLetterUpload')
+        ]);
+
+        const directTitles = [];
+        if (document.getElementById('chkWorldEvent')?.checked) directTitles.push('World event');
+        if (document.getElementById('chkAsianEvent')?.checked) directTitles.push('Asian event');
+        if (document.getElementById('chkFideAffiliateEvent')?.checked) directTitles.push('FIDE affiliate event');
+
+        const titleNormsChecked = document.getElementById('chkTitleNorms')?.checked;
+
+        const payload = {
+            action: 'submitDossier',
+            eventName: document.getElementById('eventName')?.value.trim() || '',
+            venue: document.getElementById('venue')?.value.trim() || '',
+            state: document.getElementById('orgState')?.value || currentUserProfile.state || 'Selangor',
+            orgCategory: document.getElementById('orgCategory')?.value || 'Independent Organizer',
+            fideLaws: document.getElementById('chkFideLaws')?.checked ? 'Yes' : 'No',
+            natChampionship: document.getElementById('chkNatChampionship')?.checked ? 'Yes' : 'No',
+            titleNorms: titleNormsChecked ? 'Yes' : 'No',
+            normAvailable: titleNormsChecked ? (document.getElementById('normAvailable')?.value || '') : '',
+            directTitle: directTitles.length ? directTitles.join(', ') : 'None',
+            tourneyType: document.getElementById('tourneyType')?.value || 'Over the Board',
+            pax: Number(document.getElementById('pax')?.value || 0),
+            startDate: document.getElementById('dateStart')?.value || '',
+            endDate: document.getElementById('dateEnd')?.value || '',
+            system: document.getElementById('system')?.value || '',
+            rounds: document.getElementById('rounds')?.value || '7',
+            multiRoundDays: document.getElementById('multiRoundDays')?.value || '1',
+            timeControl: document.getElementById('tcInput')?.value.trim() || '',
+            software: document.getElementById('software')?.value || 'ChessManager',
+            tb1: document.getElementById('tb1')?.value.trim() || 'Direct encounter',
+            tb2: document.getElementById('tb2')?.value.trim() || '',
+            tb3: document.getElementById('tb3')?.value.trim() || '',
+            chiefArbiter: document.getElementById('chiefArbiter')?.value.trim() || '',
+            chiefArbiterFide: document.getElementById('chiefArbiterFide')?.value.trim() || '',
+            deputyArbiter: document.getElementById('deputyChiefArbiter')?.value.trim() || '',
+            deputyArbiterFide: document.getElementById('deputyChiefArbiterFide')?.value.trim() || '',
+            chiefOrg: document.getElementById('chiefOrg')?.value.trim() || currentUserProfile.name || '',
+            chiefOrgFide: document.getElementById('chiefOrgFide')?.value.trim() || currentUserProfile.mcfId || '',
+            maxRating: document.getElementById('maxRatingCond')?.value.trim() || 'No limit',
+            ageLimit: document.getElementById('ageLimit')?.value.trim() || 'None',
+            totalFee: computeFee().total,
+            paymentRef: document.getElementById('paymentRef')?.value.trim() || '',
+            contactEmail: currentUserProfile.email || '',
+            organizerEmail: currentUserProfile.email || '',
+            fileData: receiptFile.data,
+            fileName: receiptFile.name,
+            posterData: posterFile.data,
+            posterFileName: posterFile.name,
+            affiliateLetterData: affiliateFile.data,
+            affiliateLetterName: affiliateFile.name,
+            obj1: document.getElementById('obj1')?.value.trim() || '',
+            signName: document.getElementById('signName')?.value.trim() || '',
+            signDate: document.getElementById('signDate')?.value || ''
+        };
+
         const res = await fetch(SCRIPT_URL, {
             method: 'POST',
             headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -2224,6 +2297,9 @@ document.getElementById('submitAppBtn')?.addEventListener('click', async () => {
         const result = await res.json();
         if (result && result.status === 'success') {
             showToast("✓ Application successfully submitted!");
+            document.getElementById('wizard')?.reset();
+            toggleNormFields();
+            toggleAffiliateLetter();
             showView('organizer-dash');
             fetchDossiers();
         } else {
@@ -2267,7 +2343,7 @@ window.fetchDossiers = async function() {
     try {
         const res = await fetch(`${SCRIPT_URL}?action=getDossiers`);
         const data = await res.json();
-        applications = (data || []).reverse();
+        applications = (Array.isArray(data) ? data : []).reverse();
         updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
     } catch (err) { console.log("Error loading data."); }
 };
@@ -2284,7 +2360,7 @@ function updateAdminCounts() {
     document.getElementById('cntApproved').innerText = viewableApps.filter(a => a.status === 'APPROVED').length;
     document.getElementById('cntRevision').innerText = viewableApps.filter(a => a.status === 'REVISION REQ.').length;
     document.getElementById('statFees').innerText = 'RM ' + viewableApps.filter(a => a.status === 'APPROVED').reduce((sum, app) => sum + (Number(app.fee) || 0), 0).toLocaleString();
-    document.getElementById('statAction').innerText = viewableApps.filter(a => a.status.includes('PENDING')).length + ' Events';
+    document.getElementById('statAction').innerText = viewableApps.filter(a => String(a.status || '').includes('PENDING')).length + ' Events';
 }
 
 function renderAdminTable() {
@@ -2622,8 +2698,9 @@ window.openDrawer = function(id){
                 <b style="font-size: 22px; color: var(--text-main); font-weight:800; font-variant-numeric:tabular-nums;">RM ${t.fee || 0}</b>
                 <div style="font-size:12px; color:var(--text-muted); margin-top:3px;">Ref: ${t.paymentRef || '-'}</div>
             </div>
-            <div>
+            <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
                 ${t.receiptUrl && t.receiptUrl.startsWith('http') ? `<a href="${t.receiptUrl}" target="_blank" class="btn btn-ghost" style="padding:8px 14px; font-size:12px;"><span class="material-symbols-outlined">open_in_new</span> Open Receipt</a>` : `<span style="font-size:12px; color:var(--text-muted); font-style:italic;">No Receipt</span>`}
+                ${t.affiliateLetterUrl && t.affiliateLetterUrl.startsWith('http') ? `<a href="${t.affiliateLetterUrl}" target="_blank" class="btn btn-ghost" style="padding:6px 12px; font-size:11px;"><span class="material-symbols-outlined" style="font-size:15px;">verified_user</span> Affiliate Letter</a>` : ''}
             </div>
         </div>
         ${t.receiptUrl && t.receiptUrl.startsWith('http') ? `
@@ -2639,8 +2716,8 @@ window.openDrawer = function(id){
     <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; box-shadow:var(--shadow-xs);">
         <div class="fide-copy-row"><span>Event Name</span><b>${t.eventName || '-'}</b></div>
         <div class="fide-copy-row"><span>Venue & State</span><b>${t.venue || '-'}, ${t.state || '-'}</b></div>
-        <div class="fide-copy-row"><span>Start Date (YYYY-MM-DD)</span><b style="color:var(--primary);">${t.startDate ? t.startDate.split('T')[0] : '-'}</b></div>
-        <div class="fide-copy-row"><span>End Date (YYYY-MM-DD)</span><b style="color:var(--primary);">${t.endDate ? t.endDate.split('T')[0] : '-'}</b></div>
+        <div class="fide-copy-row"><span>Start Date (YYYY-MM-DD)</span><b style="color:var(--primary);">${t.startDate ? String(t.startDate).split('T')[0] : '-'}</b></div>
+        <div class="fide-copy-row"><span>End Date (YYYY-MM-DD)</span><b style="color:var(--primary);">${t.endDate ? String(t.endDate).split('T')[0] : '-'}</b></div>
         <div class="fide-copy-row"><span>Expected Players</span><b>${t.pax || 0}</b></div>
         <div class="fide-copy-row"><span>Tournament System</span><b>${t.system || 'Swiss'}</b></div>
         <div class="fide-copy-row"><span>Number of Rounds reported</span><b>${t.rounds || '7'}</b></div>
@@ -2701,21 +2778,15 @@ window.openDrawer = function(id){
 window.uploadTunFile = async function(id) {
     const fileInput = document.getElementById('tunUploadInput');
     if (!fileInput || fileInput.files.length === 0) { showToast("Please select a file first."); return; }
-    const file = fileInput.files[0];
     showToast("Uploading tournament report...");
 
-    const fileData = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-    });
-
+    const tunFile = await readFileAsDataURL('tunUploadInput');
     if (!SCRIPT_URL) return showToast("SCRIPT_URL missing.");
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: 'submitTunFile', id: id, fileData: fileData, fileName: file.name })
+            body: JSON.stringify({ action: 'submitTunFile', id: id, fileData: tunFile.data, fileName: tunFile.name })
         });
         const res = await response.json();
         if (res && res.status === 'success') {
@@ -2732,7 +2803,7 @@ window.promptRejectTun = async function(id) {
     if (reason === null) return;
     if (!reason.trim()) { alert("Rejection reason cannot be empty."); return; }
 
-    if (typeof showToast === "function") showToast("Submitting rejection comment...");
+    showToast("Submitting rejection comment...");
     if (!SCRIPT_URL) return alert("SCRIPT_URL missing.");
     try {
         const response = await fetch(SCRIPT_URL, {
@@ -2742,7 +2813,7 @@ window.promptRejectTun = async function(id) {
         });
         const res = await response.json();
         if (res && res.status === 'success') {
-            if (typeof showToast === "function") showToast("✓ .tun report rejected with comments.");
+            showToast("✓ .tun report rejected with comments.");
             const item = applications.find(x => x.id === id);
             if (item) { item.tunStatus = 'REJECTED'; item.tunRejectReason = reason; }
             updateAdminCounts(); renderAdminTable(); updateOrgCounts(); renderOrgTable();
@@ -2763,7 +2834,7 @@ window.promptFinanceAdjustment = function(id) {
 };
 
 window.submitFinanceActionToSheet = async function(id, actionType, comment) {
-    if (typeof showToast === "function") showToast("Saving adjustment...");
+    showToast("Saving adjustment...");
     if (!SCRIPT_URL) return alert("SCRIPT_URL missing.");
     try {
         const response = await fetch(SCRIPT_URL, {
@@ -2809,20 +2880,15 @@ window.submitOrganizerBank = async function(id) {
 window.submitOrganizerTopUp = async function(id) {
     const fileInput = document.getElementById('topUpFileInput');
     if (!fileInput || fileInput.files.length === 0) { alert("Please select a receipt file."); return; }
-    const file = fileInput.files[0];
 
     showToast("Uploading top-up receipt...");
-    const fileData = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-    });
+    const topUpFile = await readFileAsDataURL('topUpFileInput');
 
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: 'submitOrganizerResponse', id: id, fileData: fileData, fileName: file.name })
+            body: JSON.stringify({ action: 'submitOrganizerResponse', id: id, fileData: topUpFile.data, fileName: topUpFile.name })
         });
         const res = await response.json();
         if (res && res.status === 'success') {
