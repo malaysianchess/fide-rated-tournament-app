@@ -2338,6 +2338,81 @@ function getStatusIcon(status) {
     return 'cancel';
 }
 
+function renderStatusBadges(app) {
+    let html = `<div style="display:flex; flex-direction:column; gap:5px; align-items:flex-start;">`;
+
+    // 1. Main Application Status
+    html += `<span class="status-pill" style="${getBadgeStyle(app.status)}">
+        <span class="material-symbols-outlined" style="font-size:14px;">${getStatusIcon(app.status)}</span> ${app.status}
+    </span>`;
+
+    // 2. Tournament Report (.tun) Status (shown once application is APPROVED)
+    if (app.status === 'APPROVED') {
+        const tunStatus = app.tunStatus || 'PENDING';
+        const hasTun = app.tunUrl && String(app.tunUrl).startsWith('http');
+
+        if (tunStatus === 'RECEIVED') {
+            html += `<span class="status-pill" style="background:#ECFDF5; color:#065F46; border:1px solid #6EE7B7; font-size:10px; padding:3px 9px;">
+                <span class="material-symbols-outlined" style="font-size:13px;">task_alt</span> .tun Verified
+            </span>`;
+        } else if (tunStatus === 'REJECTED') {
+            html += `<span class="status-pill" style="background:#FEF2F2; color:#991B1B; border:1px solid #FCA5A5; font-size:10px; padding:3px 9px;">
+                <span class="material-symbols-outlined" style="font-size:13px;">error</span> .tun Rejected
+            </span>`;
+        } else if (hasTun) {
+            html += `<span class="status-pill" style="background:#EFF6FF; color:#1E40AF; border:1px solid #93C5FD; font-size:10px; padding:3px 9px;">
+                <span class="material-symbols-outlined" style="font-size:13px;">pending</span> .tun Pending Review
+            </span>`;
+        } else {
+            html += `<span class="status-pill" style="background:#F1F5F9; color:#475569; border:1px solid #CBD5E1; font-size:10px; padding:3px 9px;">
+                <span class="material-symbols-outlined" style="font-size:13px;">upload_file</span> Awaiting .tun
+            </span>`;
+        }
+    }
+
+    // 3. Finance Adjustment Status (Top-Up or Refund)
+    if (app.financeAction === 'TOPUP') {
+        if (app.financeStatus === 'APPROVED') {
+            html += `<span class="status-pill" style="background:#ECFDF5; color:#065F46; border:1px solid #6EE7B7; font-size:10px; padding:3px 9px;">
+                <span class="material-symbols-outlined" style="font-size:13px;">verified</span> Top-Up Approved
+            </span>`;
+        } else if (app.financeStatus === 'REJECTED') {
+            html += `<span class="status-pill" style="background:#FEF2F2; color:#991B1B; border:1px solid #FCA5A5; font-size:10px; padding:3px 9px;">
+                <span class="material-symbols-outlined" style="font-size:13px;">cancel</span> Top-Up Rejected
+            </span>`;
+        } else if (app.topUpReceiptUrl) {
+            html += `<span class="status-pill" style="background:#EFF6FF; color:#1E40AF; border:1px solid #93C5FD; font-size:10px; padding:3px 9px;">
+                <span class="material-symbols-outlined" style="font-size:13px;">receipt_long</span> Top-Up Pending Review
+            </span>`;
+        } else {
+            html += `<span class="status-pill" style="background:#FEF2F2; color:#991B1B; border:1px solid #FECACA; font-size:10px; padding:3px 9px;">
+                <span class="material-symbols-outlined" style="font-size:13px;">warning</span> Top-Up Required
+            </span>`;
+        }
+    } else if (app.financeAction === 'REFUND') {
+        if (app.financeStatus === 'APPROVED') {
+            html += `<span class="status-pill" style="background:#ECFDF5; color:#065F46; border:1px solid #6EE7B7; font-size:10px; padding:3px 9px;">
+                <span class="material-symbols-outlined" style="font-size:13px;">verified</span> Refund Completed
+            </span>`;
+        } else if (app.financeStatus === 'REJECTED') {
+            html += `<span class="status-pill" style="background:#FEF2F2; color:#991B1B; border:1px solid #FCA5A5; font-size:10px; padding:3px 9px;">
+                <span class="material-symbols-outlined" style="font-size:13px;">cancel</span> Refund Rejected
+            </span>`;
+        } else if (app.bankDetails) {
+            html += `<span class="status-pill" style="background:#EFF6FF; color:#1E40AF; border:1px solid #93C5FD; font-size:10px; padding:3px 9px;">
+                <span class="material-symbols-outlined" style="font-size:13px;">account_balance</span> Bank Info Submitted
+            </span>`;
+        } else {
+            html += `<span class="status-pill" style="background:#FFFBEB; color:#92400E; border:1px solid #FCD34D; font-size:10px; padding:3px 9px;">
+                <span class="material-symbols-outlined" style="font-size:13px;">account_balance_wallet</span> Refund Notice
+            </span>`;
+        }
+    }
+
+    html += `</div>`;
+    return html;
+}
+
 window.fetchDossiers = async function() {
     if (!SCRIPT_URL) return;
     try {
@@ -2392,7 +2467,7 @@ function renderAdminTable() {
             <td>${app.system} (${app.rounds || '-'} Rds)<br><span style="font-size:11px; color:var(--text-muted);">${app.timeControl || '-'}</span></td>
             <td>${app.pax} pax</td>
             <td><b style="color:var(--primary);">RM ${app.fee || 0}</b><br><span style="font-size:11px; color:var(--text-muted);">Ref: ${app.paymentRef || '-'}</span></td>
-            <td><span class="status-pill" style="${getBadgeStyle(app.status)}"><span class="material-symbols-outlined" style="font-size:14px;">${getStatusIcon(app.status)}</span> ${app.status}</span></td>
+            <td>${renderStatusBadges(app)}</td>
         `;
         tr.addEventListener('click', () => openDrawer(app.id));
         tbody.appendChild(tr);
@@ -2433,7 +2508,7 @@ function renderOrgTable() {
             <td>${app.system} (${app.rounds || '-'} Rds)<br><span style="font-size:11px; color:var(--text-muted);">${app.timeControl || '-'}</span></td>
             <td>${app.pax} pax</td>
             <td><b style="color:var(--primary);">RM ${app.fee || 0}</b></td>
-            <td><span class="status-pill" style="${getBadgeStyle(app.status)}"><span class="material-symbols-outlined" style="font-size:14px;">${getStatusIcon(app.status)}</span> ${app.status}</span></td>
+            <td>${renderStatusBadges(app)}</td>
         `;
         tr.addEventListener('click', () => openDrawer(app.id));
         tbody.appendChild(tr);
