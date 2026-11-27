@@ -2614,11 +2614,12 @@ window.openDrawer = function(id){
         if (t.financeAction) {
             const isRefund = t.financeAction === 'REFUND';
             const isFinanceApproved = t.financeStatus === 'APPROVED';
+            const isFinanceRejected = t.financeStatus === 'REJECTED';
 
             const boxBg = isFinanceApproved ? '#ECFDF5' : (isRefund ? '#FFFBEB' : '#FEF2F2');
             const boxBorder = isFinanceApproved ? '#6EE7B7' : (isRefund ? '#FCD34D' : '#FECACA');
             const titleColor = isFinanceApproved ? '#065F46' : (isRefund ? '#92400E' : '#991B1B');
-            const iconName = isFinanceApproved ? 'verified' : (isRefund ? 'account_balance_wallet' : 'warning');
+            const iconName = isFinanceApproved ? 'verified' : (isFinanceRejected ? 'cancel' : (isRefund ? 'account_balance_wallet' : 'warning'));
             const titleText = isFinanceApproved
                 ? (isRefund ? 'MCF Fee Refund Completed' : 'Additional Balance Top-Up Approved')
                 : (isRefund ? 'MCF Fee Refund Notice' : 'Additional Balance Top-Up Required');
@@ -2631,8 +2632,15 @@ window.openDrawer = function(id){
                         ${titleText}
                     </h4>
                     ${isFinanceApproved ? `<span class="status-pill" style="background:#D1FAE5; color:#065F46; border:1px solid #34D399;">✓ SETTLED</span>` : ''}
+                    ${isFinanceRejected ? `<span class="status-pill" style="background:#FEE2E2; color:#991B1B; border:1px solid #FCA5A5;">✕ REJECTED</span>` : ''}
                 </div>
-                <p style="margin:0 0 14px; font-size:13px; color:var(--text-main);"><b>Admin Comment:</b> ${t.financeComment || 'No comments.'}</p>
+                <p style="margin:0 0 12px; font-size:13px; color:var(--text-main);"><b>Admin Comment:</b> ${t.financeComment || 'No comments.'}</p>
+
+                ${isFinanceRejected && t.financeRejectReason ? `
+                    <div style="background:#FFFFFF; border-left:3px solid var(--danger); padding:10px 12px; border-radius:var(--radius-xs); margin-bottom:14px; font-size:13px; color:#991B1B;">
+                        <b>Rejection Reason:</b> ${t.financeRejectReason}
+                    </div>
+                ` : ''}
 
                 ${isOrganizer && !isFinanceApproved ? `
                     ${isRefund ? `
@@ -2644,7 +2652,7 @@ window.openDrawer = function(id){
                         </div>
                     ` : `
                         <div style="background:white; padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border); margin-bottom:12px;">
-                            <label style="font-size:12px; font-weight:600; display:block; margin-bottom:8px;">Upload Remaining Balance Receipt:</label>
+                            <label style="font-size:12px; font-weight:600; display:block; margin-bottom:8px;">${isFinanceRejected ? 'Re-upload Remaining Balance Receipt:' : 'Upload Remaining Balance Receipt:'}</label>
                             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                                 <input type="file" id="topUpFileInput" accept="image/*,.pdf" style="font-size:12px; padding:8px;">
                                 <button class="btn btn-primary" style="font-size:12px;" onclick="submitOrganizerTopUp('${t.id}')">Upload Receipt</button>
@@ -2659,11 +2667,16 @@ window.openDrawer = function(id){
                 `}
 
                 ${isMCFAdmin ? `
-                    <div style="background:white; padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                    <div style="background:white; padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
                         <label style="display:flex; align-items:center; gap:10px; font-size:13px; font-weight:600; color:var(--text-main); cursor:pointer; margin:0;">
                             <input type="checkbox" ${isFinanceApproved ? 'checked' : ''} onchange="toggleFinanceApproval('${t.id}', this.checked)">
                             <span>${isRefund ? 'Tick to confirm Refund Completed' : 'Tick to Approve Additional Balance Top-Up'}</span>
                         </label>
+                        ${!isFinanceApproved ? `
+                            <button type="button" class="btn btn-ghost" style="font-size:12px; padding:7px 12px; color:var(--danger); border-color:#FECACA;" onclick="promptRejectFinance('${t.id}')">
+                                <span class="material-symbols-outlined" style="font-size:16px;">close</span> Reject
+                            </button>
+                        ` : ''}
                     </div>
                 ` : ''}
             </div>`;
@@ -2873,6 +2886,7 @@ window.submitFinanceActionToSheet = async function(id, actionType, comment) {
                 item.financeAction = actionType;
                 item.financeComment = comment;
                 item.financeStatus = 'PENDING';
+                item.financeRejectReason = '';
             }
             openDrawer(id); fetchDossiers();
         } else { alert("Error: " + (res.message || "Unknown error")); }
@@ -2894,7 +2908,11 @@ window.submitOrganizerBank = async function(id) {
         if (res && res.status === 'success') {
             showToast("✓ Bank details submitted successfully!");
             const item = applications.find(x => x.id === id);
-            if (item) item.bankDetails = bankDetails;
+            if (item) {
+                item.bankDetails = bankDetails;
+                item.financeStatus = 'PENDING';
+                item.financeRejectReason = '';
+            }
             openDrawer(id); fetchDossiers();
         } else { alert("Error: " + (res.message || "Unknown error")); }
     } catch (err) { alert("Connection Error: " + err.message); }
@@ -2917,7 +2935,11 @@ window.submitOrganizerTopUp = async function(id) {
         if (res && res.status === 'success') {
             showToast("✓ Top-up receipt uploaded successfully!");
             const item = applications.find(x => x.id === id);
-            if (item) item.topUpReceiptUrl = res.topUpReceiptUrl;
+            if (item) {
+                item.topUpReceiptUrl = res.topUpReceiptUrl;
+                item.financeStatus = 'PENDING';
+                item.financeRejectReason = '';
+            }
             openDrawer(id); fetchDossiers();
         } else { alert("Error: " + (res.message || "Unknown error")); }
     } catch (err) { alert("Connection Error: " + err.message); }
@@ -2938,7 +2960,10 @@ window.toggleFinanceApproval = async function(id, isChecked) {
         if (res && res.status === 'success') {
             showToast(isChecked ? "✓ Balance adjustment approved!" : "Adjustment marked as pending.");
             const item = applications.find(x => x.id === id);
-            if (item) item.financeStatus = newStatus;
+            if (item) {
+                item.financeStatus = newStatus;
+                item.financeRejectReason = '';
+            }
             openDrawer(id);
             fetchDossiers();
         } else {
@@ -2948,6 +2973,43 @@ window.toggleFinanceApproval = async function(id, isChecked) {
     } catch (err) {
         alert("Connection Error: " + err.message);
         openDrawer(id);
+    }
+};
+
+window.promptRejectFinance = async function(id) {
+    const reason = prompt("Please enter the reason why this top-up / balance submission is rejected:");
+    if (reason === null) return;
+    if (!reason.trim()) { alert("Rejection reason cannot be empty."); return; }
+
+    showToast("Submitting rejection comment...");
+    if (!SCRIPT_URL) return alert("SCRIPT_URL missing.");
+
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+                action: 'approveFinanceAdjustment',
+                id: id,
+                financeStatus: 'REJECTED',
+                reason: reason.trim()
+            })
+        });
+        const res = await response.json();
+        if (res && res.status === 'success') {
+            showToast("✓ Balance submission rejected with comment.");
+            const item = applications.find(x => x.id === id);
+            if (item) {
+                item.financeStatus = 'REJECTED';
+                item.financeRejectReason = reason.trim();
+            }
+            openDrawer(id);
+            fetchDossiers();
+        } else {
+            alert("Error: " + (res.message || "Unknown error"));
+        }
+    } catch (err) {
+        alert("Connection Error: " + err.message);
     }
 };
 
