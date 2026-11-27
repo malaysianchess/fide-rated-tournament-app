@@ -2222,7 +2222,7 @@ function computeFee(){
     return { base, perPlayer, total: base + (perPlayer * pax) };
 }
 
-// Form Submission Handler (Uploads Receipt, Poster, and Affiliate Letter to auto-generated Drive folders)
+// Form Submission Handler
 document.getElementById('submitAppBtn')?.addEventListener('click', async () => {
     showToast("Uploading files & submitting dossier...");
     const btn = document.getElementById('submitAppBtn');
@@ -2613,24 +2613,37 @@ window.openDrawer = function(id){
         let financeUI = '';
         if (t.financeAction) {
             const isRefund = t.financeAction === 'REFUND';
+            const isFinanceApproved = t.financeStatus === 'APPROVED';
+
+            const boxBg = isFinanceApproved ? '#ECFDF5' : (isRefund ? '#FFFBEB' : '#FEF2F2');
+            const boxBorder = isFinanceApproved ? '#6EE7B7' : (isRefund ? '#FCD34D' : '#FECACA');
+            const titleColor = isFinanceApproved ? '#065F46' : (isRefund ? '#92400E' : '#991B1B');
+            const iconName = isFinanceApproved ? 'verified' : (isRefund ? 'account_balance_wallet' : 'warning');
+            const titleText = isFinanceApproved
+                ? (isRefund ? 'MCF Fee Refund Completed' : 'Additional Balance Top-Up Approved')
+                : (isRefund ? 'MCF Fee Refund Notice' : 'Additional Balance Top-Up Required');
+
             financeUI = `
-            <div style="margin-top: 18px; background: ${isRefund ? '#FFFBEB' : '#FEF2F2'}; border: 1px solid ${isRefund ? '#FCD34D' : '#FECACA'}; padding: 18px; border-radius: var(--radius);">
-                <h4 style="margin:0 0 8px; font-size:14px; color:${isRefund ? '#92400E' : '#991B1B'}; display:flex; align-items:center; gap:6px;">
-                    <span class="material-symbols-outlined">${isRefund ? 'account_balance_wallet' : 'warning'}</span>
-                    ${isRefund ? 'MCF Fee Refund Notice' : 'Additional Balance Top-Up Required'}
-                </h4>
+            <div style="margin-top: 18px; background: ${boxBg}; border: 1px solid ${boxBorder}; padding: 18px; border-radius: var(--radius);">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+                    <h4 style="margin:0; font-size:14px; color:${titleColor}; display:flex; align-items:center; gap:6px;">
+                        <span class="material-symbols-outlined">${iconName}</span>
+                        ${titleText}
+                    </h4>
+                    ${isFinanceApproved ? `<span class="status-pill" style="background:#D1FAE5; color:#065F46; border:1px solid #34D399;">✓ SETTLED</span>` : ''}
+                </div>
                 <p style="margin:0 0 14px; font-size:13px; color:var(--text-main);"><b>Admin Comment:</b> ${t.financeComment || 'No comments.'}</p>
 
-                ${isOrganizer ? `
+                ${isOrganizer && !isFinanceApproved ? `
                     ${isRefund ? `
-                        <div style="background:white; padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+                        <div style="background:white; padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border); margin-bottom:12px;">
                             <label style="font-size:12px; font-weight:600; display:block; margin-bottom:8px;">Enter Bank Details for Refund:</label>
                             <input type="text" id="orgBankInput" value="${t.bankDetails || ''}" placeholder="e.g. Maybank 1234567890 (Ahmad)" style="margin-bottom:10px;">
                             <button class="btn btn-primary" style="font-size:12px;" onclick="submitOrganizerBank('${t.id}')">Submit Details</button>
                             ${t.bankDetails ? '<span style="font-size:12px; color:#059669; display:block; margin-top:8px; font-weight:600;">✓ Bank details submitted.</span>' : ''}
                         </div>
                     ` : `
-                        <div style="background:white; padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+                        <div style="background:white; padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border); margin-bottom:12px;">
                             <label style="font-size:12px; font-weight:600; display:block; margin-bottom:8px;">Upload Remaining Balance Receipt:</label>
                             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                                 <input type="file" id="topUpFileInput" accept="image/*,.pdf" style="font-size:12px; padding:8px;">
@@ -2640,10 +2653,19 @@ window.openDrawer = function(id){
                         </div>
                     `}
                 ` : `
-                    <div style="font-size:13px; color:var(--text-main); background:rgba(255,255,255,0.7); padding:10px 12px; border-radius:var(--radius-xs);">
-                        ${isRefund ? `<b>Organizer Bank Info:</b> ${t.bankDetails || 'Pending input...'}` : `<b>Top-Up Receipt:</b> ${t.topUpReceiptUrl ? `<a href="${t.topUpReceiptUrl}" target="_blank" style="color:#2563EB; font-weight:600;">View Receipt</a>` : 'Pending receipt...'}`}
+                    <div style="font-size:13px; color:var(--text-main); background:rgba(255,255,255,0.75); padding:10px 12px; border-radius:var(--radius-xs); margin-bottom:12px;">
+                        ${isRefund ? `<b>Organizer Bank Info:</b> ${t.bankDetails || 'Pending input...'}` : `<b>Top-Up Receipt:</b> ${t.topUpReceiptUrl ? `<a href="${t.topUpReceiptUrl}" target="_blank" style="color:#2563EB; font-weight:600;">View Uploaded Receipt</a>` : 'Pending receipt...'}`}
                     </div>
                 `}
+
+                ${isMCFAdmin ? `
+                    <div style="background:white; padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                        <label style="display:flex; align-items:center; gap:10px; font-size:13px; font-weight:600; color:var(--text-main); cursor:pointer; margin:0;">
+                            <input type="checkbox" ${isFinanceApproved ? 'checked' : ''} onchange="toggleFinanceApproval('${t.id}', this.checked)">
+                            <span>${isRefund ? 'Tick to confirm Refund Completed' : 'Tick to Approve Additional Balance Top-Up'}</span>
+                        </label>
+                    </div>
+                ` : ''}
             </div>`;
         }
 
@@ -2850,6 +2872,7 @@ window.submitFinanceActionToSheet = async function(id, actionType, comment) {
                 item.tunStatus = 'RECEIVED';
                 item.financeAction = actionType;
                 item.financeComment = comment;
+                item.financeStatus = 'PENDING';
             }
             openDrawer(id); fetchDossiers();
         } else { alert("Error: " + (res.message || "Unknown error")); }
@@ -2898,6 +2921,34 @@ window.submitOrganizerTopUp = async function(id) {
             openDrawer(id); fetchDossiers();
         } else { alert("Error: " + (res.message || "Unknown error")); }
     } catch (err) { alert("Connection Error: " + err.message); }
+};
+
+window.toggleFinanceApproval = async function(id, isChecked) {
+    const newStatus = isChecked ? 'APPROVED' : 'PENDING';
+    showToast(isChecked ? "Approving balance adjustment..." : "Reverting adjustment to pending...");
+    if (!SCRIPT_URL) return alert("SCRIPT_URL missing.");
+
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: 'approveFinanceAdjustment', id: id, financeStatus: newStatus })
+        });
+        const res = await response.json();
+        if (res && res.status === 'success') {
+            showToast(isChecked ? "✓ Balance adjustment approved!" : "Adjustment marked as pending.");
+            const item = applications.find(x => x.id === id);
+            if (item) item.financeStatus = newStatus;
+            openDrawer(id);
+            fetchDossiers();
+        } else {
+            alert("Error: " + (res.message || "Unknown error"));
+            openDrawer(id);
+        }
+    } catch (err) {
+        alert("Connection Error: " + err.message);
+        openDrawer(id);
+    }
 };
 
 window.changeStatus = async function(newStatus){
