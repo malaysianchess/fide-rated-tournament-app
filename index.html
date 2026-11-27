@@ -33,13 +33,11 @@
   h1, h2, h3, h4 { font-family: var(--font-display); }
   .material-symbols-outlined { font-size: 18px; vertical-align: middle; font-variation-settings: 'FILL' 0, 'wght' 450, 'GRAD' 0, 'opsz' 20; }
 
-  /* Views */
   .view { display: none; min-height: 100vh; }
   .view.active { animation: fadeSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
   @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-  /* Auth Gateway */
   .auth-view.active { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px; background: radial-gradient(circle at 15% 15%, rgba(225,29,72,0.16), transparent 42%), radial-gradient(circle at 85% 85%, rgba(245,158,11,0.12), transparent 42%), linear-gradient(180deg, #0B1120 0%, #020617 100%); position: relative; overflow: hidden; }
   .gateway { width: 100%; max-width: 440px; position: relative; z-index: 2; }
   .brand-head { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 24px; }
@@ -55,7 +53,6 @@
   .link-opt { font-size: 12px; font-weight: 600; color: var(--primary); cursor: pointer; text-decoration: none; }
   .link-opt:hover { color: var(--primary-hover); text-decoration: underline; }
 
-  /* Dashboard & Wizard Layout */
   .dash-view.active, .wizard-view.active { display: grid; grid-template-columns: 276px 1fr; }
   .rail { background: linear-gradient(180deg, #0B1120 0%, #070B14 100%); color: var(--text-light); padding: 28px 20px 24px; position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; border-right: 1px solid var(--sidebar-border); scrollbar-width: none; }
   .rail::-webkit-scrollbar { display: none; }
@@ -83,14 +80,12 @@
   .btn-logout { background: transparent; border: none; color: var(--text-sidebar-muted); font-family: var(--font); font-size: 13px; font-weight: 500; padding: 8px 10px; border-radius: var(--radius-xs); cursor: pointer; transition: all 0.18s ease; display: inline-flex; align-items: center; gap: 6px; }
   .btn-logout:hover { color: #FFF; background: rgba(255,255,255,0.08); }
 
-  /* Stage */
   .stage { padding: 36px 44px; overflow-y: auto; height: 100vh; background: var(--bg-body); }
   .stage-inner { max-width: 760px; margin: 0 auto; background: var(--surface); padding: 40px 44px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
   .stage-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
   .stage-header h2 { font-size: 26px; font-weight: 800; margin: 0; letter-spacing: -0.03em; color: var(--text-main); }
   .stage-header p { font-size: 14px; color: var(--text-muted); margin: 6px 0 0; }
 
-  /* Wizard Sidebar */
   .rail-lede { font-size: 13px; line-height: 1.6; color: var(--text-sidebar-muted); margin: 0 0 24px; padding-bottom: 20px; border-bottom: 1px solid var(--sidebar-border); }
   .board-progress { margin-bottom: 28px; }
   .board-progress .label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-sidebar-muted); margin: 0 0 14px; letter-spacing: 0.08em; display: flex; justify-content: space-between; }
@@ -113,7 +108,6 @@
   .dossier dt { color: var(--text-sidebar-muted); font-weight: 500; }
   .dossier dd { margin: 0; font-weight: 600; text-align: right; max-width: 62%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 
-  /* Forms */
   .step { display: none; animation: fadeSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
   .step.active { display: block; }
   .step-head { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
@@ -133,7 +127,6 @@
   input:disabled, select:disabled { background: var(--surface-subtle); color: var(--text-muted); cursor: not-allowed; border-color: var(--border); box-shadow: none; }
   input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--primary); cursor: pointer; border-radius: 4px; flex-shrink: 0; }
 
-  /* Buttons */
   .btn, .btn-submit { font-family: var(--font); font-weight: 600; font-size: 13px; padding: 10px 18px; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); display: inline-flex; justify-content: center; align-items: center; gap: 8px; line-height: 1.2; text-decoration: none; }
   .btn:hover, .btn-submit:hover { transform: translateY(-1px); }
   .btn:active, .btn-submit:active { transform: translateY(0); }
@@ -146,7 +139,6 @@
   .btn-gold:hover { box-shadow: 0 6px 14px rgba(245,158,11,0.32); }
   .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--border); }
 
-  /* Combobox & Fee Box */
   .combo { position: relative; }
   .combo-panel { position: absolute; z-index: 30; top: calc(100% + 6px); left: 0; right: 0; background: #FFF; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-md); max-height: 260px; overflow-y: auto; display: none; }
   .combo-panel.open { display: block; animation: fadeSlideUp 0.16s ease; }
@@ -159,7 +151,6 @@
   .fee-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 10px; color: var(--text-secondary); font-weight: 500; font-variant-numeric: tabular-nums; }
   .fee-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--border-strong); font-size: 20px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
 
-  /* Tables */
   .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-xs); overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; text-align: left; min-width: 720px; }
   th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); background: #F8FAFC; padding: 14px 20px; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -170,7 +161,6 @@
   .empty-state:hover { background: transparent !important; }
   .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 99px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; }
 
-  /* Drawer */
   .drawer-back { position: fixed; inset: 0; background: rgba(2,6,23,0.5); backdrop-filter: blur(4px); display: flex; justify-content: flex-end; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
   .drawer-back.open { opacity: 1; pointer-events: auto; }
   .drawer { background: var(--surface); width: 680px; max-width: 94vw; height: 100vh; overflow-y: auto; box-shadow: -20px 0 50px rgba(2,6,23,0.2); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -191,13 +181,11 @@
   .fide-copy-row b { font-size: 13px; color: var(--text-main); text-align: right; user-select: all; cursor: copy; }
   .drawer-footer { padding: 18px 28px; border-top: 1px solid var(--border); background: #F8FAFC; display: flex; justify-content: space-between; position: sticky; bottom: 0; z-index: 10; }
 
-  /* Toast & Errors */
   .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(16px); background: #0F172A; color: #FFF; padding: 12px 22px; border-radius: 99px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); border: 1px solid rgba(255,255,255,0.1); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 10px; z-index: 550; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
   .form-error { background: var(--primary-light); color: var(--primary-hover); font-size: 13px; font-weight: 600; padding: 11px 14px; border-radius: var(--radius-sm); margin-bottom: 16px; text-align: center; border: 1px solid var(--primary-border); display: none; }
 
-  /* Mobile */
   .mobile-nav-bar { display: none; }
   @media (max-width: 960px) {
     .dash-view.active, .wizard-view.active { display: flex; flex-direction: column; }
@@ -1074,14 +1062,21 @@ document.getElementById('btnSendReset').addEventListener('click', async () => {
     catch (err) { alert(err.message); }
 });
 
+function isPendingStateStatus(status) {
+    return status === 'PENDING STATE APPROVAL' || status === 'PENDING STATE';
+}
+function isPendingMcfStatus(status) {
+    return status === 'PENDING MCF ADMIN APPROVAL' || status === 'PENDING ADMIN';
+}
+
 function getBadgeStyle(status) {
-    if (status === 'PENDING STATE') return 'background:#FEF3C7; color:#92400E; border:1px solid #FCD34D;';
-    if (status === 'PENDING ADMIN') return 'background:#DBEAFE; color:#1E40AF; border:1px solid #BFDBFE;';
+    if (isPendingStateStatus(status)) return 'background:#FEF3C7; color:#92400E; border:1px solid #FCD34D;';
+    if (isPendingMcfStatus(status)) return 'background:#DBEAFE; color:#1E40AF; border:1px solid #BFDBFE;';
     if (status === 'APPROVED') return 'background:#D1FAE5; color:#065F46; border:1px solid #A7F3D0;';
     return 'background:#FEE2E2; color:#991B1B; border:1px solid #FECACA;';
 }
 function getStatusIcon(status) {
-    if (status === 'PENDING STATE' || status === 'PENDING ADMIN') return 'hourglass_empty';
+    if (isPendingStateStatus(status) || isPendingMcfStatus(status)) return 'hourglass_empty';
     if (status === 'APPROVED') return 'check_circle';
     return 'cancel';
 }
@@ -1130,8 +1125,8 @@ document.getElementById('btnRefreshOrg')?.addEventListener('click', fetchDossier
 function updateAdminCounts() {
     let viewableApps = currentUserProfile.role === 'state_admin' ? applications.filter(a => a.state === currentUserProfile.state) : applications;
     document.getElementById('cntAll').innerText = viewableApps.length;
-    document.getElementById('cntPendingState').innerText = viewableApps.filter(a => a.status === 'PENDING STATE').length;
-    document.getElementById('cntPendingAdmin').innerText = viewableApps.filter(a => a.status === 'PENDING ADMIN').length;
+    document.getElementById('cntPendingState').innerText = viewableApps.filter(a => isPendingStateStatus(a.status)).length;
+    document.getElementById('cntPendingAdmin').innerText = viewableApps.filter(a => isPendingMcfStatus(a.status)).length;
     document.getElementById('cntApproved').innerText = viewableApps.filter(a => a.status === 'APPROVED').length;
     document.getElementById('cntRevision').innerText = viewableApps.filter(a => a.status === 'REVISION REQ.').length;
     document.getElementById('statFees').innerText = 'RM ' + viewableApps.filter(a => a.status === 'APPROVED').reduce((s, a) => s + (Number(a.fee) || 0), 0).toLocaleString();
@@ -1144,10 +1139,12 @@ function renderAdminTable() {
     let filtered = applications;
     if (currentUserProfile.role === 'state_admin') filtered = filtered.filter(a => a.state === currentUserProfile.state);
     else if (selectedStateFilter !== 'all') filtered = filtered.filter(a => a.state === selectedStateFilter);
-    if (currentFilterAdmin !== 'all') {
-        let target = currentFilterAdmin === 'pending_state' ? 'PENDING STATE' : currentFilterAdmin === 'pending_admin' ? 'PENDING ADMIN' : currentFilterAdmin === 'approved' ? 'APPROVED' : 'REVISION REQ.';
-        filtered = filtered.filter(a => a.status === target);
-    }
+
+    if (currentFilterAdmin === 'pending_state') filtered = filtered.filter(a => isPendingStateStatus(a.status));
+    else if (currentFilterAdmin === 'pending_admin') filtered = filtered.filter(a => isPendingMcfStatus(a.status));
+    else if (currentFilterAdmin === 'approved') filtered = filtered.filter(a => a.status === 'APPROVED');
+    else if (currentFilterAdmin === 'revision') filtered = filtered.filter(a => a.status === 'REVISION REQ.');
+
     if (searchQ.trim() !== '') {
         const q = searchQ.toLowerCase();
         filtered = filtered.filter(a => (a.eventName || '').toLowerCase().includes(q) || (a.organizerEmail || '').toLowerCase().includes(q) || (a.id || '').toLowerCase().includes(q));
@@ -1167,8 +1164,8 @@ document.getElementById('stateFilter').addEventListener('change', e => { selecte
 function updateOrgCounts() {
     const myApps = applications.filter(a => a.organizerEmail === currentUserProfile.email);
     document.getElementById('cntOrgAll').innerText = myApps.length;
-    document.getElementById('cntOrgPendingState').innerText = myApps.filter(a => a.status === 'PENDING STATE').length;
-    document.getElementById('cntOrgPendingAdmin').innerText = myApps.filter(a => a.status === 'PENDING ADMIN').length;
+    document.getElementById('cntOrgPendingState').innerText = myApps.filter(a => isPendingStateStatus(a.status)).length;
+    document.getElementById('cntOrgPendingAdmin').innerText = myApps.filter(a => isPendingMcfStatus(a.status)).length;
     document.getElementById('cntOrgApproved').innerText = myApps.filter(a => a.status === 'APPROVED').length;
     document.getElementById('cntOrgRevision').innerText = myApps.filter(a => a.status === 'REVISION REQ.').length;
 }
@@ -1177,10 +1174,12 @@ function renderOrgTable() {
     const tbody = document.getElementById('tableBodyOrg');
     if (!tbody) return; tbody.innerHTML = '';
     let myApps = applications.filter(a => a.organizerEmail === currentUserProfile.email);
-    if (currentFilterOrg !== 'all') {
-        let target = currentFilterOrg === 'pending_state' ? 'PENDING STATE' : currentFilterOrg === 'pending_admin' ? 'PENDING ADMIN' : currentFilterOrg === 'approved' ? 'APPROVED' : 'REVISION REQ.';
-        myApps = myApps.filter(a => a.status === target);
-    }
+
+    if (currentFilterOrg === 'pending_state') myApps = myApps.filter(a => isPendingStateStatus(a.status));
+    else if (currentFilterOrg === 'pending_admin') myApps = myApps.filter(a => isPendingMcfStatus(a.status));
+    else if (currentFilterOrg === 'approved') myApps = myApps.filter(a => a.status === 'APPROVED');
+    else if (currentFilterOrg === 'revision') myApps = myApps.filter(a => a.status === 'REVISION REQ.');
+
     if (myApps.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No applications found in this category.</td></tr>`; return; }
     myApps.forEach(app => {
         const tr = document.createElement('tr');
@@ -1383,10 +1382,52 @@ window.openDrawer = function(id) {
     ${tunSectionHtml}
     <div style="margin-top:28px;"><button class="btn btn-ghost" onclick="generateDossierPDF('${t.id}')" style="width:100%; border-style:dashed; padding:13px;"><span class="material-symbols-outlined">picture_as_pdf</span> Download Official Summary PDF</button></div>`;
 
-    const isAdmin = ['admin', 'core_admin', 'state_admin'].includes(currentUserProfile.role);
-    document.getElementById('drawerFooter').innerHTML = isAdmin
-        ? `<div style="display:flex; gap:10px; width:100%; justify-content:space-between; align-items:center; flex-wrap:wrap;"><button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger); border-color:#FECACA;"><span class="material-symbols-outlined">block</span> Reject</button><div style="display:flex; gap:10px;"><button class="btn btn-gold" onclick="changeStatus('REVISION REQ.')"><span class="material-symbols-outlined">edit_note</span> Revision</button><button class="btn btn-primary" onclick="changeStatus('APPROVED')" style="background:linear-gradient(180deg, #10B981, #059669); border:none; box-shadow:0 3px 10px rgba(16,185,129,0.28);"><span class="material-symbols-outlined">verified</span> Approve</button></div></div>`
-        : `<div style="width:100%; text-align:right;"><button class="btn btn-ghost" onclick="closeDrawer()"><span class="material-symbols-outlined">close</span> Close</button></div>`;
+    const isStateAdmin = currentUserProfile.role === 'state_admin';
+    const isPendingState = isPendingStateStatus(t.status);
+    const isPendingMCF = isPendingMcfStatus(t.status);
+
+    let footerHtml = `<div style="width:100%; text-align:right;"><button class="btn btn-ghost" onclick="closeDrawer()"><span class="material-symbols-outlined">close</span> Close</button></div>`;
+
+    if (isStateAdmin) {
+        if (isPendingState || t.status === 'REVISION REQ.') {
+            footerHtml = `
+            <div style="display:flex; gap:10px; width:100%; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                <button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger); border-color:#FECACA;"><span class="material-symbols-outlined">block</span> Reject</button>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-gold" onclick="changeStatus('REVISION REQ.')"><span class="material-symbols-outlined">edit_note</span> Revision</button>
+                    <button class="btn btn-primary" onclick="changeStatus('PENDING MCF ADMIN APPROVAL')" style="background:linear-gradient(180deg, #2563EB, #1D4ED8); border:none; box-shadow:0 3px 10px rgba(37,99,235,0.28);"><span class="material-symbols-outlined">verified</span> State Approve (Send to MCF)</button>
+                </div>
+            </div>`;
+        } else {
+            footerHtml = `
+            <div style="display:flex; width:100%; justify-content:space-between; align-items:center; gap:10px;">
+                <span style="font-size:12px; color:var(--text-muted); font-weight:600;">${isPendingMCF ? '✓ Endorsed by State — Awaiting MCF Admin Approval' : 'Status: ' + t.status}</span>
+                <button class="btn btn-ghost" onclick="closeDrawer()"><span class="material-symbols-outlined">close</span> Close</button>
+            </div>`;
+        }
+    } else if (isMCFAdmin) {
+        if (isPendingState) {
+            footerHtml = `
+            <div style="display:flex; gap:10px; width:100%; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                <button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger); border-color:#FECACA;"><span class="material-symbols-outlined">block</span> Reject</button>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button class="btn btn-gold" onclick="changeStatus('REVISION REQ.')"><span class="material-symbols-outlined">edit_note</span> Revision</button>
+                    <button class="btn btn-ghost" disabled title="State Admin must approve first" style="cursor:not-allowed; opacity:0.65;"><span class="material-symbols-outlined">lock</span> Awaiting State Approval</button>
+                </div>
+            </div>`;
+        } else {
+            footerHtml = `
+            <div style="display:flex; gap:10px; width:100%; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                <button class="btn btn-ghost" onclick="changeStatus('REJECTED')" style="color:var(--danger); border-color:#FECACA;"><span class="material-symbols-outlined">block</span> Reject</button>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-gold" onclick="changeStatus('REVISION REQ.')"><span class="material-symbols-outlined">edit_note</span> Revision</button>
+                    <button class="btn btn-primary" onclick="changeStatus('APPROVED')" style="background:linear-gradient(180deg, #10B981, #059669); border:none; box-shadow:0 3px 10px rgba(16,185,129,0.28);"><span class="material-symbols-outlined">verified</span> MCF Final Approve</button>
+                </div>
+            </div>`;
+        }
+    }
+
+    document.getElementById('drawerFooter').innerHTML = footerHtml;
     document.getElementById('drawerBack').classList.add('open');
 };
 
